@@ -37,7 +37,9 @@ Zonal to ~10k-acre hexes (mean unless noted):
 | `WRTC_HU_DENSITY_MEAN` or `WRTC_HU_COUNT_SUM` | Housing Unit Density / Count |
 | `WRTC_RRZONE_MAJORITY` | CWiRRZ (optional categorical) |
 
-**v1 decision rule:** “high homes” uses **Housing Unit Risk** (top ~30% of hex means). Exposure can be shown alongside or used in a people-first variant. Count/density prevents treating empty high-RPS landscape as “communities.”
+**v1 decision rule:** “high homes” uses **Housing Unit Risk** hex mean (top ~30%). Exposure can be shown alongside. Count/density prevents treating empty high-RPS landscape as “communities.”
+
+**Default Goldilocks ranking** uses the people-first preset (`SCORE_PEOPLE`), which weights Housing Unit Risk most heavily.
 
 ## Relation to WFE
 

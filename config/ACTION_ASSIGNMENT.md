@@ -1,14 +1,17 @@
 # v1 action assignment
 
+**Default ranking:** people-first (`SCORE_PEOPLE` → Goldilocks 5%/10%).  
+**PAD:** GAP 1–3 multiplier only. **Recreation:** deferred. **Resilient lands:** optional later.
+
 ## Roles of each input
 
 | Input | Picks **action class**? | Role |
 |-------|-------------------------|------|
-| EVT peat | Yes | → `defer_monitor` |
+| EVT peat | Yes | → `defer_monitor` (LANDFIRE now; USFS peat later) |
 | EVT plantation | Yes | → **always** `protect_from_wildfire` (economic asset) |
-| WRTC (homes) | Yes | → `protect_from_wildfire` |
+| WRTC **Housing Unit Risk** | Yes | → `protect_from_wildfire` when high |
 | WFE | Yes | High → `restore_beneficial_fire` (if not peat / already protect) |
-| **PAD-US** | **No** | **Multiplier on priority score only** (management feasibility + high biodiversity/recreation value) |
+| **PAD-US GAP 1–3** | **No** | **Multiplier on priority only**. Status 4 excluded. |
 | Disturbances | Later | Calibrate when toggle on |
 
 Plantations may also get a **treatment hint** (silviculture / silviculture-then-fire) = *how* you protect the asset — not a separate action class in v1.
@@ -17,7 +20,7 @@ Plantations may also get a **treatment hint** (silviculture / silviculture-then-
 
 1. **Peat** → `defer_monitor`
 2. **Plantation** → `protect_from_wildfire` (always)
-3. **High WRTC** → `protect_from_wildfire`
+3. **High WRTC Housing Unit Risk** → `protect_from_wildfire`
 4. **High WFE** → `restore_beneficial_fire`
 5. **Else** → `defer_monitor`
 
@@ -25,25 +28,30 @@ PAD never appears in this list. People + high WFE **outside** PAD still get prot
 
 ## Priority score (Goldilocks)
 
+### PAD-US (GAP Status 1–3 only)
+
+Hex field `PADUS_FRAC` = overlap with PAD features where GAP Status ∈ {1, 2, 3}. Status 4 excluded.
+
+| Role | Detail |
+|------|--------|
+| Action class? | **No** |
+| Priority? | **Yes** — multiplier for management feasibility + conservation/multiple-use mandate |
+
 ```text
-base   = w_homes×WRTC + w_plantations×plantation_flag + w_wfe×WFE
+base   = w_homes×WRTC_HU_Risk + w_plantations×plantation_flag + w_wfe×WFE
 score  = base × (1 + w_pad_multiplier × PADUS_FRAC)
 ```
 
-- Outside PAD (`PADUS_FRAC ≈ 0`): multiplier = 1.0 — homes×WFE still rank high.
-- Inside PAD: score is boosted (easier management context + conservation/recreation value).
-- Preset `biodiversity_recreation_first` uses a larger `w_pad_multiplier`.
+Presets (`config/weight_presets.csv`):
 
-### PAD categories (think-through; refine later)
+| preset_id | Role |
+|-----------|------|
+| `people_first` | **Default Goldilocks** |
+| `plantation_asset_first` | Boost plantations |
+| `pad_first` | Strong PAD GAP 1–3 boost (not a biodiversity model) |
+| `balanced` | Even mix |
 
-v1 uses **any PAD overlap fraction** as the multiplier. Later, differentiate by PAD attributes:
-
-| PAD flavor | Why it matters | Suggested later weight |
-|------------|----------------|------------------------|
-| Fee / federal / state / county | Higher ops feasibility (not small private) | Stronger multiplier |
-| Easement / private conserved | High value, variable access/ops | Medium |
-| Local parks / recreation | Value + some ops | Medium |
-| Unknown / other | Weak signal | Low |
+**TNC Resilient Lands** (optional later) add climate resilience, connectivity, and nature value *off* the protected estate—see `PADUS_AND_RESILIENT.md`. Do not treat PAD 1–3 as a full biodiversity model.
 
 Do **not** require PAD for Protect — WUI and plantations often sit outside PAD.
 

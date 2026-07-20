@@ -1,6 +1,7 @@
 """Export scored hexes to outputs/hex/ for the Quarto dashboard (commit these).
 
 Writes GeoJSON + CSV. Prefer GeoJSON for GitHub Pages.
+Includes ACTION_CLASS, SCORE_PEOPLE (people-first default), SCORE_PAD, Goldilocks flags.
 """
 
 from __future__ import annotations

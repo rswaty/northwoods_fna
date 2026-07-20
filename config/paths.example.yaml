@@ -32,8 +32,12 @@ whp: ""
 burn_probability: ""
 
 # Vectors
+# PAD-US: filter to GAP Status 1-3 in zonal step (see config/PADUS_AND_RESILIENT.md)
 padus: "C:/path/to/PADUS.gdb/PADUS_Fee"
+padus_gap_field: "GAP_Sts"
+padus_gap_include: "1,2,3"
 # optional later
+resilient_lands: ""
 plantations: ""
 infrastructure: ""
 mills: ""

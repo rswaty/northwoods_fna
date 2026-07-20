@@ -1,7 +1,9 @@
-"""Summarize LANDFIRE EVT (majority) and PAD-US overlap onto working hexes.
+"""Summarize LANDFIRE EVT (majority) and PAD-US GAP Status 1–3 overlap onto hexes.
 
 Expects 02_zonal_wrtc.py to have created `hex_wrtc` in the workspace, or falls
 back to the source hexes path and creates `hex_scored_work`.
+
+PAD: selects GAP_Sts in {1,2,3} only → PADUS_FRAC. See config/PADUS_AND_RESILIENT.md.
 """
 
 from __future__ import annotations
@@ -64,10 +66,23 @@ def main() -> None:
         print("Skipping EVT (landfire_evt empty or not found)")
 
     if padus and arcpy.Exists(padus):
-        print(f"PAD-US overlap fraction: {padus}")
-        # Intersect then summarize area / hex area → PADUS_FRAC
+        print(f"PAD-US overlap fraction (GAP Status 1-3): {padus}")
+        gap_field = cfg.get("padus_gap_field", "GAP_Sts")
+        # Prefer a layer/file already filtered to GAP 1-3; otherwise SelectLayerByAttribute
+        padus_in = padus
+        if gap_field:
+            arcpy.management.MakeFeatureLayer(padus, "padus_lyr")
+            # GAP_Sts may be text or numeric depending on download
+            where = (
+                f"{gap_field} IN (1, 2, 3, '1', '2', '3')"
+            )
+            arcpy.management.SelectLayerByAttribute("padus_lyr", "NEW_SELECTION", where)
+            padus_in = "padus_lyr"
+            n_sel = int(arcpy.management.GetCount(padus_in)[0])
+            print(f"  Selected {n_sel} PAD features with {gap_field} in 1-3")
+
         inter = "hex_padus_inter"
-        arcpy.analysis.Intersect([hexes, padus], inter, "ALL", None, "INPUT")
+        arcpy.analysis.Intersect([hexes, padus_in], inter, "ALL", None, "INPUT")
         if "PADUS_FRAC" not in [f.name for f in arcpy.ListFields(hexes)]:
             arcpy.management.AddField(hexes, "PADUS_FRAC", "DOUBLE")
 
@@ -92,7 +107,7 @@ def main() -> None:
                 ha = hex_area.get(row[0]) or 0.0
                 row[1] = (inter_area.get(row[0], 0.0) / ha) if ha else 0.0
                 cur.updateRow(row)
-        print("Added PADUS_FRAC")
+        print("Added PADUS_FRAC (GAP 1-3 only)")
     else:
         print("Skipping PAD-US (padus empty or not found)")
 

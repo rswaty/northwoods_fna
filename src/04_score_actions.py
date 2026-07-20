@@ -1,6 +1,11 @@
 """Assign action class + weighted priority scores from config tables.
 
-v1: plantations always protect; PAD multiplies priority only.
+v1:
+  - Actions: peat→defer; plantation→protect; high WRTC HU Risk→protect;
+    high WFE→restore beneficial fire; else defer
+  - PAD GAP 1–3 multiplies priority only (not action)
+  - Goldilocks top 5%/10% use people_first (SCORE_PEOPLE)
+
 See config/ACTION_ASSIGNMENT.md.
 """
 
@@ -84,7 +89,7 @@ def main() -> None:
         ("TREATMENT_HINT", "TEXT", 40),
         ("SCORE_PEOPLE", "DOUBLE", None),
         ("SCORE_PLANTATION", "DOUBLE", None),
-        ("SCORE_BIODIV", "DOUBLE", None),
+        ("SCORE_PAD", "DOUBLE", None),
         ("SCORE_BALANCED", "DOUBLE", None),
         ("GOLDILOCKS_5", "SHORT", None),
         ("GOLDILOCKS_10", "SHORT", None),
@@ -101,9 +106,16 @@ def main() -> None:
             arcpy.management.AddField(hexes, name, ftype)
 
     field_names = [f.name for f in arcpy.ListFields(hexes)]
+    # Prefer WRTC_HU_RISK_MEAN; fall back to legacy WRTC_HU_MEAN
+    homes_field = None
+    for candidate in ("WRTC_HU_RISK_MEAN", "WRTC_HU_MEAN"):
+        if candidate in field_names:
+            homes_field = candidate
+            break
+
     read_fields = [hex_id, wfe_field]
-    for optional in ("EVT_MAJORITY", "WRTC_HU_MEAN", "PADUS_FRAC", wfe_cat_field):
-        if optional in field_names and optional not in read_fields:
+    for optional in ("EVT_MAJORITY", homes_field, "PADUS_FRAC", wfe_cat_field):
+        if optional and optional in field_names and optional not in read_fields:
             read_fields.append(optional)
 
     records = []
@@ -118,7 +130,7 @@ def main() -> None:
                     "evt_key": evt_key,
                     "wfe": _norm(rec.get(wfe_field)) or 0.0,
                     "wfe_cat": rec.get(wfe_cat_field) if wfe_cat_field in read_fields else None,
-                    "homes": _norm(rec.get("WRTC_HU_MEAN")) or 0.0,
+                    "homes": (_norm(rec.get(homes_field)) or 0.0) if homes_field else 0.0,
                     "pad": _norm(rec.get("PADUS_FRAC")) or 0.0,
                     "peat": evt_key in peat_codes,
                     "plantation": evt_key in plant_codes,
@@ -170,13 +182,14 @@ def main() -> None:
                 "PEAT_HEX": 1 if rec["peat"] else 0,
                 "SCORE_PEOPLE": score("people_first"),
                 "SCORE_PLANTATION": score("plantation_asset_first"),
-                "SCORE_BIODIV": score("biodiversity_recreation_first"),
+                "SCORE_PAD": score("pad_first"),
                 "SCORE_BALANCED": score("balanced"),
             }
         )
 
-    top5 = _rank_flags([(r["id"], r["SCORE_BALANCED"]) for r in rows_out], 0.05)
-    top10 = _rank_flags([(r["id"], r["SCORE_BALANCED"]) for r in rows_out], 0.10)
+    # Default Goldilocks = people-first ranking
+    top5 = _rank_flags([(r["id"], r["SCORE_PEOPLE"]) for r in rows_out], 0.05)
+    top10 = _rank_flags([(r["id"], r["SCORE_PEOPLE"]) for r in rows_out], 0.10)
     by_id = {r["id"]: r for r in rows_out}
 
     update_fields = [
@@ -187,7 +200,7 @@ def main() -> None:
         "PEAT_HEX",
         "SCORE_PEOPLE",
         "SCORE_PLANTATION",
-        "SCORE_BIODIV",
+        "SCORE_PAD",
         "SCORE_BALANCED",
         "GOLDILOCKS_5",
         "GOLDILOCKS_10",
@@ -203,7 +216,7 @@ def main() -> None:
             row[4] = r["PEAT_HEX"]
             row[5] = r["SCORE_PEOPLE"]
             row[6] = r["SCORE_PLANTATION"]
-            row[7] = r["SCORE_BIODIV"]
+            row[7] = r["SCORE_PAD"]
             row[8] = r["SCORE_BALANCED"]
             row[9] = 1 if row[0] in top5 else 0
             row[10] = 1 if row[0] in top10 else 0
@@ -215,6 +228,7 @@ def main() -> None:
             "peat/plantation flags stay off. See config/ACTION_ASSIGNMENT.md."
         )
     print(f"WFE top-30% cutoff={wfe_p30:.4g}; WRTC top-30% cutoff={homes_p30:.4g}")
+    print("Goldilocks flags use people_first scores (SCORE_PEOPLE).")
     print(f"Scored {len(rows_out)} hexes on {hexes}")
     print("Next: 05_export_hex_geojson.py")
 

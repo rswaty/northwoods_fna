@@ -1,3 +1,3 @@
 evt_group,evt_code,evt_name_pattern,plantation_flag,peat_caution,notes
-peat_wetland,,"*peat*|*bog*|*fen*|*muskeg*|*organic*",no,yes,EVT job 1: hard defer on action type. Add LANDFIRE codes in evt_code (comma-separated) when clip is classified.
-plantation,,"*plantation*|*planted*",yes,no,EVT job 2: flag asset + route to silviculture / silviculture-then-fire. Add codes when ready.
+peat_wetland,,"*peat*|*bog*|*fen*|*muskeg*|*organic*",no,yes,"v1: LANDFIRE EVT name/code flags. Later: swap in USFS peatlands dataset (same PEAT_HEX flag; do not rebuild cascade)."
+plantation,,"*plantation*|*planted*",yes,no,EVT job 2: flag asset + always Protect. Add codes when ready.

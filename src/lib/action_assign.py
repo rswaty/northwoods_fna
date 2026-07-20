@@ -1,6 +1,8 @@
-"""v1 action cascade: EVT = peat + plantations; WFE/WRTC for other actions.
+"""v1 action cascade + priority scoring helpers.
 
-PAD-US is not used to pick action class — it multiplies priority scores only.
+Actions: peat / plantation / WRTC HU Risk / WFE (PAD is not an action input).
+Default Goldilocks ranking: people_first.
+PAD GAP 1–3 is a priority multiplier only.
 """
 
 from __future__ import annotations
@@ -72,7 +74,7 @@ def priority_score(
     w_wfe: float,
     w_pad_multiplier: float,
 ) -> float:
-    """Base urgency × PAD multiplier (feasibility + conservation/recreation value).
+    """Base urgency × PAD multiplier (feasibility + conservation/multiple-use mandate).
 
     High WRTC × high WFE outside PAD still scores from the base terms.
     PAD only boosts; it never zeroes out a hex.
