@@ -41,3 +41,4 @@ outputs/large/
 *.sd
 esriMap*/
 
+.Rproj.user
