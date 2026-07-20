@@ -1,6 +1,6 @@
-# Next Gen FNA — Northwoods
+# Next Gen FAA — Northwoods
 
-Map **what to do where** to reduce wildfire risk across northern MI, WI, and MN Arrowhead.
+**FAA = Fire Action Assessment** — map **what to do where** to reduce wildfire risk across northern MI, WI, and MN Arrowhead.
 
 Strategic screening only — not NEPA, tribal consultation, or stand prescriptions.
 
@@ -12,7 +12,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 | **People** | WRTC **Housing Unit Risk** (primary); Exposure + Density/Count as companions — see `config/WRTC_DATASETS.md` |
 | **Plantations** | EVT flag → always **Protect from wildfire** (silviculture = `TREATMENT_HINT` only) |
 | **Peat** | LANDFIRE EVT → **Defer** (swap to USFS peatlands later; same flag) |
-| **PAD-US** | GAP Status **1–3 only** → priority **multiplier** (feasibility / mandate). Not an action picker. Status 4 out. |
+| **PAD-US** | GAP Status **1–3 only** → priority **multiplier** (feasibility / mandate). Not an action picker. Status 4 out. Raster or polygon OK. |
 | **Ranking default** | **People-first** Goldilocks (top 5% / 10%). Also: plantation-asset-first, **PAD-first**, balanced |
 | **Recreation** | Deferred |
 | **TNC Resilient Lands** | Optional later second multiplier — does not change actions; re-orders priority (including off PAD). See `config/PADUS_AND_RESILIENT.md` |
@@ -25,7 +25,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 4. High WFE → restore beneficial fire  
 5. Else → defer  
 
-Details: `config/ACTION_ASSIGNMENT.md` · brief: `next_gen_fna.html`
+Details: `config/ACTION_ASSIGNMENT.md` · brief: `next_gen_faa.html`
 
 ## Workflow
 
@@ -58,17 +58,17 @@ data/disturbances/
 outputs/hex/     # scored hex GeoJSON for the dashboard (commit these)
 dashboard/       # R Quarto → GitHub Pages
 docs/            # Pages output folder (optional)
-next_gen_fna.*   # working brief
+next_gen_faa.*   # working brief
 ```
 
 ## Quick start (ArcGIS Pro)
 
 1. Clone this repo.
 2. Copy `config/paths.example.yaml` → `config/paths.local.yaml` and set local paths (gitignored).
-3. Stage in Pro: WFE hexes, WRTC HU Risk (+ optional Exposure/Density), LANDFIRE EVT, PAD-US.
+3. Stage in Pro: WFE hexes, WRTC HU Risk (+ optional Exposure/Density), LANDFIRE EVT, PAD-US (raster OK).
 4. Add peat/plantation EVT codes to `config/evt_rules_draft.csv` when classified.
 5. Run `src/01` → `05` in Pro Python (see `src/README.md`).
-6. Push `outputs/hex/` GeoJSON; render `dashboard/` in Quarto.
+6. Push `outputs/hex/faa_hex_scores.geojson`; render `dashboard/` in Quarto.
 
 ## Prior work (read-only)
 
@@ -77,4 +77,4 @@ next_gen_fna.*   # working brief
 
 ## Brief
 
-See `next_gen_fna.html` (also `.md` / `.txt` / `.odt`).
+See `next_gen_faa.html` (also `.md` / `.txt` / `.odt`).

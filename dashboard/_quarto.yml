@@ -3,7 +3,7 @@ project:
   output-dir: ../docs/dashboard
 
 website:
-  title: "Next Gen FNA — Northwoods"
+  title: "Next Gen FAA — Northwoods"
   navbar:
     left:
       - href: index.qmd

@@ -1,6 +1,6 @@
 ---
-title: "Next Gen FNA — Northwoods (draft)"
-subtitle: "Action classes on WFE hexes — strategic screening only"
+title: "Next Gen FAA — Northwoods (draft)"
+subtitle: "Fire Action Assessment — strategic screening only"
 format:
   html:
     page-layout: full
@@ -15,7 +15,7 @@ library(sf)
 library(leaflet)
 library(dplyr)
 
-hex_path <- "../outputs/hex/fna_hex_scores.geojson"
+hex_path <- "../outputs/hex/faa_hex_scores.geojson"
 has_hex <- file.exists(hex_path)
 ```
 
@@ -27,7 +27,7 @@ Strategic screening map for northern MI, WI, and MN Arrowhead. Scores and action
 if (!has_hex) {
   cat(
     "**No hex output yet.** Run the Pro pipeline through `05_export_hex_geojson.py`, ",
-    "commit `outputs/hex/fna_hex_scores.geojson`, then re-render this dashboard.\n"
+    "commit `outputs/hex/faa_hex_scores.geojson`, then re-render this dashboard.\n"
   )
 } else {
   hex <- st_read(hex_path, quiet = TRUE)

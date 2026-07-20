@@ -1,4 +1,4 @@
-# WRTC / Wildfire Risk to Communities — datasets for Next Gen FNA
+# WRTC / Wildfire Risk to Communities — datasets for Next Gen FAA
 
 Source: [wildfirerisk.org/download](https://wildfirerisk.org/download/) · GIS by state via Forest Service Research Data Archive (May 2024 update).  
 Download **MI, WI, MN** (and clip to AOI in Pro). **Never commit rasters.**
@@ -7,7 +7,7 @@ Official family name is **Wildfire Risk to Communities (WRC/WRTC)**.
 
 ## Proposed stack (use multiple)
 
-| Priority | Dataset | What it is | Use in FNA |
+| Priority | Dataset | What it is | Use in FAA |
 |----------|---------|------------|------------|
 | **1 — primary people risk** | **Housing Unit Risk** (`HURisk`) | Likelihood + intensity + home susceptibility + housing density; only where housing exists | Main `w_homes` term; drives “high WRTC → protect_from_wildfire” |
 | **2 — exposure companion** | **Housing Unit Exposure** (`HUExposure`) | Expected housing units exposed per year (likelihood × housing density) | Second people metric / dashboard toggle; “homes in the fire pathway” without full consequence |

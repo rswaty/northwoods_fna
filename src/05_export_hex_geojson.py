@@ -26,8 +26,8 @@ def main() -> None:
         raise SystemExit(f"Working hexes not found: {hexes}")
 
     out_dir = ensure_output_dir(cfg)
-    geojson = Path(cfg.get("output_hex_geojson") or (out_dir / "fna_hex_scores.geojson"))
-    csv_path = Path(cfg.get("output_hex_csv") or (out_dir / "fna_hex_scores.csv"))
+    geojson = Path(cfg.get("output_hex_geojson") or (out_dir / "faa_hex_scores.geojson"))
+    csv_path = Path(cfg.get("output_hex_csv") or (out_dir / "faa_hex_scores.csv"))
     geojson.parent.mkdir(parents=True, exist_ok=True)
 
     # WGS84 for web maps

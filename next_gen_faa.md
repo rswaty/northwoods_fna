@@ -1,8 +1,8 @@
-Next Gen FNA — Northwoods
+Next Gen FAA — Northwoods
 
-# Next Gen FNA — Northwoods
+# Next Gen FAA — Northwoods
 
-Internal working brief. Region: northern Michigan, Wisconsin, and Minnesota Arrowhead.
+Internal working brief. **FAA = Fire Action Assessment** (what to do where). Region: northern Michigan, Wisconsin, and Minnesota Arrowhead.
 
 **Goal:** Map *what to do where* to reduce wildfire risk to people, ecosystems, and services (water, carbon; recreation deferred)—code-driven, customizable, multi-state, with a manageable (“Goldilocks”) treatment footprint.
 

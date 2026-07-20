@@ -1,4 +1,4 @@
-"""Load local ArcGIS paths for Next Gen FNA scripts.
+"""Load local ArcGIS paths for Next Gen FAA (Fire Action Assessment) scripts.
 
 Copy config/paths.example.yaml → config/paths.local.yaml and edit.
 Uses a tiny flat-YAML reader so ArcGIS Pro does not need PyYAML.

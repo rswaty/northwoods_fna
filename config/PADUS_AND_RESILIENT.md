@@ -11,7 +11,14 @@ Use **GAP Status Codes 1–3 only** (exclude Status 4).
 | 3 | Permanent protection from conversion; multiple use allowed (e.g. many National Forests, state forests) | Yes |
 | 4 | No known mandate against conversion / unknown | **No** |
 
-Hex field: `PADUS_FRAC` = fraction of hex overlapping PAD features with `GAP_Sts` in {1,2,3}.
+Hex field: `PADUS_FRAC` = fraction of hex that is GAP Status 1–3.
+
+**Input format:** raster *or* polygons.
+
+| Format | How `03_zonal_evt_padus.py` works |
+|--------|-----------------------------------|
+| **Raster** (preferred here) | Cell values = GAP codes. Binary 1 where code ∈ {1,2,3}, else 0; zonal **MEAN** = `PADUS_FRAC`. Set `padus_type: raster` in paths. |
+| **Polygons** | Select `GAP_Sts` in 1–3, intersect, area fraction. Set `padus_type: polygon`. |
 
 **Role:** priority **multiplier** for (a) management feasibility on non-small-ownership lands and (b) lands with a conservation/multiple-use mandate. Does **not** pick action class. High WRTC × high WFE outside PAD still ranks.
 
@@ -19,7 +26,7 @@ Weight presets: **people_first** (default Goldilocks), plantation_asset_first, *
 
 ## What TNC Resilient Lands would do *in this analysis*
 
-People-first FNA question: where should limited work go to reduce wildfire risk to homes (and plantations), with sensible ecosystem deferrals?
+People-first FAA question: where should limited work go to reduce wildfire risk to homes (and plantations), with sensible ecosystem deferrals?
 
 PAD 1–3 already answers: “boost places where agencies/partners can act and land has a conservation/multiple-use mandate.”
 

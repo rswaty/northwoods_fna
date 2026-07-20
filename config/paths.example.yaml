@@ -31,10 +31,11 @@ landfire_evt: "D:/northwoods_faa/MyProject.gdb/nw_aoi_evt"
 whp: ""
 burn_probability: ""
 
-
-# PAD-US: filter to GAP Status 1-3 in zonal step (see config/PADUS_AND_RESILIENT.md)
+# PAD-US as raster: cell values = GAP status codes (1-4). Script keeps 1-3 → PADUS_FRAC.
+# See config/PADUS_AND_RESILIENT.md. Set padus_type: polygon if using vector PAD instead.
 padus: "D:/northwoods_faa/MyProject.gdb/nw_aoi_pad_5070"
-padus_gap_field: "GAP_Sts"
+padus_type: "raster"
+padus_gap_field: "GAP_Sts"   # polygons only
 padus_gap_include: "1,2,3"
 # optional later
 resilient_lands: ""
@@ -48,5 +49,5 @@ disturbances_dir: "data/disturbances"
 
 # Where scripts write hex outputs for GitHub / Quarto
 output_hex_dir: "outputs/hex"
-output_hex_geojson: "outputs/hex/fna_hex_scores.geojson"
-output_hex_csv: "outputs/hex/fna_hex_scores.csv"
+output_hex_geojson: "outputs/hex/faa_hex_scores.geojson"
+output_hex_csv: "outputs/hex/faa_hex_scores.csv"
