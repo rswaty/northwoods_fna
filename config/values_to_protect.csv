@@ -1,0 +1,5 @@
+value_id,label,map_with,notes,active_v1
+homes_communities,Homes and communities,WRTC Housing Unit Risk (primary); Housing Unit Exposure + Density/Count as companions,See config/WRTC_DATASETS.md; can be high outside PAD,yes
+plantations,Timber plantations,EVT / local plantation layers,Always ACTION_CLASS=protect_from_wildfire; silviculture is treatment hint only,yes
+infrastructure,Critical infrastructure,Partner layers when available,Placeholder until partner layer exists,no
+padus_context,PAD-US management / conservation context,PAD-US,Not a values-to-protect row for action class — priority multiplier (feasibility + biodiversity/recreation). Refine by PAD category later.,yes

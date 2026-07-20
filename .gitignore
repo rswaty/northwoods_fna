@@ -2,10 +2,42 @@
 .venv/
 __pycache__/
 *.pyc
+
+# Local ArcGIS path overrides (keep secrets / machine paths off GitHub)
+config/paths.local.yaml
+config/paths.local.yml
+
+# Never commit rasters or bulky raster archives — hexes / small vectors OK on GitHub
 *.tif
 *.tiff
 *.img
+*.bil
+*.hdr
+*.vrt
+*.ovr
+*.aux.xml
+*.nc
+*.h5
+*.hdf
+*.sid
+*.jp2
 *.zip
-*.gpkg
+*.7z
+*.tar
+*.gz
+*.gdb/
+
 data/raw/
+data/rasters/
+outputs/rasters/
 outputs/large/
+
+# ArcGIS Pro local project (rasters/GDB stay with Pro; scripts live in src/)
+*.aprx
+*.atbx
+*.gdb/
+*.lock
+*.loK
+*.sd
+esriMap*/
+

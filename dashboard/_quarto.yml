@@ -1,0 +1,15 @@
+project:
+  type: website
+  output-dir: ../docs/dashboard
+
+website:
+  title: "Next Gen FNA — Northwoods"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Map
+
+format:
+  html:
+    theme: cosmo
+    toc: true

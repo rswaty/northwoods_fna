@@ -7,6 +7,7 @@
   body { font-family: Calibri, Arial, sans-serif; max-width: 48rem; margin: 2rem auto; line-height: 1.45; color: #222; padding: 0 1rem; }
   h1 { font-size: 1.5rem; }
   h2 { font-size: 1.15rem; margin-top: 1.5rem; border-bottom: 1px solid #ccc; padding-bottom: 0.15rem; }
+  h3 { font-size: 1.05rem; margin-top: 1.1rem; }
   ul, ol { margin-top: 0.35rem; }
   li { margin-bottom: 0.28rem; }
   table { border-collapse: collapse; width: 100%; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
@@ -28,71 +29,99 @@
 <p>Building blocks are standard (hexes, WRTC, LANDFIRE, PAD-US, dashboards). The product is defined by how they are combined:</p>
 <ul>
   <li><strong>Action classes</strong> on every hex—not only a risk heat map</li>
-  <li><strong>Values to protect from wildfire</strong> as an extensible catalog (homes, plantations as assets, infrastructure); separate from PAD-US conservation lands</li>
-  <li><strong>Silviculture then fire</strong> as its own class when sequencing matters</li>
-  <li><strong>Ecosystem-specific rules</strong> (first draft from Randy; optional partner EVT workshop later)</li>
+  <li><strong>Values to protect from wildfire</strong> as an extensible catalog (homes, plantations as assets, infrastructure); separate from PAD-US</li>
+  <li><strong>Plantations always Protect from wildfire</strong>; silviculture is a treatment hint, not the action class</li>
+  <li><strong>EVT (v1)</strong> flags peat (defer) and plantations only—not a full ecosystem→action table</li>
+  <li><strong>PAD-US as priority multiplier</strong> (management feasibility + biodiversity/recreation value)—does not gate action; high people × high WFE outside PAD still count</li>
   <li><strong>Disturbance overlays</strong> that calibrate recommended actions (toggleable)</li>
   <li><strong>Mill / utilization feasibility</strong> for low-value wood</li>
   <li><strong>Carbon</strong> not a v1 ranking driver; smoke framing consistent with <a href="https://www.pnas.org/doi/10.1073/pnas.2613722123">PNAS on Rx fire and PM2.5</a></li>
   <li><strong>Nested hexes</strong> designed in (10k-acre parents now; finer children later)</li>
+  <li><strong>ArcGIS Pro + Python + R Quarto</strong> — GIS/rasters in a local Pro project; Python in this repo (run in Pro); hex outputs pushed here for the R dashboard on GitHub Pages</li>
+  <li><strong>No rasters on GitHub</strong> — hexes and small vectors only</li>
 </ul>
-<p>Method and code should transfer to other regions by swapping AOI, hexes, values list, action rules, mills, and disturbance sources—not by copying Northwoods EVT biases blindly.</p>
-<p class="note">v1 succeeds when hexes show action class, value type, ecosystem-aware logic, and disturbance-aware updates—not only “high exposure × high housing = red.”</p>
+<p>Method and code should transfer to other regions by swapping AOI, hexes, values list, rules, mills, and disturbance sources—not by copying Northwoods biases blindly.</p>
+<p class="note">v1 succeeds when hexes show action class, value context, peat/plantation flags, and disturbance-aware updates—not only “high exposure × high housing = red.”</p>
 
 <h2>2. Action classes</h2>
 <p>Required on every hex. Avoid bare “protect” (conservation land-protection meaning).</p>
 <ol>
   <li><strong>Protect from wildfire</strong> — reduce wildfire damage to listed values (homes, plantations, infrastructure, others as added)</li>
-  <li><strong>Silvicultural treatment</strong> — non-commercial thinning through commercial harvest; ecosystem-specific</li>
+  <li><strong>Silvicultural treatment</strong> — non-commercial thinning through commercial harvest (v1: plantation <em>treatment hint</em>, not primary action class)</li>
   <li><strong>Restore with beneficial fire</strong> — prescribed, managed, or cultural fire as the main tool</li>
-  <li><strong>Silviculture then fire</strong> — thin/harvest first when needed for safe or effective fire</li>
-  <li><strong>Defer / monitor</strong> — wrong place or time, peat caution, active/recent burn, or no feasible outlet</li>
+  <li><strong>Silviculture then fire</strong> — thin/harvest first when needed (v1: plantation treatment hint when exposure is high)</li>
+  <li><strong>Defer / monitor</strong> — peat caution, quiet hexes, active/recent burn, or no feasible outlet</li>
 </ol>
-<p>Each ecosystem has different needs and opportunities. ICO / variable-density thinning is one example for some dense red pine plantations—not a regional template. <a href="https://doi.org/10.1016/j.foreco.2012.02.033">Larson &amp; Churchill 2012</a>; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11082040/">Hanna et al. 2024</a>.</p>
+<p>ICO / variable-density thinning is one example for some dense red pine plantations—not a regional template. <a href="https://doi.org/10.1016/j.foreco.2012.02.033">Larson &amp; Churchill 2012</a>; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11082040/">Hanna et al. 2024</a>.</p>
+
+<h3>v1 action cascade (first match wins)</h3>
+<ol>
+  <li>Peat (EVT) → <strong>Defer / monitor</strong></li>
+  <li>Plantation (EVT) → <strong>Protect from wildfire</strong> (always)</li>
+  <li>High WRTC Housing Unit Risk → <strong>Protect from wildfire</strong></li>
+  <li>High WFE → <strong>Restore with beneficial fire</strong></li>
+  <li>Else → <strong>Defer / monitor</strong></li>
+</ol>
+<p>PAD-US does not appear in the cascade. Full examples: <code>config/ACTION_ASSIGNMENT.md</code>.</p>
 
 <h2>3. Analysis approach</h2>
 <ol>
-  <li><strong>Region first</strong> on existing WFE hexes (~6,895 × ~10,000 acres). Prior work: <a href="https://rswaty.github.io/northwoods/">site</a>, <a href="https://github.com/rswaty/northwoods">repo</a> (read-only for this project; do not edit).</li>
-  <li><strong>Per hex:</strong> WFE; values to protect; PAD-US; LANDFIRE EVT + Randy’s first-draft rules; mill feasibility; disturbances.</li>
-  <li><strong>People:</strong> <a href="https://wildfirerisk.org/download/">WRTC</a> Housing Unit Risk/Exposure. <a href="https://silvis.forest.wisc.edu/data/wui-change/">SILVIS WUI</a> optional label only (2020).</li>
-  <li><strong>Goldilocks:</strong> top 5% / 10% (or capacity caps) under weight presets.</li>
-  <li><strong>Later:</strong> case studies (Arrowhead, Two Hearted, northern LP ice storm); nested hexes; optional partner EVT workshop.</li>
+  <li><strong>Region first</strong> on existing WFE hexes (~6,895 × ~10,000 acres). Prior work: <a href="https://rswaty.github.io/northwoods/">site</a>, <a href="https://github.com/rswaty/northwoods">repo</a> (read-only; do not edit).</li>
+  <li><strong>Per hex:</strong> WFE; WRTC people layers; PAD-US multiplier; EVT peat/plantation flags; later mills and disturbances.</li>
+  <li><strong>Goldilocks:</strong> top 5% / 10% (or capacity caps) under weight presets. Priority score = (homes + plantations + WFE) × (1 + PAD multiplier).</li>
+  <li><strong>Later:</strong> case studies (Arrowhead, Two Hearted, northern LP ice storm); nested hexes; PAD category weights; optional partner EVT workshop; stand-condition overlays.</li>
 </ol>
 
 <h2>4. Values to protect from wildfire</h2>
-<p>Extensible catalog. Plantations are an <strong>economic asset value</strong>, not only an EVT type and not the same as PAD-US “protected areas.”</p>
+<p>Extensible catalog. Plantations are an <strong>economic asset</strong> always assigned Protect from wildfire; silviculture may appear as a treatment hint.</p>
 <table>
   <tr><th>value_id</th><th>Value</th><th>Map with</th></tr>
-  <tr><td>homes_communities</td><td>Homes and communities</td><td><a href="https://wildfirerisk.org/download/">WRTC</a></td></tr>
-  <tr><td>plantations</td><td>Timber plantations</td><td>EVT / local layers; flags in first-draft rules</td></tr>
+  <tr><td>homes_communities</td><td>Homes and communities</td><td>WRTC (see §5)</td></tr>
+  <tr><td>plantations</td><td>Timber plantations</td><td>LANDFIRE EVT / local layers; always Protect</td></tr>
   <tr><td>infrastructure</td><td>Critical infrastructure</td><td>Partner layers when available</td></tr>
-  <tr><td>future_value</td><td>Additional values (cultural sites, intakes, recreation hubs, etc.)</td><td>New row + layer</td></tr>
+  <tr><td>future_value</td><td>Additional values</td><td>New row + layer</td></tr>
 </table>
+<p><strong>PAD-US</strong> is not a values-to-protect action. It is a <strong>priority multiplier</strong> (easier management on non-small-ownership lands + biodiversity/recreation value). High people × high WFE <em>outside</em> PAD still ranks and can get Protect. v1 uses overlap fraction; later weight by PAD category (fee/federal/state vs easement).</p>
 <p><strong>Add a value:</strong> Propose → Spatialize → Register in <code>config/values_to_protect.csv</code> → Score per hex → Weight in dashboard → Link to Protect from wildfire.</p>
 
-<h2>5. Ecosystem logic</h2>
-<p><a href="https://landfire.gov/vegetation/evt">LANDFIRE EVT</a> identifies vegetation. First dashboard draft uses <strong>Randy’s rules only</strong> (documented config). A multi-partner EVT workshop is a later step after the regional product works.</p>
+<h2>5. Wildfire Risk to Communities (WRTC) datasets</h2>
+<p>Source: <a href="https://wildfirerisk.org/download/">wildfirerisk.org/download</a> (May 2024 GIS by state: MI, WI, MN). Rasters stay local. Details: <code>config/WRTC_DATASETS.md</code>.</p>
+<table>
+  <tr><th>Role</th><th>Dataset</th><th>Use</th></tr>
+  <tr><td><strong>Primary</strong></td><td><strong>Housing Unit Risk</strong></td><td>Main people term; drives high-WRTC → Protect. Integrates likelihood, intensity, home susceptibility, and housing density where housing exists.</td></tr>
+  <tr><td>Companion</td><td><strong>Housing Unit Exposure</strong></td><td>Expected housing units exposed per year (likelihood × density). Dashboard / alternate people view.</td></tr>
+  <tr><td>Where homes are</td><td><strong>Housing Unit Density</strong> or <strong>Count</strong></td><td>Presence and magnitude of housing per hex.</td></tr>
+  <tr><td>Optional label</td><td><strong>Community Wildfire Risk Reduction Zones</strong></td><td>Minimal / Indirect / Direct / Transmission—dashboard context, not v1 action cascade.</td></tr>
+  <tr><td>Optional triangulation</td><td><strong>Risk to Potential Structures</strong> (“Risk to Homes”)</td><td>Wall-to-wall risk <em>if</em> a home were there. Not primary for Protect (no homes required).</td></tr>
+</table>
+<p><strong>Not primary for v1 people scoring:</strong> Housing Unit Impact (no likelihood); WRTC burn probability / WHP as a second hazard (project hazard is <strong>WFE</strong>); Building Count (prefer Housing Unit); Population (equity later).</p>
+<p><a href="https://silvis.forest.wisc.edu/data/wui-change/">SILVIS WUI</a> remains an optional label only (2020).</p>
 
-<h2>6. Dashboard and disturbances</h2>
+<h2>6. Ecosystem logic (EVT) and WFE</h2>
+<p><strong>WFE</strong> (existing hex <code>MEAN</code> / <code>WFE_CAT</code>) is the landscape exposure / transmission surface—priority and, when high and not already Protect/peat, the trigger for Restore with beneficial fire.</p>
+<p><strong>LANDFIRE EVT (v1):</strong> only two jobs—flag <strong>peat</strong> → Defer; flag <strong>plantations</strong> → Protect. No full EVT-name → action table (condition within an EVT, e.g. thinned vs dense pine–oak, needs overlays later). See <code>config/EVT_RULES_LOGIC.md</code>.</p>
+
+<h2>7. Dashboard and disturbances</h2>
 <ul>
   <li>First draft from Randy’s scoring rules, weights, and value list</li>
-  <li>Presets: People-first | Plantation-asset-first | Biodiversity/recreation-first | Balanced</li>
+  <li><strong>Built in R / Quarto</strong>, hosted on GitHub Pages; consumes hex outputs pushed from ArcGIS Pro</li>
+  <li>Presets: People-first | Plantation-asset-first | Biodiversity/recreation-first (stronger PAD multiplier) | Balanced</li>
   <li>Toggle disturbance polygons (ice storm, fire); when on, calibrate actions; when off, show baseline</li>
   <li>Versioned files in <code>data/disturbances/</code>; optional later GitHub Actions ingest</li>
 </ul>
 
-<h2>7. Mills and low-value wood</h2>
+<h2>8. Mills and low-value wood</h2>
 <p>Utilization is part of feasibility (distance to buyers; opportunity vs constrained).</p>
 <p>Sources: <a href="https://www2.dnr.state.mi.us/mfid/">MI</a> · <a href="https://dnr.wisconsin.gov/topic/forestbusinesses/industries">WI</a> · <a href="https://www.dnr.state.mn.us/forestry/um/index.html">MN</a> · <a href="https://primary.forestproductslocator.org/mill-map">Primary Forest Products mill map</a>. USFS <a href="https://research.fs.usda.gov/programs/nrum">TPO</a> = aggregates only (mill points confidential).</p>
 
-<h2>8. Carbon, smoke, FIA</h2>
+<h2>9. Carbon, smoke, FIA</h2>
 <ul>
   <li><strong>Carbon:</strong> not a v1 ranking driver</li>
-  <li><strong>Smoke:</strong> <a href="https://www.pnas.org/doi/10.1073/pnas.2613722123">PNAS</a>—Rx fire often increases net PM2.5 under current conditions; still essential for ecology and hazard where ecosystem logic supports it</li>
+  <li><strong>Smoke:</strong> <a href="https://www.pnas.org/doi/10.1073/pnas.2613722123">PNAS</a>—Rx fire often increases net PM2.5 under current conditions; still essential for ecology and hazard where logic supports it</li>
   <li><strong>FIA:</strong> no for v1 hex scoring. Optional later via <a href="https://research.fs.usda.gov/firelab/products/dataandtools/treemap-tree-level-model-united-states-forests">TreeMap</a> on priority hexes only</li>
 </ul>
 
-<h2>9. Example relevant efforts from around the region</h2>
+<h2>10. Example relevant efforts from around the region</h2>
 <p>Not exhaustive. Prefer priorities that can hand off to existing work.</p>
 <ul>
   <li><strong>MN:</strong> <a href="https://www.fs.usda.gov/r09/superior/natural-resources/forest-management/arrowhead-landscape-pilot-project">Arrowhead Landscape Pilot</a>; Superior NF co-stewardship (Bois Forte, Fond du Lac, Grand Portage); <a href="https://www.minnesotafac.org/">MN Fire Adapted Communities</a></li>
@@ -101,30 +130,40 @@
   <li><strong>Regional:</strong> <a href="https://compacts.csg.org/compact/great-lakes-forest-fire-compact/">Great Lakes Forest Fire Compact</a>; <a href="https://gacc.nifc.gov/eacc/">EACC</a>; <a href="https://www.nature.org/en-us/about-us/where-we-work/priority-landscapes/great-lakes/stories-in-the-great-lakes/great-lakes-northwoods/">TNC Great Lakes Northwoods</a></li>
 </ul>
 
-<h2>10. Implementation</h2>
-<p><strong>Stack:</strong> new Python repo (this project). Laptop for code/docs; heavy machine for rasters via Git. Do not modify <a href="https://github.com/rswaty/northwoods">rswaty/northwoods</a>.</p>
-<p><strong>Phases:</strong> (1) regional hex scores + action classes → (2) dashboard first draft + disturbances → (3) mills + case studies → (4) nested hexes; optional TreeMap; optional partner workshop.</p>
-<p><strong>Near term:</strong> repo scaffold; copy WFE hexes; join WRTC + PAD-US; first-draft action rules; top 5%/10% maps; disturbance schema stub; dashboard sketch.</p>
-
-<h2>11. Open items</h2>
+<h2>11. Implementation</h2>
+<p><strong>Stack:</strong></p>
 <ul>
-  <li>Action-class thresholds; Goldilocks capacity; case-study boundaries</li>
-  <li>Dashboard platform</li>
+  <li><strong>ArcGIS Pro</strong> — primary GIS workspace (partner preference). Rasters, geodatabases, and the <code>.aprx</code> stay local.</li>
+  <li><strong>Python</strong> — scoring and zonals in this repo’s <code>src/</code> (arcpy / Pro Python).</li>
+  <li><strong>R / Quarto</strong> — draft dashboard only; reads pushed hex GeoJSON/CSV; does not reimplement scoring.</li>
+  <li>Do not modify <a href="https://github.com/rswaty/northwoods">rswaty/northwoods</a> (read-only prior work).</li>
+</ul>
+<p class="note"><strong>Workflow:</strong> edit Python here → run in ArcGIS Pro on local rasters → push <em>hexes and small vectors only</em> → update R dashboard. <strong>Never commit rasters</strong> (LANDFIRE, WRTC, WHP, etc.), raster zips, file geodatabases, or the Pro project.</p>
+<p><strong>Division of labor:</strong> Pro + Python write the truth tables; R draws the map.</p>
+<p><strong>Phases:</strong> (1) regional hex scores + action classes in Pro → (2) push hex outputs; Quarto dashboard + disturbance toggles → (3) mills + case studies → (4) nested hexes; PAD categories; optional TreeMap / EVT workshop.</p>
+<p><strong>Near term:</strong> download WRTC state GIS (HU Risk, Exposure, Density/Count); copy WFE hexes into Pro; join WRTC + PAD-US + EVT flags; export Goldilocks hex GeoJSON; push; refresh Quarto sketch.</p>
+
+<h2>12. Open items</h2>
+<ul>
+  <li>Numeric thresholds for “high” WRTC / WFE (v1 uses top ~30% within AOI)</li>
+  <li>Goldilocks capacity caps; case-study boundaries</li>
+  <li>PAD category weighting scheme</li>
   <li>Disturbance automation sources</li>
-  <li>Timing of any multi-partner EVT workshop</li>
+  <li>Timing of any multi-partner EVT workshop / condition overlays</li>
 </ul>
 
-<h2>12. Key links</h2>
+<h2>13. Key links</h2>
 <ul>
   <li><a href="https://rswaty.github.io/northwoods/">Existing Northwoods assessment</a> · <a href="https://github.com/rswaty/northwoods">repo</a></li>
-  <li><a href="https://wildfirerisk.org/">Wildfire Risk to Communities</a> · <a href="https://wildfirerisk.org/download/">download</a></li>
-  <li><a href="https://research.fs.usda.gov/firelab/products/dataandtools/wildfire-hazard-potential">Wildfire Hazard Potential</a></li>
+  <li><a href="https://wildfirerisk.org/">Wildfire Risk to Communities</a> · <a href="https://wildfirerisk.org/download/">download</a> · repo note <code>config/WRTC_DATASETS.md</code></li>
+  <li><a href="https://research.fs.usda.gov/firelab/products/dataandtools/wildfire-hazard-potential">Wildfire Hazard Potential</a> (triangulation only)</li>
   <li><a href="https://landfire.gov/">LANDFIRE</a> · <a href="https://landfire.gov/vegetation/evt">EVT</a></li>
   <li><a href="https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-download">PAD-US</a> · <a href="https://silvis.forest.wisc.edu/data/wui-change/">SILVIS WUI</a></li>
   <li><a href="https://www.pnas.org/doi/10.1073/pnas.2613722123">PNAS — Rx fire and PM2.5</a></li>
   <li><a href="https://conservation-data-lab.github.io/cup_assessment/fire.html">CUP WFE methods</a></li>
   <li><a href="https://doi.org/10.2737/RDS-2016-0003">Bailey ecoregions (AOI)</a></li>
   <li><a href="https://data.fs.usda.gov/geodata/rastergateway/treemap/">TreeMap</a> · <a href="https://research.fs.usda.gov/programs/fia">FIA</a></li>
+  <li>Repo logic: <code>config/ACTION_ASSIGNMENT.md</code> · <code>config/EVT_RULES_LOGIC.md</code></li>
 </ul>
 
 </body>

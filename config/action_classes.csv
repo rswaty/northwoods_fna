@@ -1,0 +1,6 @@
+action_id,label,description
+protect_from_wildfire,Protect from wildfire,Reduce wildfire damage to listed values (homes plantations infrastructure)
+silvicultural_treatment,Silvicultural treatment,Non-commercial thinning through commercial harvest; ecosystem-specific
+restore_beneficial_fire,Restore with beneficial fire,Prescribed managed or cultural fire as the main tool
+silviculture_then_fire,Silviculture then fire,Thin/harvest first when needed for safe or effective fire
+defer_monitor,Defer / monitor,Wrong place or time peat caution active/recent burn or no feasible outlet

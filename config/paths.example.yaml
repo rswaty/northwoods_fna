@@ -1,0 +1,48 @@
+# Copy this file to paths.local.yaml and fill in paths that exist on your machine.
+# paths.local.yaml is gitignored — do not commit machine-specific paths.
+#
+# Paths can be:
+#   - full path to a feature class / raster in a file geodatabase
+#   - full path to a shapefile / GeoJSON / TIFF
+#   - layer name in the open ArcGIS Pro map (if script resolves via aprx)
+
+workspace: "C:/Users/YOU/Documents/ArcGIS/Projects/northwoods_fna/northwoods_fna.gdb"
+
+# Existing WFE hexes (~6,895 × ~10,000 acres) — from prior northwoods work
+hexes: "C:/Users/YOU/Documents/ArcGIS/Projects/northwoods_fna/northwoods_fna.gdb/northwoods_wfe"
+hex_id_field: "GRID_ID"
+wfe_mean_field: "MEAN"
+wfe_cat_field: "WFE_CAT"
+
+# AOI (Bailey ecoregions boundary from prior work)
+aoi: "C:/Users/YOU/Documents/ArcGIS/Projects/northwoods_fna/northwoods_fna.gdb/northwoods"
+
+# Rasters — local only; never commit
+# WRTC (May 2024): see config/WRTC_DATASETS.md
+wrtc_housing_unit_risk: "C:/path/to/WRTC_HousingUnitRisk_clip.tif"      # PRIMARY people risk
+wrtc_housing_unit_exposure: "C:/path/to/WRTC_HousingUnitExposure_clip.tif"  # companion
+wrtc_housing_unit_density: "C:/path/to/WRTC_HousingUnitDensity_clip.tif"  # where homes are
+wrtc_risk_reduction_zones: ""   # optional CWiRRZ categorical
+wrtc_risk_to_homes: ""          # optional RPS / wall-to-wall; not primary for protect
+# legacy alias used by early scripts — point at Housing Unit Risk
+wrtc_housing_exposure: "C:/path/to/WRTC_HousingUnitRisk_clip.tif"
+landfire_evt: "C:/path/to/LF_EVT_clipped.tif"
+# optional triangulation (not ranking drivers for v1)
+whp: ""
+burn_probability: ""
+
+# Vectors
+padus: "C:/path/to/PADUS.gdb/PADUS_Fee"
+# optional later
+plantations: ""
+infrastructure: ""
+mills: ""
+silvis_wui: ""
+
+# Disturbance polygons (toggleable in dashboard)
+disturbances_dir: "data/disturbances"
+
+# Where scripts write hex outputs for GitHub / Quarto
+output_hex_dir: "outputs/hex"
+output_hex_geojson: "outputs/hex/fna_hex_scores.geojson"
+output_hex_csv: "outputs/hex/fna_hex_scores.csv"

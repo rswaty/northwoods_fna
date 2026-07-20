@@ -1,0 +1,74 @@
+---
+title: "Next Gen FNA — Northwoods (draft)"
+subtitle: "Action classes on WFE hexes — strategic screening only"
+format:
+  html:
+    page-layout: full
+execute:
+  echo: false
+  warning: false
+---
+
+```{r}
+#| label: setup
+library(sf)
+library(leaflet)
+library(dplyr)
+
+hex_path <- "../outputs/hex/fna_hex_scores.geojson"
+has_hex <- file.exists(hex_path)
+```
+
+Strategic screening map for northern MI, WI, and MN Arrowhead. Scores and action classes are produced in **ArcGIS Pro** (Python in `src/`); this page only displays pushed hex outputs.
+
+```{r}
+#| label: map
+#| fig-height: 7
+if (!has_hex) {
+  cat(
+    "**No hex output yet.** Run the Pro pipeline through `05_export_hex_geojson.py`, ",
+    "commit `outputs/hex/fna_hex_scores.geojson`, then re-render this dashboard.\n"
+  )
+} else {
+  hex <- st_read(hex_path, quiet = TRUE)
+
+  action_pal <- colorFactor(
+    palette = c("#4C78A8", "#F58518", "#54A24B", "#B279A2", "#9D9D9D"),
+    domain = c(
+      "protect_from_wildfire",
+      "silvicultural_treatment",
+      "restore_beneficial_fire",
+      "silviculture_then_fire",
+      "defer_monitor"
+    )
+  )
+
+  leaflet(hex) |>
+    addProviderTiles("CartoDB.Positron") |>
+    addPolygons(
+      fillColor = ~ if ("ACTION_CLASS" %in% names(hex)) {
+        action_pal(ACTION_CLASS)
+      } else {
+        "#9D9D9D"
+      },
+      fillOpacity = 0.55,
+      color = "#444444",
+      weight = 0.3,
+      popup = ~ paste0(
+        "<b>", if ("GRID_ID" %in% names(hex)) GRID_ID else "hex", "</b><br/>",
+        if ("ACTION_CLASS" %in% names(hex)) paste0("Action: ", ACTION_CLASS, "<br/>") else "",
+        if ("SCORE_BALANCED" %in% names(hex)) paste0("Balanced score: ", round(SCORE_BALANCED, 3)) else ""
+      )
+    ) |>
+    addLegend(
+      position = "bottomright",
+      pal = action_pal,
+      values = ~ if ("ACTION_CLASS" %in% names(hex)) ACTION_CLASS else "defer_monitor",
+      title = "Action class"
+    )
+}
+```
+
+## Weight presets (from config)
+
+Dashboard will later switch symbology by preset (`people_first`, `plantation_asset_first`, `biodiversity_recreation_first`, `balanced`) and Goldilocks top 5% / 10%. Disturbance polygons toggle when files appear in `data/disturbances/`.

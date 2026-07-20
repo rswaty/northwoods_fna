@@ -1,0 +1,5 @@
+preset_id,label,w_homes,w_plantations,w_wfe,w_pad_multiplier,notes
+people_first,People-first,0.50,0.15,0.25,0.15,Emphasize WRTC; PAD still boosts a little
+plantation_asset_first,Plantation-asset-first,0.20,0.45,0.25,0.15,Emphasize plantations as assets to protect
+biodiversity_recreation_first,Biodiversity/recreation-first,0.20,0.15,0.25,0.60,Strong PAD multiplier (feasibility + conservation/recreation value)
+balanced,Balanced,0.30,0.25,0.25,0.30,Default; PAD boosts but does not gate priority
