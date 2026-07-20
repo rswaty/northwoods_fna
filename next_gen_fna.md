@@ -1,0 +1,155 @@
+Next Gen FNA — Northwoods
+
+# Next Gen FNA — Northwoods
+
+Internal working brief. Region: northern Michigan, Wisconsin, and Minnesota Arrowhead.
+
+**Goal:** Map *what to do where* to reduce wildfire risk to people, ecosystems, and services (water, carbon, recreation)—code-driven, customizable, multi-state, with a manageable (“Goldilocks”) treatment footprint.
+
+Strategic screening only—not NEPA, tribal consultation, or stand prescriptions.
+
+## 1. Design intent
+
+Building blocks are standard (hexes, WRTC, LANDFIRE, PAD-US, dashboards). The product is defined by how they are combined:
+
+  - **Action classes** on every hex—not only a risk heat map
+
+  - **Values to protect from wildfire** as an extensible catalog (homes, plantations as assets, infrastructure); separate from PAD-US conservation lands
+
+  - **Silviculture then fire** as its own class when sequencing matters
+
+  - **Ecosystem-specific rules** (first draft from Randy; optional partner EVT workshop later)
+
+  - **Disturbance overlays** that calibrate recommended actions (toggleable)
+
+  - **Mill / utilization feasibility** for low-value wood
+
+  - **Carbon** not a v1 ranking driver; smoke framing consistent with [PNAS on Rx fire and PM2.5](https://www.pnas.org/doi/10.1073/pnas.2613722123)
+
+  - **Nested hexes** designed in (10k-acre parents now; finer children later)
+
+Method and code should transfer to other regions by swapping AOI, hexes, values list, action rules, mills, and disturbance sources—not by copying Northwoods EVT biases blindly.
+
+> v1 succeeds when hexes show action class, value type, ecosystem-aware logic, and disturbance-aware updates—not only “high exposure × high housing = red.”
+
+## 2. Action classes
+
+Required on every hex. Avoid bare “protect” (conservation land-protection meaning).
+
+  - **Protect from wildfire** — reduce wildfire damage to listed values (homes, plantations, infrastructure, others as added)
+
+  - **Silvicultural treatment** — non-commercial thinning through commercial harvest; ecosystem-specific
+
+  - **Restore with beneficial fire** — prescribed, managed, or cultural fire as the main tool
+
+  - **Silviculture then fire** — thin/harvest first when needed for safe or effective fire
+
+  - **Defer / monitor** — wrong place or time, peat caution, active/recent burn, or no feasible outlet
+
+Each ecosystem has different needs and opportunities. ICO / variable-density thinning is one example for some dense red pine plantations—not a regional template. [Larson & Churchill 2012](https://doi.org/10.1016/j.foreco.2012.02.033); [Hanna et al. 2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC11082040/).
+
+## 3. Analysis approach
+
+  - **Region first** on existing WFE hexes (~6,895 × ~10,000 acres). Prior work: [site](https://rswaty.github.io/northwoods/), [repo](https://github.com/rswaty/northwoods) (read-only for this project; do not edit).
+
+  - **Per hex:** WFE; values to protect; PAD-US; LANDFIRE EVT + Randy’s first-draft rules; mill feasibility; disturbances.
+
+  - **People:** [WRTC](https://wildfirerisk.org/download/) Housing Unit Risk/Exposure. [SILVIS WUI](https://silvis.forest.wisc.edu/data/wui-change/) optional label only (2020).
+
+  - **Goldilocks:** top 5% / 10% (or capacity caps) under weight presets.
+
+  - **Later:** case studies (Arrowhead, Two Hearted, northern LP ice storm); nested hexes; optional partner EVT workshop.
+
+## 4. Values to protect from wildfire
+
+Extensible catalog. Plantations are an **economic asset value**, not only an EVT type and not the same as PAD-US “protected areas.”
+
+  | value_id | Value | Map with 
+
+  | homes_communities | Homes and communities | [WRTC](https://wildfirerisk.org/download/) 
+
+  | plantations | Timber plantations | EVT / local layers; flags in first-draft rules 
+
+  | infrastructure | Critical infrastructure | Partner layers when available 
+
+  | future_value | Additional values (cultural sites, intakes, recreation hubs, etc.) | New row + layer 
+
+**Add a value:** Propose → Spatialize → Register in `config/values_to_protect.csv` → Score per hex → Weight in dashboard → Link to Protect from wildfire.
+
+## 5. Ecosystem logic
+
+[LANDFIRE EVT](https://landfire.gov/vegetation/evt) identifies vegetation. First dashboard draft uses **Randy’s rules only** (documented config). A multi-partner EVT workshop is a later step after the regional product works.
+
+## 6. Dashboard and disturbances
+
+  - First draft from Randy’s scoring rules, weights, and value list
+
+  - Presets: People-first | Plantation-asset-first | Biodiversity/recreation-first | Balanced
+
+  - Toggle disturbance polygons (ice storm, fire); when on, calibrate actions; when off, show baseline
+
+  - Versioned files in `data/disturbances/`; optional later GitHub Actions ingest
+
+## 7. Mills and low-value wood
+
+Utilization is part of feasibility (distance to buyers; opportunity vs constrained).
+
+Sources: [MI](https://www2.dnr.state.mi.us/mfid/) · [WI](https://dnr.wisconsin.gov/topic/forestbusinesses/industries) · [MN](https://www.dnr.state.mn.us/forestry/um/index.html) · [Primary Forest Products mill map](https://primary.forestproductslocator.org/mill-map). USFS [TPO](https://research.fs.usda.gov/programs/nrum) = aggregates only (mill points confidential).
+
+## 8. Carbon, smoke, FIA
+
+  - **Carbon:** not a v1 ranking driver
+
+  - **Smoke:** [PNAS](https://www.pnas.org/doi/10.1073/pnas.2613722123)—Rx fire often increases net PM2.5 under current conditions; still essential for ecology and hazard where ecosystem logic supports it
+
+  - **FIA:** no for v1 hex scoring. Optional later via [TreeMap](https://research.fs.usda.gov/firelab/products/dataandtools/treemap-tree-level-model-united-states-forests) on priority hexes only
+
+## 9. Example relevant efforts from around the region
+
+Not exhaustive. Prefer priorities that can hand off to existing work.
+
+  - **MN:** [Arrowhead Landscape Pilot](https://www.fs.usda.gov/r09/superior/natural-resources/forest-management/arrowhead-landscape-pilot-project); Superior NF co-stewardship (Bois Forte, Fond du Lac, Grand Portage); [MN Fire Adapted Communities](https://www.minnesotafac.org/)
+
+  - **WI:** [CNNF Good Neighbor Authority](https://dnr.wisconsin.gov/topic/forestmanagement/gnaGeneralInfo); northern CWPPs; [Wisconsin Point fire restoration](https://www.superiorwi.gov/DocumentCenter/View/16070/Wisconsin_Point_Fire_Restoration_Fact_Sheet_2025)
+
+  - **MI:** [2025 ice storm recovery](https://www.michigan.gov/dnr/about/newsroom/storm-recovery); Hiawatha/Ottawa Rx fire; CWPPs; Two Hearted / TNC UP
+
+  - **Regional:** [Great Lakes Forest Fire Compact](https://compacts.csg.org/compact/great-lakes-forest-fire-compact/); [EACC](https://gacc.nifc.gov/eacc/); [TNC Great Lakes Northwoods](https://www.nature.org/en-us/about-us/where-we-work/priority-landscapes/great-lakes/stories-in-the-great-lakes/great-lakes-northwoods/)
+
+## 10. Implementation
+
+**Stack:** new Python repo (this project). Laptop for code/docs; heavy machine for rasters via Git. Do not modify [rswaty/northwoods](https://github.com/rswaty/northwoods).
+
+**Phases:** (1) regional hex scores + action classes → (2) dashboard first draft + disturbances → (3) mills + case studies → (4) nested hexes; optional TreeMap; optional partner workshop.
+
+**Near term:** repo scaffold; copy WFE hexes; join WRTC + PAD-US; first-draft action rules; top 5%/10% maps; disturbance schema stub; dashboard sketch.
+
+## 11. Open items
+
+  - Action-class thresholds; Goldilocks capacity; case-study boundaries
+
+  - Dashboard platform
+
+  - Disturbance automation sources
+
+  - Timing of any multi-partner EVT workshop
+
+## 12. Key links
+
+  - [Existing Northwoods assessment](https://rswaty.github.io/northwoods/) · [repo](https://github.com/rswaty/northwoods)
+
+  - [Wildfire Risk to Communities](https://wildfirerisk.org/) · [download](https://wildfirerisk.org/download/)
+
+  - [Wildfire Hazard Potential](https://research.fs.usda.gov/firelab/products/dataandtools/wildfire-hazard-potential)
+
+  - [LANDFIRE](https://landfire.gov/) · [EVT](https://landfire.gov/vegetation/evt)
+
+  - [PAD-US](https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-download) · [SILVIS WUI](https://silvis.forest.wisc.edu/data/wui-change/)
+
+  - [PNAS — Rx fire and PM2.5](https://www.pnas.org/doi/10.1073/pnas.2613722123)
+
+  - [CUP WFE methods](https://conservation-data-lab.github.io/cup_assessment/fire.html)
+
+  - [Bailey ecoregions (AOI)](https://doi.org/10.2737/RDS-2016-0003)
+
+  - [TreeMap](https://data.fs.usda.gov/geodata/rastergateway/treemap/) · [FIA](https://research.fs.usda.gov/programs/fia)
