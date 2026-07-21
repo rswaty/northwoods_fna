@@ -53,31 +53,46 @@ def _padus_frac_from_raster(
     """MEAN of a 0/1 raster (1 = GAP in include) per hex = PADUS_FRAC.
 
     IMPORTANT: many PAD-US rasters store GAP status in an attribute-table field
-    (e.g. GAP_Sts) while the *cell value* is just an internal index. Comparing
-    the cell value against 1/2/3 then miscounts (the abundant GAP 4 private
-    matrix often gets a low index and reads as "protected"). So if the raster
-    has the GAP field, reclassify on THAT field; only fall back to treating the
-    cell value as the GAP code when no such field exists.
+    (e.g. GAP_Sts) while the *cell value* is just an internal index — and here
+    it is inverse (VALUE 1 = GAP_Sts 4). Comparing the cell value against 1/2/3
+    then miscounts the abundant GAP 4 private matrix as "protected".
+
+    Fix: read the raster attribute table to map each cell VALUE to its GAP
+    status, then reclassify on the integer VALUE field (the canonical, reliable
+    Reclassify usage). Only fall back to treating the cell value as the GAP code
+    when the raster has no GAP field / no attribute table.
     """
     print(f"PAD-US raster zonal (GAP in {sorted(include)}): {padus}")
     include_ints = sorted({int(c) for c in include if str(c).strip().isdigit()})
     if not include_ints:
         raise SystemExit("padus_gap_include produced no valid GAP codes")
 
-    rat_fields = {f.name: f.type for f in arcpy.ListFields(padus)}
+    rat_fields = [f.name for f in arcpy.ListFields(padus)]
+    value_field = next((c for c in ("Value", "VALUE", "value") if c in rat_fields), "Value")
+
+    binary = None
     if gap_field and gap_field in rat_fields:
-        print(f"  Reclassifying on RAT field '{gap_field}' (cell value is an index, not the GAP code)")
-        is_text = rat_fields[gap_field] in ("String", "Text")
-        pairs = []
-        for g in (1, 2, 3, 4):
-            v = 1 if g in include_ints else 0
-            pairs.append([str(g) if is_text else g, v])
-        remap = arcpy.sa.RemapValue(pairs)
-        binary = arcpy.sa.Reclassify(padus, gap_field, remap, "NODATA")
-    else:
-        print("  No GAP field found — treating cell value as the GAP status code")
+        # Build VALUE -> 0/1 from the RAT (respects the VALUE/GAP_Sts inversion).
+        mapping = []
+        with arcpy.da.SearchCursor(padus, [value_field, gap_field]) as cur:
+            for val, gap in cur:
+                try:
+                    g = int(str(gap).strip())
+                except (TypeError, ValueError):
+                    g = None
+                mapping.append([int(val), 1 if g in include_ints else 0])
+        if mapping:
+            n_prot = sum(1 for _, f in mapping if f == 1)
+            print(
+                f"  Mapped {len(mapping)} raster values via RAT '{gap_field}' "
+                f"({n_prot} -> GAP {include_ints}); reclassifying on '{value_field}'"
+            )
+            remap = arcpy.sa.RemapValue(mapping)
+            binary = arcpy.sa.Reclassify(padus, value_field, remap, "NODATA")
+
+    if binary is None:
+        print("  No usable GAP field — treating cell value as the GAP status code")
         pad = arcpy.sa.Raster(padus)
-        binary = None
         for c in include_ints:
             piece = arcpy.sa.Con(pad == c, 1, 0)
             binary = piece if binary is None else arcpy.sa.Con(binary == 1, 1, piece)
