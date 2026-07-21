@@ -3,8 +3,11 @@
 Expects 02_zonal_wrtc.py to have created `hex_wrtc` in the workspace, or falls
 back to the source hexes path and creates `hex_scored_work`.
 
-PAD may be a **raster** (cell values = GAP status) or a **polygon** layer.
-Raster path (default): binary 1 where GAP in {1,2,3}, else 0 → zonal MEAN = PADUS_FRAC.
+PAD may be a **raster** or a **polygon** layer.
+Raster path (default): reclassify GAP status → binary (1 where GAP in {1,2,3},
+else 0) → zonal MEAN = PADUS_FRAC. If the raster stores GAP status in an
+attribute field (padus_gap_field, e.g. GAP_Sts) with the cell value being only
+an index, the reclass runs on that field — NOT the raw cell value.
 See config/PADUS_AND_RESILIENT.md.
 """
 
@@ -44,24 +47,42 @@ def _is_raster(arcpy, path: str) -> bool:
         return False
 
 
-def _padus_frac_from_raster(arcpy, hexes: str, hex_id: str, padus: str, include: set[str]) -> None:
-    """Cell values treated as GAP status codes; MEAN of (1 if in include else 0) = fraction."""
+def _padus_frac_from_raster(
+    arcpy, hexes: str, hex_id: str, padus: str, include: set[str], gap_field: str = ""
+) -> None:
+    """MEAN of a 0/1 raster (1 = GAP in include) per hex = PADUS_FRAC.
+
+    IMPORTANT: many PAD-US rasters store GAP status in an attribute-table field
+    (e.g. GAP_Sts) while the *cell value* is just an internal index. Comparing
+    the cell value against 1/2/3 then miscounts (the abundant GAP 4 private
+    matrix often gets a low index and reads as "protected"). So if the raster
+    has the GAP field, reclassify on THAT field; only fall back to treating the
+    cell value as the GAP code when no such field exists.
+    """
     print(f"PAD-US raster zonal (GAP in {sorted(include)}): {padus}")
-    pad = arcpy.sa.Raster(padus)
-    # Build binary: 1 for included GAP codes, 0 otherwise (NoData → 0 for fraction denom)
-    binary = None
-    for code in sorted(include):
-        try:
-            c = int(code)
-        except ValueError:
-            continue
-        piece = arcpy.sa.Con(pad == c, 1, 0)
-        binary = piece if binary is None else arcpy.sa.Con(binary == 1, 1, piece)
-    if binary is None:
+    include_ints = sorted({int(c) for c in include if str(c).strip().isdigit()})
+    if not include_ints:
         raise SystemExit("padus_gap_include produced no valid GAP codes")
 
-    # Ensure NoData in source doesn't wipe the binary — treat NoData as 0
-    binary = arcpy.sa.Con(arcpy.sa.IsNull(pad), 0, binary)
+    rat_fields = {f.name: f.type for f in arcpy.ListFields(padus)}
+    if gap_field and gap_field in rat_fields:
+        print(f"  Reclassifying on RAT field '{gap_field}' (cell value is an index, not the GAP code)")
+        is_text = rat_fields[gap_field] in ("String", "Text")
+        pairs = []
+        for g in (1, 2, 3, 4):
+            v = 1 if g in include_ints else 0
+            pairs.append([str(g) if is_text else g, v])
+        remap = arcpy.sa.RemapValue(pairs)
+        binary = arcpy.sa.Reclassify(padus, gap_field, remap, "NODATA")
+    else:
+        print("  No GAP field found — treating cell value as the GAP status code")
+        pad = arcpy.sa.Raster(padus)
+        binary = None
+        for c in include_ints:
+            piece = arcpy.sa.Con(pad == c, 1, 0)
+            binary = piece if binary is None else arcpy.sa.Con(binary == 1, 1, piece)
+        binary = arcpy.sa.Con(arcpy.sa.IsNull(pad), 0, binary)
+
     out_raster = "padus_gap13_binary"
     binary.save(out_raster)
 
@@ -170,7 +191,7 @@ def main() -> None:
             forced != "polygon" and _is_raster(arcpy, padus)
         )
         if use_raster:
-            _padus_frac_from_raster(arcpy, hexes, hex_id, padus, include)
+            _padus_frac_from_raster(arcpy, hexes, hex_id, padus, include, gap_field)
         else:
             _padus_frac_from_polygons(arcpy, hexes, hex_id, padus, gap_field)
     else:
