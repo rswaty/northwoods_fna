@@ -1,3 +1,3 @@
 evt_group,evt_code,evt_name_pattern,plantation_flag,peat_caution,notes
-peat_wetland,,"*peat*|*bog*|*fen*|*muskeg*|*organic*",no,yes,"v1: LANDFIRE EVT name/code flags. Later: swap in USFS peatlands dataset (same PEAT_HEX flag; do not rebuild cascade)."
-plantation,,"*plantation*|*planted*",yes,no,EVT job 2: flag asset + always Protect. Add codes when ready.
+peat_wetland,"9055|9056|9057|9114|9177|9182|9677|9682","*peat*|*bog*|*fen*|*muskeg*|*organic*",no,yes,"AOI EVT VALUE codes with peat/bog/fen names (other_outputs/evt_aoi_attributes.csv). 9056 dominates (~4.4M ac). Peat -> Defer. Later: swap USFS peatlands into same PEAT_HEX flag; do not rebuild cascade."
+plantation,"9312","*plantation*|*planted*",yes,no,"VALUE 9312 = Northeastern North American Temperate Forest Plantation (Managed Tree Plantation, ~821k ac). Always Protect; silviculture recorded as TREATMENT_HINT only."
