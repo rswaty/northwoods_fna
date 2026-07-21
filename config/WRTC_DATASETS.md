@@ -41,6 +41,14 @@ Zonal to ~10k-acre hexes (mean unless noted):
 
 **Default Goldilocks ranking** uses the people-first preset (`SCORE_PEOPLE`), which weights Housing Unit Risk most heavily.
 
+## NoData / NULL hexes
+
+Housing Unit **Risk** and **Exposure** only have pixel values **where housing units exist**; hexes with no homes come back NoData from zonal stats. Housing Unit **Density** is spatially smoothed, so it usually has a (tiny) value even in empty hexes.
+
+For these housing layers, NoData genuinely means **no homes = 0 housing risk**, so `02_zonal_wrtc.py` fills NULL with **0** by default (it prints how many hexes were filled). Set `wrtc_fill_nodata_zero: "false"` in `paths.local.yaml` to keep NULLs instead. Do **not** apply this logic to hazard rasters like WFE, where NoData is missing data, not zero hazard.
+
+Quick sanity check in Pro: select hexes where `WRTC_HU_RISK_MEAN IS NULL` (before filling) and confirm their `WRTC_HU_DENSITY_MEAN` is ~0.
+
 ## Relation to WFE
 
 - **WFE** = landscape wildfire exposure / transmission (your existing hex product).  
