@@ -1,6 +1,9 @@
 action_id,label,description
-protect_from_wildfire,Protect from wildfire,Reduce wildfire damage to listed values (homes plantations infrastructure)
-silvicultural_treatment,Silvicultural treatment,Non-commercial thinning through commercial harvest; ecosystem-specific
-restore_beneficial_fire,Restore with beneficial fire,Prescribed managed or cultural fire as the main tool
-silviculture_then_fire,Silviculture then fire,Thin/harvest first when needed for safe or effective fire
-defer_monitor,Defer / monitor,Wrong place or time peat caution active/recent burn or no feasible outlet
+protect_from_fire,Protect from fire,Plantation economic asset - reduce fire damage (silviculture hints)
+wetlands_assess_locally,Wetlands - assess locally,Peat/wetland: fire-dependent AND ground-fire hazard; needs local hydrology/peat-depth/fire-history judgement rather than a screening verdict
+treat_fire_risk_for_people,Treat fire risk for people,High WFE near people (high WRTC Housing Unit Risk); mechanical fuels reduction + home hardening / defensible-space inspections
+ecosystem_health_focus,Ecosystem health focus,High WFE away from people (low people or on PAD); beneficial/prescribed fire in fire-adapted systems
+defer_monitor,Defer / monitor,Low WFE or no feasible outlet - not a current treatment target (excluded from Goldilocks)
+silvicultural_treatment,Silvicultural treatment (HINT),TREATMENT_HINT: non-commercial thinning through commercial harvest; ecosystem-specific
+silviculture_then_fire,Silviculture then fire (HINT),TREATMENT_HINT: thin/harvest first when needed for safe or effective fire
+fuels_reduction_home_hardening,Fuels reduction + home hardening (HINT),TREATMENT_HINT: mechanical fuels reduction plus home hardening / defensible-space inspections near homes (fire-excluded WUI)

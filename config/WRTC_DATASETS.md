@@ -9,7 +9,7 @@ Official family name is **Wildfire Risk to Communities (WRC/WRTC)**.
 
 | Priority | Dataset | What it is | Use in FAA |
 |----------|---------|------------|------------|
-| **1 — primary people risk** | **Housing Unit Risk** (`HURisk`) | Likelihood + intensity + home susceptibility + housing density; only where housing exists | Main `w_homes` term; drives “high WRTC → protect_from_wildfire” |
+| **1 — primary people risk** | **Housing Unit Risk** (`HURisk`) | Likelihood + intensity + home susceptibility + housing density; only where housing exists | Main `w_homes` term; "high people" routes a high-WFE hex to `treat_fire_risk_for_people` |
 | **2 — exposure companion** | **Housing Unit Exposure** (`HUExposure`) | Expected housing units exposed per year (likelihood × housing density) | Second people metric / dashboard toggle; “homes in the fire pathway” without full consequence |
 | **3 — where homes are** | **Housing Unit Density** (or **Count**) | Where occupied housing exists | Mask / presence; optional sum of count per hex for “how many homes” |
 | **4 — optional context** | **Community Wildfire Risk Reduction Zones** (`CWiRRZ`) | Minimal / Indirect / Direct / Transmission zones | Dashboard label & partner talk track—not v1 action cascade |

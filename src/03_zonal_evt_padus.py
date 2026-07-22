@@ -1,7 +1,11 @@
-"""Summarize LANDFIRE EVT (majority) and PAD-US GAP Status 1–3 onto hexes.
+"""Summarize LANDFIRE EVT (majority), PAD-US GAP 1–3, and BpS/MFRI onto hexes.
 
 Expects 02_zonal_wrtc.py to have created `hex_wrtc` in the workspace, or falls
 back to the source hexes path and creates `hex_scored_work`.
+
+BpS: zonal majority → BPS_MAJORITY, joined to the MFRI table for reference fire
+regime (BPS_FRI / BPS_FRG / FIRE_DEP_HEX). This is context/validation only — it
+does not gate the action cascade (see src/lib/action_assign.py).
 
 PAD may be a **raster** or a **polygon** layer.
 Raster path (default): reclassify GAP status → binary (1 where GAP in {1,2,3},
@@ -159,6 +163,86 @@ def _padus_frac_from_polygons(arcpy, hexes: str, hex_id: str, padus: str, gap_fi
     print("Added PADUS_FRAC (GAP 1-3 polygon overlap)")
 
 
+def _read_mfri_lut(mfri_csv: str) -> dict[int, tuple[int | None, str]]:
+    """BpS raster Value -> (FRI_ALLFIR years, FRG group). -9999 / blanks → invalid."""
+    import csv
+
+    lut: dict[int, tuple[int | None, str]] = {}
+    with open(mfri_csv, newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            try:
+                v = int(float(r.get("VALUE", "")))
+            except (TypeError, ValueError):
+                continue
+            try:
+                fri = int(float(r.get("FRI_ALLFIR", "")))
+            except (TypeError, ValueError):
+                fri = None
+            lut[v] = (fri, (r.get("FRG_NEW") or "").strip())
+    return lut
+
+
+def _bps_mfri(arcpy, hexes: str, hex_id: str, bps: str, mfri_csv: str, fri_max: int) -> None:
+    """Zonal majority of BpS → BPS_MAJORITY; join MFRI → BPS_FRI / BPS_FRG / FIRE_DEP_HEX.
+
+    Context/validation only — does NOT gate the action cascade. FIRE_DEP_HEX = 1
+    when the reference all-fire return interval is short (0 < FRI <= fri_max).
+    """
+    print(f"BpS majority by hex: {bps}")
+    out_table = "zonal_bps"
+    arcpy.sa.ZonalStatisticsAsTable(
+        in_zone_data=hexes,
+        zone_field=hex_id,
+        in_value_raster=bps,
+        out_table=out_table,
+        ignore_nodata="DATA",
+        statistics_type="MAJORITY",
+    )
+    lut = _read_mfri_lut(mfri_csv)
+    print(f"  MFRI lookup rows: {len(lut)} (from {mfri_csv})")
+
+    existing = [f.name for f in arcpy.ListFields(hexes)]
+    for name, ftype, length in (
+        ("BPS_MAJORITY", "LONG", None),
+        ("BPS_FRI", "LONG", None),
+        ("BPS_FRG", "TEXT", 16),
+        ("FIRE_DEP_HEX", "SHORT", None),
+    ):
+        if name not in existing:
+            if ftype == "TEXT":
+                arcpy.management.AddField(hexes, name, ftype, field_length=length)
+            else:
+                arcpy.management.AddField(hexes, name, ftype)
+
+    maj: dict = {}
+    with arcpy.da.SearchCursor(out_table, [hex_id, "MAJORITY"]) as cur:
+        for gid, m in cur:
+            maj[gid] = m
+
+    n_fd = 0
+    with arcpy.da.UpdateCursor(
+        hexes, [hex_id, "BPS_MAJORITY", "BPS_FRI", "BPS_FRG", "FIRE_DEP_HEX"]
+    ) as cur:
+        for row in cur:
+            m = maj.get(row[0])
+            if m is None:
+                row[1] = row[2] = None
+                row[3] = ""
+                row[4] = 0
+                cur.updateRow(row)
+                continue
+            mv = int(m)
+            fri, frg = lut.get(mv, (None, ""))
+            row[1] = mv
+            row[2] = fri if (fri is not None and fri > 0) else None
+            row[3] = frg
+            fd = 1 if (fri is not None and 0 < fri <= fri_max) else 0
+            row[4] = fd
+            n_fd += fd
+            cur.updateRow(row)
+    print(f"Added BPS_MAJORITY / BPS_FRI / BPS_FRG / FIRE_DEP_HEX (fire-dependent hexes: {n_fd})")
+
+
 def main() -> None:
     arcpy = require_arcpy()
     cfg = load_paths()
@@ -168,6 +252,7 @@ def main() -> None:
     hex_id = cfg.get("hex_id_field", "GRID_ID")
     evt = cfg.get("landfire_evt", "")
     padus = cfg.get("padus", "")
+    bps = cfg.get("landfire_bps", "")
 
     if evt and arcpy.Exists(evt):
         print(f"EVT majority by hex: {evt}")
@@ -211,6 +296,21 @@ def main() -> None:
             _padus_frac_from_polygons(arcpy, hexes, hex_id, padus, gap_field)
     else:
         print("Skipping PAD-US (padus empty or not found)")
+
+    if bps and arcpy.Exists(bps):
+        mfri_csv = cfg.get("mfri_table") or str(
+            Path(cfg["_repo_root"]) / "other_outputs" / "mfri_aoi_attributes.csv"
+        )
+        if not Path(mfri_csv).exists():
+            print(f"Skipping BpS/MFRI: MFRI table not found ({mfri_csv})")
+        else:
+            try:
+                fri_max = int(float(cfg.get("fire_dependent_max_fri", "200")))
+            except (TypeError, ValueError):
+                fri_max = 200
+            _bps_mfri(arcpy, hexes, hex_id, bps, mfri_csv, fri_max)
+    else:
+        print("Skipping BpS/MFRI (landfire_bps empty or not found)")
 
     print(f"Done. Working feature class: {hexes}")
     print("Next: 04_score_actions.py (after filling config/evt_rules_draft.csv)")

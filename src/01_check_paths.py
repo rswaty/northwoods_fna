@@ -20,6 +20,7 @@ RECOMMENDED = [
     "wrtc_housing_unit_exposure",
     "wrtc_housing_unit_density",
     "landfire_evt",
+    "landfire_bps",
     "padus",
 ]
 

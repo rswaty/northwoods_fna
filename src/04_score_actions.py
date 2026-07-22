@@ -1,10 +1,14 @@
 """Assign action class + weighted priority scores from config tables.
 
 v1:
-  - Actions: peat→defer; plantation→protect; high WRTC HU Risk→protect;
-    high WFE→restore beneficial fire; else defer
+  - Actions: plantation→protect; peat→wetlands_assess_locally; high WFE + high
+    people→treat_fire_risk_for_people; high WFE + not-high people→
+    ecosystem_health_focus; else defer
   - PAD GAP 1–3 multiplies priority only (not action)
-  - Goldilocks top 5%/10% use people_first (SCORE_PEOPLE)
+  - Goldilocks top 5%/10%/15% use people_first (SCORE_PEOPLE), over ACTIONABLE
+    hexes only (defer_monitor excluded); GOLDILOCKS_PRIORITY = 0-3 nested bands
+  - BpS/MFRI (FIRE_DEP_HEX) is context only; used here to validate that high WFE
+    implies fire-dependent, not to pick actions
 
 See config/ACTION_ASSIGNMENT.md.
 """
@@ -17,10 +21,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.action_assign import (  # noqa: E402
+    NONACTIONABLE,
     assign_action_v1,
+    is_high_wfe,
     percentile_threshold,
-    plantation_treatment_hint,
     priority_score,
+    treatment_hint,
 )
 from lib.paths import CONFIG_DIR, load_paths, require_arcpy  # noqa: E402
 
@@ -93,6 +99,8 @@ def main() -> None:
         ("SCORE_BALANCED", "DOUBLE", None),
         ("GOLDILOCKS_5", "SHORT", None),
         ("GOLDILOCKS_10", "SHORT", None),
+        ("GOLDILOCKS_15", "SHORT", None),
+        ("GOLDILOCKS_PRIORITY", "SHORT", None),
         ("PLANTATION_HEX", "SHORT", None),
         ("PEAT_HEX", "SHORT", None),
     ]
@@ -114,7 +122,7 @@ def main() -> None:
             break
 
     read_fields = [hex_id, wfe_field]
-    for optional in ("EVT_MAJORITY", homes_field, "PADUS_FRAC", wfe_cat_field):
+    for optional in ("EVT_MAJORITY", homes_field, "PADUS_FRAC", wfe_cat_field, "FIRE_DEP_HEX"):
         if optional and optional in field_names and optional not in read_fields:
             read_fields.append(optional)
 
@@ -134,6 +142,7 @@ def main() -> None:
                     "pad": _norm(rec.get("PADUS_FRAC")) or 0.0,
                     "peat": evt_key in peat_codes,
                     "plantation": evt_key in plant_codes,
+                    "fire_dep": rec.get("FIRE_DEP_HEX") if "FIRE_DEP_HEX" in read_fields else None,
                 }
             )
 
@@ -153,7 +162,8 @@ def main() -> None:
             wfe_p30=wfe_p30,
             homes_p30=homes_p30,
         )
-        hint = plantation_treatment_hint(
+        hint = treatment_hint(
+            action=action,
             plantation=rec["plantation"],
             wfe=rec["wfe"],
             wfe_cat=wfe_cat,
@@ -187,10 +197,27 @@ def main() -> None:
             }
         )
 
-    # Default Goldilocks = people-first ranking
-    top5 = _rank_flags([(r["id"], r["SCORE_PEOPLE"]) for r in rows_out], 0.05)
-    top10 = _rank_flags([(r["id"], r["SCORE_PEOPLE"]) for r in rows_out], 0.10)
+    # Default Goldilocks = people-first ranking, over ACTIONABLE hexes only
+    # (defer_monitor excluded). Percentages are of the actionable pool.
+    actionable = [
+        (r["id"], r["SCORE_PEOPLE"])
+        for r in rows_out
+        if r["ACTION_CLASS"] not in NONACTIONABLE
+    ]
+    top5 = _rank_flags(actionable, 0.05)
+    top10 = _rank_flags(actionable, 0.10)
+    top15 = _rank_flags(actionable, 0.15)
     by_id = {r["id"]: r for r in rows_out}
+
+    def _priority(gid) -> int:
+        # 0-3 nested bands: 3 = top 5%, 2 = top 10%, 1 = top 15%, 0 = rest.
+        if gid in top5:
+            return 3
+        if gid in top10:
+            return 2
+        if gid in top15:
+            return 1
+        return 0
 
     update_fields = [
         hex_id,
@@ -204,6 +231,8 @@ def main() -> None:
         "SCORE_BALANCED",
         "GOLDILOCKS_5",
         "GOLDILOCKS_10",
+        "GOLDILOCKS_15",
+        "GOLDILOCKS_PRIORITY",
     ]
     with arcpy.da.UpdateCursor(hexes, update_fields) as cur:
         for row in cur:
@@ -220,6 +249,8 @@ def main() -> None:
             row[8] = r["SCORE_BALANCED"]
             row[9] = 1 if row[0] in top5 else 0
             row[10] = 1 if row[0] in top10 else 0
+            row[11] = 1 if row[0] in top15 else 0
+            row[12] = _priority(row[0])
             cur.updateRow(row)
 
     if not peat_codes and not plant_codes:
@@ -227,8 +258,26 @@ def main() -> None:
             "NOTE: No EVT codes in config/evt_rules_draft.csv yet — "
             "peat/plantation flags stay off. See config/ACTION_ASSIGNMENT.md."
         )
+    # Validate the "high WFE => fire-dependent" premise, if BpS/MFRI is present.
+    if any(r.get("fire_dep") is not None for r in records):
+        high_wfe_recs = [
+            r for r in records
+            if is_high_wfe(r["wfe"], str(r["wfe_cat"]) if r["wfe_cat"] is not None else None, wfe_p30)
+        ]
+        non_fd = sum(1 for r in high_wfe_recs if (r.get("fire_dep") or 0) == 0)
+        n_hw = len(high_wfe_recs)
+        pct = (100.0 * non_fd / n_hw) if n_hw else 0.0
+        print(
+            f"Premise check (BpS/MFRI): {non_fd}/{n_hw} high-WFE hexes are NOT "
+            f"fire-dependent ({pct:.1f}%). Expected ~0 if high WFE => fire-dependent."
+        )
+
     print(f"WFE top-30% cutoff={wfe_p30:.4g}; WRTC top-30% cutoff={homes_p30:.4g}")
-    print("Goldilocks flags use people_first scores (SCORE_PEOPLE).")
+    print(
+        f"Goldilocks (people_first) over {len(actionable)} actionable hexes "
+        f"(defer_monitor excluded): top5={len(top5)} top10={len(top10)} top15={len(top15)}"
+    )
+    print("GOLDILOCKS_PRIORITY: 3=top5%, 2=top10%, 1=top15%, 0=rest (defers always 0).")
     print(f"Scored {len(rows_out)} hexes on {hexes}")
     print("Next: 05_export_hex_geojson.py")
 

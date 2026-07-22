@@ -1,6 +1,6 @@
 value_id,label,map_with,notes,active_v1
 homes_communities,Homes and communities,WRTC Housing Unit Risk (primary); Housing Unit Exposure + Density/Count as companions,See config/WRTC_DATASETS.md; can be high outside PAD,yes
-plantations,Timber plantations,EVT / local plantation layers,Always ACTION_CLASS=protect_from_wildfire; silviculture is treatment hint only,yes
+plantations,Timber plantations,EVT / local plantation layers,Always ACTION_CLASS=protect_from_fire; silviculture is treatment hint only,yes
 infrastructure,Critical infrastructure,Partner layers when available,Placeholder until partner layer exists,no
 padus_context,PAD-US GAP Status 1-3,PAD-US (GAP_Sts 1-3 only),Priority multiplier for feasibility + conservation/multiple-use mandate—not full ecosystem services. See config/PADUS_AND_RESILIENT.md,yes
 resilient_lands,TNC Resilient & Connected Lands,TNC resilientland (optional later),Adds climate resilience connectivity and nature value off PAD; stack with PAD 1-3 do not replace,no

@@ -6,7 +6,7 @@ Run in order from **ArcGIS Pro Python** (Python window, Notebook, or Pro `python
 |--------|---------|
 | `01_check_paths.py` | Validate `config/paths.local.yaml` |
 | `02_zonal_wrtc.py` | WRTC **Housing Unit Risk** (primary) → `WRTC_HU_RISK_MEAN`; optional Exposure / Density |
-| `03_zonal_evt_padus.py` | EVT majority; PAD-US **GAP 1–3** → `PADUS_FRAC` (raster or polygon) |
+| `03_zonal_evt_padus.py` | EVT majority; PAD-US **GAP 1–3** → `PADUS_FRAC`; BpS majority + MFRI → `FIRE_DEP_HEX` (context) |
 | `04_score_actions.py` | Action cascade + preset scores; **Goldilocks = people-first** |
 | `05_export_hex_geojson.py` | Write `outputs/hex/` for GitHub / Quarto |
 
@@ -22,13 +22,13 @@ Point paths at Pro GDB / clipped rasters. See `config/WRTC_DATASETS.md` and `con
 
 **Actions** (`lib/action_assign.py` — first match):
 
-1. Peat (EVT) → `defer_monitor`
-2. Plantation (EVT) → `protect_from_wildfire` (+ `TREATMENT_HINT`)
-3. High WRTC HU Risk → `protect_from_wildfire`
-4. High WFE → `restore_beneficial_fire`
+1. Plantation (EVT) → `protect_from_fire` (hint: silviculture)
+2. Peat (EVT) → `wetlands_assess_locally`
+3. High WFE + high people → `treat_fire_risk_for_people` (hint: `fuels_reduction_home_hardening`)
+4. High WFE + not-high people → `ecosystem_health_focus`
 5. Else → `defer_monitor`
 
-PAD does **not** pick the action. It multiplies priority only (GAP 1–3).
+PAD does **not** pick the action (multiplies priority only, GAP 1–3). BpS/MFRI does **not** pick the action either — `FIRE_DEP_HEX` is context + a check that high WFE ⇒ fire-dependent (script 04 prints the count).
 
 **Scores** (all written on the working hex FC):
 
@@ -38,9 +38,18 @@ PAD does **not** pick the action. It multiplies priority only (GAP 1–3).
 | `SCORE_PLANTATION` | `plantation_asset_first` |
 | `SCORE_PAD` | `pad_first` (strong GAP 1–3 boost) |
 | `SCORE_BALANCED` | `balanced` |
-| `GOLDILOCKS_5` / `_10` | Top 5% / 10% by **`SCORE_PEOPLE`** |
+| `GOLDILOCKS_5` / `_10` / `_15` | Top 5/10/15% by **`SCORE_PEOPLE`**, actionable hexes only |
+| `GOLDILOCKS_PRIORITY` | 0–3: 3=top5%, 2=top10%, 1=top15%, 0=rest (defers always 0) |
 
-Recreation deferred. TNC Resilient Lands not in the pipeline yet (optional later multiplier).
+Goldilocks excludes `defer_monitor` so "don't act" hexes are never flagged. Peat (`wetlands_assess_locally`) **is** ranked. Recreation deferred. TNC Resilient Lands not in the pipeline yet (optional later multiplier).
+
+### When to re-run
+
+| Change | Scripts |
+|--------|---------|
+| Action names / cascade / Goldilocks only | **04 → 05** |
+| First time adding BpS/MFRI context (`FIRE_DEP_HEX`) | **03 → 04 → 05** |
+| WRTC / EVT / PAD inputs changed | from the affected zonal step onward |
 
 ## Notes
 

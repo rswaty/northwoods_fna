@@ -2,8 +2,8 @@
 
 | EVT role | Effect on ACTION_CLASS |
 |----------|------------------------|
-| Peat / wetland | `defer_monitor` |
-| Plantation | **always** `protect_from_wildfire` |
+| Plantation | **always** `protect_from_fire` |
+| Peat / wetland | `wetlands_assess_locally` (not a blanket defer — peat can be fire-dependent *and* is the hardest ground fire to control) |
 | All other EVTs | Ignored |
 
 **Peat source (v1):** LANDFIRE EVT is good enough for screening.  

@@ -10,20 +10,22 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 |-------|------|
 | **Hazard** | Existing **WFE** on ~10k-acre hexes (`MEAN` / `WFE_CAT`) |
 | **People** | WRTC **Housing Unit Risk** (primary); Exposure + Density/Count as companions — see `config/WRTC_DATASETS.md` |
-| **Plantations** | EVT flag → always **Protect from wildfire** (silviculture = `TREATMENT_HINT` only) |
-| **Peat** | LANDFIRE EVT → **Defer** (swap to USFS peatlands later; same flag) |
+| **Plantations** | EVT flag → always **Protect from fire** (silviculture = `TREATMENT_HINT` only) |
+| **Peat** | LANDFIRE EVT → **`wetlands_assess_locally`** (fire-dependent *and* ground-fire hazard; swap to USFS peatlands later, same flag) |
 | **PAD-US** | GAP Status **1–3 only** → priority **multiplier** (feasibility / mandate). Not an action picker. Status 4 out. Raster or polygon OK. |
-| **Ranking default** | **People-first** Goldilocks (top 5% / 10%). Also: plantation-asset-first, **PAD-first**, balanced |
+| **Ranking default** | **People-first** Goldilocks over actionable hexes (top 5/10/15%; `GOLDILOCKS_PRIORITY` 0–3). Also: plantation-asset-first, **PAD-first**, balanced |
 | **Recreation** | Deferred |
 | **TNC Resilient Lands** | Optional later second multiplier — does not change actions; re-orders priority (including off PAD). See `config/PADUS_AND_RESILIENT.md` |
 
 ### Action cascade (first match)
 
-1. Peat → defer  
-2. Plantation → protect  
-3. High WRTC HU Risk → protect  
-4. High WFE → restore beneficial fire  
-5. Else → defer  
+1. Plantation → protect_from_fire  
+2. Peat → wetlands_assess_locally  
+3. High WFE + high people → treat_fire_risk_for_people (mechanical fuels reduction + home hardening)  
+4. High WFE + not-high people → ecosystem_health_focus (beneficial fire)  
+5. Else → defer_monitor  
+
+High WFE ⇒ fire-dependent (WFE is fire-behavior based), so there's no "hot but not fire-adapted" case. **BpS/MFRI** is folded in as ecological context (`FIRE_DEP_HEX`) and to validate that premise — it does not pick actions.
 
 Details: `config/ACTION_ASSIGNMENT.md` · brief: `next_gen_faa.html`
 

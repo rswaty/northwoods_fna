@@ -32,6 +32,13 @@ wrtc_housing_exposure: "C:/path/to/nw_aoi_hu_risk"
 # with 0 (no homes = 0 housing risk). Set "false" to keep NULLs instead.
 wrtc_fill_nodata_zero: "true"
 landfire_evt: "C:/path/to/nw_aoi_evt"
+# LANDFIRE BpS (reference ecosystems) — zonal majority → BPS_MAJORITY; joined to
+# MFRI table for reference fire regime (context/validation, not an action gate).
+landfire_bps: "C:/path/to/nw_aoi_bps"
+# MFRI lookup by BpS Value → FRI_ALLFIR / FRG (repo-relative default is fine).
+mfri_table: "other_outputs/mfri_aoi_attributes.csv"
+# Reference all-fire return interval (years) at/under which a hex is fire-dependent.
+fire_dependent_max_fri: "200"
 # optional triangulation (not ranking drivers for v1)
 whp: ""
 burn_probability: ""

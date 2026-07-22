@@ -1,30 +1,42 @@
 # v1 action assignment
 
-**Default ranking:** people-first (`SCORE_PEOPLE` → Goldilocks 5%/10%).  
+**Default ranking:** people-first (`SCORE_PEOPLE` → Goldilocks 5%/10%/15%, actionable hexes only).  
 **PAD:** GAP 1–3 multiplier only. **Recreation:** deferred. **Resilient lands:** optional later.
 
 ## Roles of each input
 
 | Input | Picks **action class**? | Role |
 |-------|-------------------------|------|
-| EVT peat | Yes | → `defer_monitor` (LANDFIRE now; USFS peat later) |
-| EVT plantation | Yes | → **always** `protect_from_wildfire` (economic asset) |
-| WRTC **Housing Unit Risk** | Yes | → `protect_from_wildfire` when high |
-| WFE | Yes | High → `restore_beneficial_fire` (if not peat / already protect) |
+| EVT plantation | Yes | → **always** `protect_from_fire` (economic asset) |
+| EVT peat | Yes | → `wetlands_assess_locally` (fire-dependent *and* ground-fire hazard; screening can't decide) |
+| WFE | Yes | High WFE is the treatment trigger; **people** split it (below) |
+| WRTC **Housing Unit Risk** | Yes | "High people" routes a high-WFE hex to the people action |
+| **BpS / MFRI (`FIRE_DEP_HEX`)** | **No** | **Context/validation only.** WFE already encodes fire-behavior/return-interval, so high WFE ⇒ fire-dependent; used to check that premise, not to gate. |
 | **PAD-US GAP 1–3** | **No** | **Multiplier on priority only**. Status 4 excluded. |
 | Disturbances | Later | Calibrate when toggle on |
 
-Plantations may also get a **treatment hint** (silviculture / silviculture-then-fire) = *how* you protect the asset — not a separate action class in v1.
+**Treatment hints** (`TREATMENT_HINT`) say *how* to act, not a separate action class:
+
+| Situation | Hint |
+|-----------|------|
+| Plantation, low WFE | `silvicultural_treatment` |
+| Plantation, high WFE | `silviculture_then_fire` |
+| `treat_fire_risk_for_people` | `fuels_reduction_home_hardening` — mechanical fuels reduction + home hardening / defensible-space inspections (near homes + fire-excluded → not beneficial fire) |
 
 ## Action cascade (first match wins)
 
-1. **Peat** → `defer_monitor`
-2. **Plantation** → `protect_from_wildfire` (always)
-3. **High WRTC Housing Unit Risk** → `protect_from_wildfire`
-4. **High WFE** → `restore_beneficial_fire`
+1. **Plantation** → `protect_from_fire` (always; economic asset)
+2. **Peat** → `wetlands_assess_locally`
+3. **High WFE + high people** → `treat_fire_risk_for_people`
+4. **High WFE + not-high people** → `ecosystem_health_focus`
 5. **Else** → `defer_monitor`
 
-PAD never appears in this list. People + high WFE **outside** PAD still get protect / fire / high base scores.
+Notes:
+- **No "high WFE but not fire-dependent" case.** WFE is built from fire behavior / return interval, so high WFE means fire-carrying, fire-adapted fuels. BpS/MFRI is folded in only as context and to validate this (script 04 prints how many high-WFE hexes come back long-interval; expect ~0).
+- **People-first:** a high-WFE hex that is *both* near people and on PAD goes to `treat_fire_risk_for_people`; PAD then just raises its priority score.
+- **High people but low WFE → `defer_monitor`** (no hazard, no fuels work). Peat no longer blanket-defers — high stakes on those hexes still surface via the priority ranking.
+
+PAD never appears in this list. People + high WFE **outside** PAD still get treated and score high.
 
 ## Priority score (Goldilocks)
 
@@ -41,6 +53,15 @@ Hex field `PADUS_FRAC` = overlap with PAD features where GAP Status ∈ {1, 2, 3
 base   = w_homes×WRTC_HU_Risk + w_plantations×plantation_flag + w_wfe×WFE
 score  = base × (1 + w_pad_multiplier × PADUS_FRAC)
 ```
+
+### Goldilocks bands + priority (people-first)
+
+Ranking is over **actionable hexes only** — `defer_monitor` is excluded, so a "don't act" hex can never be flagged Goldilocks. Percentages are of the actionable pool.
+
+| Field | Meaning |
+|-------|---------|
+| `GOLDILOCKS_5` / `_10` / `_15` | Top 5% / 10% / 15% by `SCORE_PEOPLE` (cumulative, nested) |
+| `GOLDILOCKS_PRIORITY` | 0–3 ordinal: **3** = top 5% (protect ASAP — high housing + high WFE), **2** = top 10%, **1** = top 15%, **0** = rest (all defers = 0) |
 
 Presets (`config/weight_presets.csv`):
 
@@ -62,28 +83,34 @@ H/L = high/low within AOI; Y/N = flag. PAD = overlap fraction.
 ### Plantations always protect
 | WFE | WRTC | PAD | Peat | Plantation | → ACTION_CLASS | Treatment hint |
 |-----|------|-----|------|------------|----------------|----------------|
-| H | L | 0 | N | Y | **protect_from_wildfire** | silviculture_then_fire |
-| L | L | 0.8 | N | Y | **protect_from_wildfire** | silvicultural_treatment |
-| H | H | 0 | N | Y | **protect_from_wildfire** | silviculture_then_fire |
+| H | L | 0 | N | Y | **protect_from_fire** | silviculture_then_fire |
+| L | L | 0.8 | N | Y | **protect_from_fire** | silvicultural_treatment |
+| H | H | 0 | N | Y | **protect_from_fire** | silviculture_then_fire |
 
-### People + WFE outside PAD (still act)
+### High WFE near people
 | WFE | WRTC | PAD | Peat | Plantation | → ACTION_CLASS | Priority note |
 |-----|------|-----|------|------------|----------------|---------------|
-| H | H | **0** | N | N | **protect_from_wildfire** | High base score; no PAD boost |
-| H | H | **0.7** | N | N | **protect_from_wildfire** | Same action; **higher** score via PAD multiplier |
+| H | H | **0** | N | N | **treat_fire_risk_for_people** | High base score; no PAD boost |
+| H | H | **0.7** | N | N | **treat_fire_risk_for_people** | People-first; PAD only **raises** the score |
 
-### Fire need without people
+### High WFE away from people (ecosystem)
 | WFE | WRTC | PAD | Peat | Plantation | → ACTION_CLASS |
 |-----|------|-----|------|------------|----------------|
-| H | L | 0 | N | N | **restore_beneficial_fire** |
-| H | L | 0.9 | N | N | **restore_beneficial_fire** (higher priority score) |
+| H | L | 0 | N | N | **ecosystem_health_focus** |
+| H | L | 0.9 | N | N | **ecosystem_health_focus** (higher priority score via PAD) |
+
+### High people, low WFE
+| WFE | WRTC | PAD | Peat | Plantation | → ACTION_CLASS |
+|-----|------|-----|------|------------|----------------|
+| L | H | 0 | N | N | **defer_monitor** (no hazard → no fuels work) |
 
 ### Peat / quiet
-| WFE | WRTC | PAD | Peat | Plantation | → ACTION_CLASS |
-|-----|------|-----|------|------------|----------------|
-| H | H | 0.9 | Y | N | **defer_monitor** |
-| L | L | 0.9 | N | N | **defer_monitor** (PAD alone does not create an action) |
+| WFE | WRTC | PAD | Peat | Plantation | → ACTION_CLASS | Note |
+|-----|------|-----|------|------------|----------------|------|
+| H | H | 0.9 | Y | N | **wetlands_assess_locally** | Still high `SCORE_PEOPLE` → can be Goldilocks priority 3 |
+| H | L | 0.9 | Y | N | **wetlands_assess_locally** | Local call on a fire-prone peatland |
+| L | L | 0.9 | N | N | **defer_monitor** | PAD alone does not create an action; priority 0 |
 
-## Silviculture action classes in v1
+## Treatment hints, not action classes
 
-`silvicultural_treatment` and `silviculture_then_fire` are **hints on plantations**, not primary ACTION_CLASS. Broader EVT-based silviculture returns when partners want finer ecosystem rules.
+`silvicultural_treatment`, `silviculture_then_fire`, and `fuels_reduction_home_hardening` are **`TREATMENT_HINT`s**, not primary `ACTION_CLASS`. Broader EVT/BpS-based ecosystem rules return when partners want finer logic.
