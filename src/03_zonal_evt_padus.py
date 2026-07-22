@@ -297,7 +297,15 @@ def main() -> None:
     else:
         print("Skipping PAD-US (padus empty or not found)")
 
-    if bps and arcpy.Exists(bps):
+    if not bps:
+        print(
+            "Skipping BpS/MFRI: landfire_bps is empty in paths.local.yaml. "
+            "Add e.g. landfire_bps: \"D:/northwoods_faa/MyProject.gdb/nw_aoi_bps\""
+        )
+    elif not arcpy.Exists(bps):
+        print(f"Skipping BpS/MFRI: landfire_bps not found by ArcGIS -> {bps}")
+        print("  Check the raster name in Catalog (exact spelling) and that the GDB path is correct.")
+    else:
         mfri_csv = cfg.get("mfri_table") or str(
             Path(cfg["_repo_root"]) / "other_outputs" / "mfri_aoi_attributes.csv"
         )
@@ -305,12 +313,10 @@ def main() -> None:
             print(f"Skipping BpS/MFRI: MFRI table not found ({mfri_csv})")
         else:
             try:
-                fri_max = int(float(cfg.get("fire_dependent_max_fri", "200")))
+                fri_max = int(float(cfg.get("fire_dependent_max_fri", "100")))
             except (TypeError, ValueError):
-                fri_max = 200
+                fri_max = 100
             _bps_mfri(arcpy, hexes, hex_id, bps, mfri_csv, fri_max)
-    else:
-        print("Skipping BpS/MFRI (landfire_bps empty or not found)")
 
     print(f"Done. Working feature class: {hexes}")
     print("Next: 04_score_actions.py (after filling config/evt_rules_draft.csv)")

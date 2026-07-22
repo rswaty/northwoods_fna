@@ -38,7 +38,7 @@ landfire_bps: "C:/path/to/nw_aoi_bps"
 # MFRI lookup by BpS Value → FRI_ALLFIR / FRG (repo-relative default is fine).
 mfri_table: "other_outputs/mfri_aoi_attributes.csv"
 # Reference all-fire return interval (years) at/under which a hex is fire-dependent.
-fire_dependent_max_fri: "200"
+fire_dependent_max_fri: "100"
 # optional triangulation (not ranking drivers for v1)
 whp: ""
 burn_probability: ""

@@ -1,0 +1,49 @@
+# ACTION MATRIX DRAFT — fill ACTION_CLASS / TREATMENT_HINT / notes
+# Factors use Low / Med / High (or Y/N for flags). "*" = any / not applicable for that row.
+#
+# === Factor definitions (v1 draft — edit if you want different bins) ===
+# WFE:        Low = below top-30% cutoff (and not WFE_CAT high); Med = mid (optional bin);
+#             High = top 30% of hex MEAN or WFE_CAT in {high, very high}
+# PEOPLE:     WRTC Housing Unit Risk — Low / Med / High same idea (High = top 30%)
+# FDIST_FUEL: from area-weighted FDist lookup (−1 remove, 0 neutral, +1 add), last 10 years
+#             Low = fuel-removing (delta ≲ −0.25); Med = neutral (|delta| < 0.25);
+#             High = fuel-adding (delta ≳ +0.25)  [insects, wind/ice, etc.]
+# PAD:        PADUS_FRAC (GAP 1–3): Low <0.33; Med 0.33–0.67; High >0.67
+#             Currently score multiplier only — leave action blank or note "no action change"
+# PEAT:       Y if EVT majority in peat codes; else N
+# PLANTATION: Y if EVT majority plantation; else N
+# FIRE_DEP:   context only (BpS FRI ≤ 100) — included for review, not a required gate
+#
+# Cascade order reminder (current code): plantation → peat → then WFE/people rules.
+# Proposed: after WFE branches, add low-WFE + FDIST High pathways (Arrowhead insects, MI ice/wind).
+#
+plantation,peat,wfe,people,fdist_fuel,pad,fire_dep,ACTION_CLASS,TREATMENT_HINT,notes
+Y,*,*,*,*,*,*,,,,ALWAYS protect_from_fire today — fill or confirm
+N,Y,*,*,*,*,*,,,,ALWAYS wetlands_assess_locally today — fill or confirm
+N,N,High,High,Low,*,*,,,,
+N,N,High,High,Med,*,*,,,,
+N,N,High,High,High,*,*,,,,
+N,N,High,Med,Low,*,*,,,,
+N,N,High,Med,Med,*,*,,,,
+N,N,High,Med,High,*,*,,,,
+N,N,High,Low,Low,*,*,,,,
+N,N,High,Low,Med,*,*,,,,
+N,N,High,Low,High,*,*,,,,
+N,N,Med,High,Low,*,*,,,,
+N,N,Med,High,Med,*,*,,,,
+N,N,Med,High,High,*,*,,,,
+N,N,Med,Med,Low,*,*,,,,
+N,N,Med,Med,Med,*,*,,,,
+N,N,Med,Med,High,*,*,,,,
+N,N,Med,Low,Low,*,*,,,,
+N,N,Med,Low,Med,*,*,,,,
+N,N,Med,Low,High,*,*,,,,
+N,N,Low,High,Low,*,*,,,,
+N,N,Low,High,Med,*,*,,,,
+N,N,Low,High,High,*,*,,,,KEY: low WFE + fuel-add + people (MI ice/wind, Arrowhead insects near homes)
+N,N,Low,Med,Low,*,*,,,,
+N,N,Low,Med,Med,*,*,,,,
+N,N,Low,Med,High,*,*,,,,
+N,N,Low,Low,Low,*,*,,,,
+N,N,Low,Low,Med,*,*,,,,
+N,N,Low,Low,High,*,*,,,,KEY: low WFE + fuel-add away from people
