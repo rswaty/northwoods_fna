@@ -36,13 +36,15 @@ def main() -> None:
 
     if geojson.exists():
         geojson.unlink()
+    # Positional args match arcpy.conversion.FeaturesToJSON signature:
+    # (in_features, out_json_file, format_json, include_z_values, include_m_values, geoJSON)
     arcpy.conversion.FeaturesToJSON(
         tmp,
         str(geojson),
-        format_json="FORMATTED",
-        include_z="NO_Z_VALUES",
-        include_m="NO_M_VALUES",
-        geoJSON="GEOJSON",
+        "FORMATTED",
+        "NO_Z_VALUES",
+        "NO_M_VALUES",
+        "GEOJSON",
     )
     print(f"Wrote {geojson}")
 
