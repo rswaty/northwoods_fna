@@ -1,0 +1,127 @@
+---
+title: "Next Gen Fire Action Assessment (FAA)"
+subtitle: "Plain-language overview"
+author: "Northwoods FAA"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+  docx: default
+  pdf:
+    toc: false
+    number-sections: false
+execute:
+  echo: false
+---
+
+**Region:** Northern Michigan, Wisconsin, and Minnesota's Arrowhead
+
+**Audience:** Leaders, partners, and land managers who need to develop a shared picture of *what to do where* — without needing GIS or modeling expertise
+
+## Goals
+
+Wildfire work will always cost more time, money, and political capital than we have. The Fire Action Assessment (FAA) helps partners answer a practical question:
+
+> **Where should our efforts go first, and what kind of work makes sense there?**
+
+Goals of this effort:
+
+- **Facilitate conversations**, not close them. The map is a structured starting point for agencies, tribes, counties, industry, and communities — not a verdict.
+- **Talk about actions**, not "good" vs "bad" ecosystems or landscapes. A place is not scored as worthy or unworthy; it is labeled with a *suggested focus* (protect an asset, work near people, restore fire-adapted systems, assess wetlands carefully, or wait and watch).
+- **Stay strategic.** Hexes are large (~10,000 acres). Think "where to look harder and talk next," not "cut or burn this stand tomorrow."
+- **Use existing, trusted data wisely** — [community wildfire risk](https://www.fs.usda.gov/rds/archive/catalog/RDS-2020-0016-2) products, landscape wildfire exposure risk, [LANDFIRE](https://landfire.gov/) ecosystems and disturbance data, and (soon) recent disturbance maps — combined in a way people can understand and adjust.
+- **Keep every rule visible and reproducible.** Logic lives in plain documents anyone can review and code analysts can re-run, and adapt for another area of interest.
+- **Leave room for local knowledge.** This is not NEPA, not borad stakeholder consultation, and not a prescription. Managers still decide based on access, markets, smoke, values, and on-the-ground conditions.
+
+## What is innovative here
+
+Most maps stop at **risk** (where something bad *could* happen). FAA goes one step further: it proposes an **action class** on every place and a **manageable priority band** so programs aren't asked to "fix everything red."
+
+| Innovation | Why it matters |
+|------------|----------------|
+| **Actions, not only heat maps** | Partners can discuss *protect*, *treat for people*, *ecosystem health*, *wetlands assess*, or *defer* — a shared vocabulary for meetings. |
+| **People and ecosystems in one frame** | Homes and fire-adapted forests both matter; rules say when people come first and when ecosystem work is the focus. |
+| **More than one hazard signal** | Today's exposure map, ecological fire dependence, and recent fuel-adding events (insects, ice, wind) each catch situations the others miss. |
+| **"Goldilocks" priorities** | Among places where we'd *do something*, flag a top slice so leaders can size a realistic near-term footprint. |
+| **Documented + coded** | Same rules every time; change a weight or a threshold on purpose, not by accident in a one-off GIS session. |
+| **Built to travel** | Swap the boundary, hexes, and local data; keep the method — useful beyond this one project. |
+
+## The idea in one sentence
+
+We combine **today's fire hazard**, **whether the land is naturally fire-adapted**, **recent fuel-loading events**, and **people and homes** — then assign a simple action and rank the places that matter most under a people-first lens.
+
+| We look at… | In plain terms | Real-world example |
+|-------------|----------------|--------------------|
+| **Wildfire exposure** | Where fire can carry and behave severly *today* | Continuous jack pine that shows up "hot" on the exposure map |
+| **Fire-adapted ecology** | Where ecosystems historically needed fire — even if today's hazard map looks quieter | Red pine or barrens the exposure map may under-emphasize |
+| **Recent disturbances** | Where insects, ice, or wind *added* fuels that older hazard maps miss | Arrowhead insect mortality; lower Michigan ice/wind blowdown |
+| **People (community risk)** | Where housing and community wildfire risk are high | Town edges, lake-home clusters, WUI |
+| **Special cases** | Plantations (timber assets) and peat/wetlands (need a local call) | Tree farm; large peatland complex |
+
+Ownership maps and mills can inform *feasibility* later; they do not pick the action in this version.
+
+## How actions are assigned (with examples)
+
+Each hexagon gets **one primary action** (simple rules, applied in order). These are **working hypotheses for discussion**, not orders.
+
+1. **Protect from fire** — Keep damaging fire *out* of a high-value asset (especially **plantations**). Tools are often thinning or harvest; prescribed fire is not the main goal.  
+   *Example: A managed pine plantation — protect the timber investment.*
+
+2. **Wetlands — assess locally** — Peat and similar wetlands can be fire-related *and* extremely hard to control once they burn. The map flags them; people with local hydrology and fire history decide.  
+   *Example: A large bog with limited access — don't auto-ignore and don't auto-burn; put it on the conversation list.*
+
+3. **Treat fire risk for people** — High hazard **and/or** recent fuel buildup **near homes**. Emphasis: mechanical fuels work plus home hardening / defensible space — not lighting fire near communities.  
+   *Example A: High exposure next to community.*  
+   *Example B: Modeled exposure looks modest, but a recent ice storm left heavy fuels beside those homes — still a "people" conversation.*
+
+4. **Ecosystem health focus** — Fire-adapted country **away from dense housing**, where beneficial or prescribed fire (sometimes after thinning) is the point.  
+   *Example A: Jack pines far from town — restore fire as a process.*  
+   *Example B: Red pine that isn't the "hottest" on the hazard map but is fire-adapted — still a candidate for ecosystem work, not "nothing to see here."*
+
+5. **Defer / monitor** — Low stakes for now: little hazard, little recent fuel add, not a special asset. **Defer is not a value judgment** — it means "not the near-term treatment conversation."  
+   *Example: Mesic northern hardwoods with low exposure and no major recent disturbance.*
+
+A short **"how" note** may sit beside the action (e.g., silviculture for plantations; fuels + home hardening near people). That is a hint for discussion, not a second ranking system.
+
+## How prioritization works ("Goldilocks")
+
+We cannot treat everything. Among places where the map says **do something** (not defer), we score urgency with a **people-first** lens: homes and community risk weigh most, then fire hazard; plantations also count. Leaders then see a **manageable band**, not an endless red map:
+
+| Priority | Rough meaning |
+|----------|----------------|
+| **3** | Top ~5% of actionable places — start here for near-term planning talks |
+| **2** | Top ~10% |
+| **1** | Top ~15% |
+| **0** | Actionable but outside that near-term band, or deferred |
+
+*Example:* A peatland next to high community risk can still rise in priority — it needs a careful local call *and* may be urgent. A quiet hardwood block does not crowd the short list.
+
+Different partners can later emphasize plantations or other values; the default shared view stays people-first so the first conversation is coherent.
+
+## How to use this
+
+- **Leaders & non-technical partners:** Use actions + priority bands to set the agenda ("these are the first places we need a joint conversation"). Challenge and rewrite rules when local reality disagrees — that is success, not failure.
+- **Land managers:** Treat the action as a hypothesis. Ground-truth; adjust for access, markets, smoke, wildlife, cultural resources, and capacity.
+- **Analysts & future projects:** Re-run the same coded steps when data improve (better plantations, fresher disturbances). Document any rule change so last year's map and this year's map stay comparable.
+
+## Known limitations and next steps
+
+FAA is intentionally incomplete. Naming gaps keeps the tool honest and gives partners a clear improvement list — without pretending the screen replaces local design.
+
+| Limitation (today) | Why it matters | Possible next step |
+|--------------------|----------------|--------------------|
+| **Potential ignitions** | We emphasize hazard, ecology, recent fuels, and people — not *where a fire is likely to start* (roads, recreation, lightning, powerlines, historic starts). | Add an ignition index (human and/or lightning) mainly as **priority / prevention context**, not a new action class. |
+| **Valuable timber next to risky timber** | A hex (or neighbor) may mix high-value stands you do not want to burn with fuels that elevate risk. Coarse hexes and simple plantation flags miss that adjacency. | Finer nested hexes; better industrial/plantation layers; rules or flags for “protect asset beside treat fuels.” |
+| **Limited biodiversity consideration** | Protected-area and resilient-lands ideas are thin or deferred. Actions are not a biodiversity plan. | Optional context or priority multipliers (e.g. resilient lands); partner-defined conservation values — still not a substitute for ecology staff. |
+| **Limited feasibility** | Access, markets, mills, workforce, smoke windows, and ownership capacity barely enter the score. A high-priority hex may be hard to treat. | Mill catchments, recent treatment capacity, ownership/feasibility layers as **multipliers or filters** after action is assigned. |
+| **Limited acknowledgement of current actions** | Places already thinned, burned, or under active projects can still look “hot” or “needed” if inputs are stale. | Overlay recent treatments / planned projects; optionally down-weight or flag “already in motion” for the conversation. |
+| **Response capacity & seasonal risk** | Strategic hexes don’t show VFD/DNR/USFS stations or *this week’s* fire danger — so rapid-response positioning is out of scope for v1. | Companion layers/briefs; see `config/next_steps_partner_notes.md`. |
+| **“Protect” vocabulary** | Easy to confuse asset protection, PAD “protected lands,” and suppression. | Keep protections = values/assets; rethink PAD vs private timber; same notes doc. |
+
+Other known soft spots (also on the improvement path): plantation maps thinner than reality (LANDFIRE EVT), ownership used more as context than as a driver, large hexes that average over mixed stands, and refreshing historic fire occurrence on the companion [Northwoods recent fires](https://rswaty.github.io/northwoods/recent.html) page (data currently through 2020).
+
+**Bottom line:** FAA is a **conversation tool** built on **smart reuse of existing data**, with **actions instead of good/bad labels**, and **open, reproducible rules** — so Northwoods partners can focus scarce wildfire effort where it matters most, together. What it leaves out is listed above on purpose, so the next versions stay driven by partner needs rather than silent assumptions.
