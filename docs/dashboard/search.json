@@ -1,0 +1,16 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Next Gen FAA — Northwoods (draft)",
+    "section": "",
+    "text": "Strategic screening map for northern MI, WI, and MN Arrowhead. Scores and action classes are produced in ArcGIS Pro (Python in src/); this page only displays pushed hex outputs. Default emphasis: people-first (SCORE_PEOPLE / Goldilocks)."
+  },
+  {
+    "objectID": "index.html#weight-presets-from-config",
+    "href": "index.html#weight-presets-from-config",
+    "title": "Next Gen FAA — Northwoods (draft)",
+    "section": "Weight presets (from config)",
+    "text": "Weight presets (from config)\nDashboard default emphasis is people-first. Presets: people_first (Goldilocks default), plantation_asset_first, pad_first (GAP 1–3), balanced. Goldilocks ranks actionable hexes only (defer_monitor excluded; peat / wetlands included); GOLDILOCKS_PRIORITY runs 0–3 (3 = top 5% people-first). Recreation deferred. Disturbance polygons toggle when files appear in data/disturbances/."
+  }
+]
