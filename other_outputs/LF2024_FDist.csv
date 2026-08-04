@@ -1,67 +1,67 @@
-VALUE,D_TYPE,D_SEVERITY,D_TIME
--9999,Fill-NoData,Fill-NoData,Fill-NoData
--1111,Fill-Not Mapped,Fill-Not Mapped,Fill-Not Mapped
-0,No Disturbance,NA,NA
-111,Fire,Low,One Year
-112,Fire,Low,Two to Five Years
-113,Fire,Low,Six to Ten Years
-121,Fire,Moderate,One Year
-122,Fire,Moderate,Two to Five Years
-123,Fire,Moderate,Six to Ten Years
-131,Fire,High,One Year
-132,Fire,High,Two to Five Years
-133,Fire,High,Six to Ten Years
-211,Mechanical Add,Low,One Year
-212,Mechanical Add,Low,Two to Five Years
-213,Mechanical Add,Low,Six to Ten Years
-221,Mechanical Add,Moderate,One Year
-222,Mechanical Add,Moderate,Two to Five Years
-223,Mechanical Add,Moderate,Six to Ten Years
-231,Mechanical Add,High,One Year
-232,Mechanical Add,High,Two to Five Years
-233,Mechanical Add,High,Six to Ten Years
-311,Mechanical Remove,Low,One Year
-312,Mechanical Remove,Low,Two to Five Years
-313,Mechanical Remove,Low,Six to Ten Years
-321,Mechanical Remove,Moderate,One Year
-322,Mechanical Remove,Moderate,Two to Five Years
-323,Mechanical Remove,Moderate,Six to Ten Years
-331,Mechanical Remove,High,One Year
-332,Mechanical Remove,High,Two to Five Years
-333,Mechanical Remove,High,Six to Ten Years
-411,Windthrow,Low,One Year
-412,Windthrow,Low,Two to Five Years
-413,Windthrow,Low,Six to Ten Years
-421,Windthrow,Moderate,One Year
-422,Windthrow,Moderate,Two to Five Years
-423,Windthrow,Moderate,Six to Ten Years
-431,Windthrow,High,One Year
-432,Windthrow,High,Two to Five Years
-433,Windthrow,High,Six to Ten Years
-511,Insects-Disease,Low,One Year
-512,Insects-Disease,Low,Two to Five Years
-513,Insects-Disease,Low,Six to Ten Years
-521,Insects-Disease,Moderate,One Year
-522,Insects-Disease,Moderate,Two to Five Years
-523,Insects-Disease,Moderate,Six to Ten Years
-531,Insects-Disease,High,One Year
-532,Insects-Disease,High,Two to Five Years
-533,Insects-Disease,High,Six to Ten Years
-611,Mechanical Unknown,Low,One Year
-612,Mechanical Unknown,Low,Two to Five Years
-613,Mechanical Unknown,Low,Six to Ten Years
-621,Mechanical Unknown,Moderate,One Year
-622,Mechanical Unknown,Moderate,Two to Five Years
-623,Mechanical Unknown,Moderate,Six to Ten Years
-631,Mechanical Unknown,High,One Year
-632,Mechanical Unknown,High,Two to Five Years
-633,Mechanical Unknown,High,Six to Ten Years
-711,Mastication,Low,One Year
-712,Mastication,Low,Two to Five Years
-713,Mastication,Low,Six to Ten Years
-721,Mastication,Moderate,One Year
-722,Mastication,Moderate,Two to Five Years
-723,Mastication,Moderate,Six to Ten Years
-731,Mastication,High,One Year
-732,Mastication,High,Two to Five Years
-733,Mastication,High,Six to Ten Years
+VALUE,D_TYPE,D_SEVERITY,D_TIME,FUEL_DIRECTION_1
+-9999,Fill-NoData,Fill-NoData,Fill-NoData,0
+-1111,Fill-Not Mapped,Fill-Not Mapped,Fill-Not Mapped,0
+0,No Disturbance,NA,NA,0
+111,Fire,Low,One Year,-1
+112,Fire,Low,Two to Five Years,-1
+113,Fire,Low,Six to Ten Years,-1
+121,Fire,Moderate,One Year,-1
+122,Fire,Moderate,Two to Five Years,-1
+123,Fire,Moderate,Six to Ten Years,-1
+131,Fire,High,One Year,-1
+132,Fire,High,Two to Five Years,-1
+133,Fire,High,Six to Ten Years,-1
+211,Mechanical Add,Low,One Year,-1
+212,Mechanical Add,Low,Two to Five Years,-1
+213,Mechanical Add,Low,Six to Ten Years,-1
+221,Mechanical Add,Moderate,One Year,-1
+222,Mechanical Add,Moderate,Two to Five Years,-1
+223,Mechanical Add,Moderate,Six to Ten Years,-1
+231,Mechanical Add,High,One Year,-1
+232,Mechanical Add,High,Two to Five Years,-1
+233,Mechanical Add,High,Six to Ten Years,-1
+311,Mechanical Remove,Low,One Year,-1
+312,Mechanical Remove,Low,Two to Five Years,-1
+313,Mechanical Remove,Low,Six to Ten Years,-1
+321,Mechanical Remove,Moderate,One Year,-1
+322,Mechanical Remove,Moderate,Two to Five Years,-1
+323,Mechanical Remove,Moderate,Six to Ten Years,-1
+331,Mechanical Remove,High,One Year,-1
+332,Mechanical Remove,High,Two to Five Years,-1
+333,Mechanical Remove,High,Six to Ten Years,-1
+411,Windthrow,Low,One Year,1
+412,Windthrow,Low,Two to Five Years,1
+413,Windthrow,Low,Six to Ten Years,1
+421,Windthrow,Moderate,One Year,1
+422,Windthrow,Moderate,Two to Five Years,1
+423,Windthrow,Moderate,Six to Ten Years,1
+431,Windthrow,High,One Year,1
+432,Windthrow,High,Two to Five Years,1
+433,Windthrow,High,Six to Ten Years,1
+511,Insects-Disease,Low,One Year,1
+512,Insects-Disease,Low,Two to Five Years,1
+513,Insects-Disease,Low,Six to Ten Years,1
+521,Insects-Disease,Moderate,One Year,1
+522,Insects-Disease,Moderate,Two to Five Years,1
+523,Insects-Disease,Moderate,Six to Ten Years,1
+531,Insects-Disease,High,One Year,1
+532,Insects-Disease,High,Two to Five Years,1
+533,Insects-Disease,High,Six to Ten Years,1
+611,Mechanical Unknown,Low,One Year,0
+612,Mechanical Unknown,Low,Two to Five Years,0
+613,Mechanical Unknown,Low,Six to Ten Years,0
+621,Mechanical Unknown,Moderate,One Year,0
+622,Mechanical Unknown,Moderate,Two to Five Years,0
+623,Mechanical Unknown,Moderate,Six to Ten Years,0
+631,Mechanical Unknown,High,One Year,0
+632,Mechanical Unknown,High,Two to Five Years,0
+633,Mechanical Unknown,High,Six to Ten Years,0
+711,Mastication,Low,One Year,-1
+712,Mastication,Low,Two to Five Years,-1
+713,Mastication,Low,Six to Ten Years,-1
+721,Mastication,Moderate,One Year,-1
+722,Mastication,Moderate,Two to Five Years,-1
+723,Mastication,Moderate,Six to Ten Years,-1
+731,Mastication,High,One Year,-1
+732,Mastication,High,Two to Five Years,-1
+733,Mastication,High,Six to Ten Years,-1
