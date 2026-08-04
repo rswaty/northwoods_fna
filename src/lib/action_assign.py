@@ -1,20 +1,19 @@
 """v1 action cascade + priority scoring helpers.
 
-Actions (first match): plantation / peat / high WFE (split by people).
-  - plantation → protect_from_fire (economic asset)
-  - peat → wetlands_assess_locally (fire-dependent AND the hardest ground fire to
-    control; screening can't decide, so flag for local assessment)
+Actions (first match):
+  - plantation → protect_from_fire
+  - peat → wetlands_assess_locally
   - high WFE + high people → treat_fire_risk_for_people
   - high WFE + not-high people → ecosystem_health_focus
+  - high fuel-add + high people → treat_fire_risk_for_people
+  - high fuel-add + not-high people → ecosystem_health_focus
+  - fire-adapted pine/barrens → ecosystem_health_focus
   - else → defer_monitor
 
-WFE is built from fire-behavior / return-interval inputs, so high WFE already
-implies fire-carrying, fire-dependent fuels — there is no "high WFE but not
-fire-dependent" case. BpS/MFRI is folded in as context only (it does not gate
-actions; it lets us validate that premise per hex via FIRE_DEP_HEX).
+PAD is context only (not an action or score input). Developed EVT FIRE=-1 is
+context; people risk comes from WRTC.
 
-Default Goldilocks ranking: people_first, over ACTIONABLE hexes only
-(defer_monitor excluded). PAD GAP 1–3 is a priority multiplier only.
+Default Goldilocks: people_first over ACTIONABLE hexes only (defer excluded).
 """
 
 from __future__ import annotations
@@ -37,6 +36,11 @@ def is_high_wrtc(homes: float, homes_p30: float) -> bool:
     return homes >= homes_p30
 
 
+def is_high_fuel_add(fdist_delta: float, fuel_add_min: float) -> bool:
+    """Area-weighted FDist fuel direction; positive = net fuel add."""
+    return fdist_delta >= fuel_add_min
+
+
 def assign_action_v1(
     *,
     peat: bool,
@@ -46,21 +50,29 @@ def assign_action_v1(
     homes: float,
     wfe_p30: float,
     homes_p30: float,
+    fdist_delta: float = 0.0,
+    fuel_add_min: float = 0.25,
+    pine_barrens: bool = False,
 ) -> str:
     """First-match cascade. PAD is not an input. See config/ACTION_ASSIGNMENT.md."""
     high_wfe = is_high_wfe(wfe, wfe_cat, wfe_p30)
     high_homes = is_high_wrtc(homes, homes_p30)
+    high_fuel = is_high_fuel_add(fdist_delta, fuel_add_min)
 
-    # Plantations are always an asset to protect from wildfire.
     if plantation:
         return "protect_from_fire"
-    # Peat/wetlands: don't silently defer — needs local judgement.
     if peat:
         return "wetlands_assess_locally"
-    # High WFE is the only treatment trigger; people-first split.
     if high_wfe:
         if high_homes:
             return "treat_fire_risk_for_people"
+        return "ecosystem_health_focus"
+    # Low/mid WFE: recent fuel-add and fire-adapted pines still get actions.
+    if high_fuel:
+        if high_homes:
+            return "treat_fire_risk_for_people"
+        return "ecosystem_health_focus"
+    if pine_barrens:
         return "ecosystem_health_focus"
     return "defer_monitor"
 
@@ -73,13 +85,7 @@ def treatment_hint(
     wfe_cat: str | None,
     wfe_p30: float,
 ) -> str:
-    """How to carry out the action — secondary to ACTION_CLASS.
-
-    - Plantation protect: silviculture (then fire if hot).
-    - treat_fire_risk_for_people: near homes and fire-excluded, so mechanical
-      fuels reduction plus home hardening / defensible-space inspections — not
-      beneficial fire.
-    """
+    """How to carry out the action — secondary to ACTION_CLASS."""
     if plantation:
         return "silviculture_then_fire" if is_high_wfe(wfe, wfe_cat, wfe_p30) else "silvicultural_treatment"
     if action == "treat_fire_risk_for_people":
@@ -92,21 +98,20 @@ def priority_score(
     homes: float,
     plantation: float,
     wfe: float,
-    pad_frac: float,
+    fuel_add: float = 0.0,
     w_homes: float,
     w_plantations: float,
     w_wfe: float,
-    w_pad_multiplier: float,
+    w_fuel_add: float = 0.0,
 ) -> float:
-    """Base urgency × PAD multiplier (feasibility + conservation/multiple-use mandate).
-
-    High WRTC × high WFE outside PAD still scores from the base terms.
-    PAD only boosts; it never zeroes out a hex.
-    """
-    base = w_homes * homes + w_plantations * plantation + w_wfe * wfe
-    # pad_frac in [0, 1] → multiplier in [1.0, 1.0 + w_pad_multiplier]
-    mult = 1.0 + w_pad_multiplier * max(0.0, min(1.0, pad_frac))
-    return base * mult
+    """People / plantation / WFE / fuel-add urgency. PAD is not used (context only)."""
+    fuel = max(0.0, fuel_add)
+    return (
+        w_homes * homes
+        + w_plantations * plantation
+        + w_wfe * wfe
+        + w_fuel_add * fuel
+    )
 
 
 def percentile_threshold(values: list[float], pct: float = 0.70) -> float:

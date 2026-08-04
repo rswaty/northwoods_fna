@@ -1,5 +1,5 @@
-preset_id,label,w_homes,w_plantations,w_wfe,w_pad_multiplier,notes
-people_first,People-first,0.50,0.15,0.25,0.15,DEFAULT for Goldilocks. Emphasize WRTC Housing Unit Risk; PAD 1-3 still boosts a little
-plantation_asset_first,Plantation-asset-first,0.20,0.45,0.25,0.15,Emphasize plantations as assets to protect
-pad_first,PAD-first (GAP 1-3),0.20,0.15,0.25,0.60,Explicitly boosts hexes with more PAD GAP Status 1-3 land—not a biodiversity model
-balanced,Balanced,0.30,0.25,0.25,0.30,Even mix; PAD 1-3 boosts but does not gate priority
+preset_id,label,w_homes,w_plantations,w_wfe,w_fuel_add,w_pad_multiplier,notes
+people_first,People-first,0.50,0.15,0.25,0.20,0,DEFAULT Goldilocks. PAD is context-only (multiplier unused). Fuel-add raises urgency when WFE is soft.
+plantation_asset_first,Plantation-asset-first,0.20,0.45,0.25,0.15,0,Emphasize plantations as assets to protect
+pad_first,PAD-first (legacy label),0.20,0.15,0.25,0.15,0,PAD no longer multiplies score — kept for compare; same as light people/WFE mix
+balanced,Balanced,0.30,0.25,0.25,0.20,0,Even mix of homes plantations WFE fuel-add; PAD unused

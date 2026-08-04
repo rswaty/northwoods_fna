@@ -260,33 +260,85 @@ Classify LANDFIRE **FDist** (or equivalent disturbance) codes into a simple fuel
 ## Suggested sequencing (still no code)
 
 1. **Meet Krystina Hird** (5) — mills, timber value, plantation/industry layers.  
-2. **Document + partner confirm** protections vocabulary (4) and station/seasonal split (1–2).  
-3. **FDist fuel-add CSV** from you + matrix rows (6) — highest FAA logic payoff for insects/ice.  
+2. **FDist + EVT `FIRE` → actions** — design locked below (§9–10); fill matrix critical rows, then implement.  
+3. **PAD = context only** — decision locked (§9); drop from score when coding next; keep on Leaflet.  
 4. **Refresh** occurrence on [recent.html](https://rswaty.github.io/northwoods/recent.html) (3).  
 5. **Companion maps:** stations (1); high-value near high-risk highlight (7) once value layer exists.  
 6. **Plantation layer upgrade** (8) when a trusted source beats EVT.  
 7. **Seasonal risk brief** (2) as ops companion.  
-8. Wire into FAA hex fields/scores only after sources and “flag vs action” choices are settled.
 
 ---
 
-## Personal to-do checklist (owner: you)
+## 9. Decision log (2026-08-04)
 
-- [ ] Meet **Krystina Hird** — FAA overview + mill locations + timber/plantation data leads  
-- [ ] Supply / finalize LANDFIRE FDist → fuel-add (−1/0/+1) CSV (10-year window)  
-- [ ] Decide with partners: high-value×high-risk = overlay flag only vs score vs action  
-- [ ] Hunt better plantation / industrial timber sources (prefer existing GIS before satellite)  
-- [ ] (From earlier) Stations inventory; seasonal risk brief; refresh recent fires; protections wording  
+| Decision | Choice | Implication |
+|----------|--------|-------------|
+| **PAD-US** | **Context only** — not a score multiplier, not an action input | Keep `PADUS_FRAC` on hexes for Leaflet/symbology/popups; set `w_pad_multiplier` effect to unused / 0 in scoring when next coded. Partners still *see* protected-land share. |
+| **FDist `FUEL_DIRECTION_1`** | −1 remove / 0 neutral / +1 add; Mechanical Add = −1 (chipping etc.) | Hex `FDIST_FUEL_DELTA` = area-weighted mean; “high fuel-add” ≈ δ ≥ ~0.25 (tune after first map). |
+| **EVT `FIRE`** | 1 = fire-dependent; 0 = not; −1 = bad if burned (developed, plantation, ruderal) | **Not** the same scale as FDist. Use for ecology / protect signals — see §10. |
+| **Action matrix** | Fill after reviewing this design | Critical rows: plantation, peat, WFE×people, low-WFE+fuel-add, fire-adapted without high WFE. |
+| **Fuel-add, not-high people** | **`ecosystem_health_focus`** | Confirmed 2026-08-04. |
+| **Fire-adapted pines (incl. low WFE)** | **`ecosystem_health_focus`** | Confirmed — pine/barrens list; near people still ecosystem unless higher cascade steps (high WFE / fuel-add → people) already matched. |
+| **Developed EVT `FIRE=−1`** | Context only; people via WRTC | Not an auto-protect trigger. |
 
 ---
 
-## One-line reminders
+## 10. How FDist + EVT `FIRE` fit the cascade (review before matrix)
 
-- **FAA** = strategic actions + priorities for conversation.  
-- **Stations + seasonal risk** = operational feasibility and timing.  
-- **Recent fires page** = what actually started, updated.  
-- **Protections** = clear values and assets — not PAD-as-proxy and not a synonym for every urgent hex.  
-- **FDist ±1** = recent fuel direction WFE misses (insects, ice/wind).  
-- **Mills** = feasibility after action; get locations and rules from Krystina / industry.  
-- **Value near risk** = highlight for conversation; needs a real timber-value layer.  
-- **Plantations** = swap better geometry into the same protect flag; satellite only if necessary.
+### Two different signals
+
+| Input | Hex idea | Answers |
+|-------|----------|---------|
+| **WFE** | already on hex | How hot can fire run *today*? |
+| **FDist delta** | mean of `FUEL_DIRECTION_1` | Did recent disturbance **add** fuels WFE may miss? |
+| **EVT `FIRE`** | join on `EVT_MAJORITY` | Is this **fire-adapted** (1), not (0), or **bad to burn** (−1)? |
+| **PAD** | `PADUS_FRAC` | Context on the map only. |
+| **People** | WRTC | Near homes? |
+
+### Goal
+Flag **red pine / fire-adapted** and **fuel-add–heavy** hexes with a real action — **without** turning half the AOI into “do something” (EVT `FIRE=1` alone includes huge swamp/fen acres).
+
+### Proposed cascade (first match) — for matrix review
+
+1. **Plantation** (EVT rules only) → **`protect_from_fire`**  
+   - EVT `FIRE = −1` includes developed/ruderal **and** plantation. **Do not** auto-protect every `FIRE=−1` hex.  
+   - **Developed as `FIRE=−1`:** marks “don’t burn / development present” for context. Those places should already surface in **WRTC people** layers when housing risk is present — people actions come from **high people × (high WFE or high fuel-add)**, not from the −1 flag alone. Avoid double-counting development in both EVT and the cascade.  
+   - Other non-plantation `FIRE=−1` (ruderal, etc.) → usually fall through to **defer** unless people/WFE/fuel-add rules catch them.  
+2. **Peat** (existing EVT peat list) → **`wetlands_assess_locally`** (catches most acidic peat/fen; runs before fire-dep).  
+3. **High WFE + high people** → **`treat_fire_risk_for_people`**  
+4. **High WFE + not-high people** → **`ecosystem_health_focus`**  
+5. **High fuel-add + high people** (WFE any, including low) → **`treat_fire_risk_for_people`**  
+   - Arrowhead insects / MI ice–wind near homes.  
+6. **High fuel-add + not-high people** → **`ecosystem_health_focus`** (confirmed).  
+7. **Fire-adapted pines/barrens** (when not already caught above) → **`ecosystem_health_focus`** (including near people if WFE/fuel-add not high):  
+   - **Include:** pine/barrens EVT list (`config/evt_pine_barrens.csv`).  
+   - **Exclude:** peat (already step 2); other `FIRE=1` wetlands/swamps not on the pine list.  
+8. **Else** → **`defer_monitor`**
+
+**Goldilocks unchanged in spirit:** only actionable hexes; top 5/10/15% by people-first score. More actions ≠ everyone is Priority 3 — the short list stays small.
+
+### What you should see on Leaflet (eventually)
+
+| Layer / field | Role on map |
+|---------------|-------------|
+| `ACTION_CLASS` | Fill / legend (primary) |
+| `GOLDILOCKS_PRIORITY` | Emphasis / filter |
+| `PADUS_FRAC` | **Context** (opacity, second symbology, or popup) — not driving color of action |
+| `FDIST_FUEL_DELTA` | Popup + optional overlay (“fuel-add heavy”) |
+| EVT-based fire flag | Popup (“fire-adapted / not / bad if burned”) |
+
+### Rough size control (mental model)
+
+| Rule | Effect on map volume |
+|------|----------------------|
+| Fuel-add high | Relatively few hexes — good action flags |
+| High WFE | Already ~183 actionable (91+92) in last run |
+| All EVT `FIRE=1` | **Too big** — includes massive swamp/fen |
+| `FIRE=1` ∩ pine/barrens-type only | Targets red/jack pine story without flooding |
+| Peat first | Wetlands stay `wetlands_assess_locally`, not ecosystem |
+
+### Locked for matrix / coding (2026-08-04)
+
+Cascade steps 5–7 confirmed. Next: fill `ACTION_MATRIX_DRAFT.csv` to match, then implement (PAD out of score; FDist zonal; EVT `FIRE` + pine list join; Leaflet context for PAD).
+
+Optional later: publish the exact pine/barrens EVT code list in `config/` (can draft from `evt_aoi_attributes.csv` where `FIRE=1` and pine/barrens in the name/GP).

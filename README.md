@@ -12,7 +12,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 | **People** | WRTC **Housing Unit Risk** (primary); Exposure + Density/Count as companions — see `config/WRTC_DATASETS.md` |
 | **Plantations** | EVT flag → always **Protect from fire** (silviculture = `TREATMENT_HINT` only) |
 | **Peat** | LANDFIRE EVT → **`wetlands_assess_locally`** (fire-dependent *and* ground-fire hazard; swap to USFS peatlands later, same flag) |
-| **PAD-US** | GAP Status **1–3 only** → priority **multiplier** (feasibility / mandate). Not an action picker. Status 4 out. Raster or polygon OK. |
+| **PAD-US** | GAP 1–3 → `PADUS_FRAC` on hexes for **map context only** (Leaflet). Not a score multiplier or action picker. |
 | **Ranking default** | **People-first** Goldilocks over actionable hexes (top 5/10/15%; `GOLDILOCKS_PRIORITY` 0–3). Also: plantation-asset-first, **PAD-first**, balanced |
 | **Recreation** | Deferred |
 | **TNC Resilient Lands** | Optional later second multiplier — does not change actions; re-orders priority (including off PAD). See `config/PADUS_AND_RESILIENT.md` |
@@ -21,13 +21,16 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 
 1. Plantation → protect_from_fire  
 2. Peat → wetlands_assess_locally  
-3. High WFE + high people → treat_fire_risk_for_people (mechanical fuels reduction + home hardening)  
-4. High WFE + not-high people → ecosystem_health_focus (beneficial fire)  
-5. Else → defer_monitor  
+3. High WFE + high people → treat_fire_risk_for_people  
+4. High WFE + not-high people → ecosystem_health_focus  
+5. High fuel-add (FDist) + high people → treat_fire_risk_for_people  
+6. High fuel-add + not-high people → ecosystem_health_focus  
+7. Fire-adapted pine/barrens (EVT list) → ecosystem_health_focus  
+8. Else → defer_monitor  
 
-High WFE ⇒ fire-dependent (WFE is fire-behavior based), so there's no "hot but not fire-adapted" case. **BpS/MFRI** is folded in as ecological context (`FIRE_DEP_HEX`) and to validate that premise — it does not pick actions.
+**PAD** is map context only (not score / not action). Developed EVT `FIRE=−1` is context; people come from WRTC.
 
-Details: `config/ACTION_ASSIGNMENT.md` · brief: `next_gen_faa.html`
+Details: `config/ACTION_ASSIGNMENT.md` · notes: `config/next_steps_partner_notes.md` · brief: `faa_overview.qmd`
 
 ## Workflow
 

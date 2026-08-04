@@ -39,11 +39,18 @@ landfire_bps: "C:/path/to/nw_aoi_bps"
 mfri_table: "other_outputs/mfri_aoi_attributes.csv"
 # Reference all-fire return interval (years) at/under which a hex is fire-dependent.
 fire_dependent_max_fri: "100"
+# LANDFIRE FDist (recent disturbance) → FDIST_FUEL_DELTA via fuel_direction lookup
+landfire_fdist: "C:/path/to/nw_aoi_fdist"
+fdist_lookup: "other_outputs/LF2024_FDist.csv"
+# Hex mean fuel-direction at/above this = "high fuel-add" for actions
+fdist_fuel_add_min: "0.25"
+# EVT attributes with FIRE column (−1/0/1) — joined in 04
+evt_attributes: "other_outputs/evt_aoi_attributes.csv"
 # optional triangulation (not ranking drivers for v1)
 whp: ""
 burn_probability: ""
 
-# PAD-US: raster (cell values = GAP status) or polygon. See config/PADUS_AND_RESILIENT.md
+# PAD-US: kept on hexes for map CONTEXT only (not score / not action). See notes.
 padus: "C:/path/to/nw_aoi_pad"
 padus_type: "raster"            # or "polygon"
 padus_gap_field: "GAP_Sts"      # polygons only

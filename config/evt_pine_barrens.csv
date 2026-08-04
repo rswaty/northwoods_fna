@@ -1,0 +1,13 @@
+evt_code,evt_name,notes
+9112,Laurentian Jack Pine-Red Pine Forest,FIRE=1 pine/barrens list for ecosystem_health_focus when WFE not high
+7362,Laurentian-Acadian Northern Pine Forest,red/white pine
+7366,Laurentian-Acadian Pine-Hemlock Forest,pine-hemlock; included for v1 — review if too broad
+7239,Laurentian-Acadian Northern Pine-(Oak) Forest,pine-oak
+9088,Laurentian-Acadian Sub-boreal Dry-Mesic Pine-Black Spruce Forest,jack pine group
+7407,Laurentian Pine Barrens,barrens
+7242,Laurentian Oak Barrens,oak barrens
+7243,Laurentian Pine-Oak Barrens,pine-oak barrens
+7395,North-Central Oak Barrens Woodland,oak barrens woodland
+9111,Laurentian Acidic Rocky Outcrop Woodland,jack pine group
+7290,North-Central Oak Barrens Herbaceous,oak barrens herbaceous
+9181,North-Central Interior Quartzite Glade,glades/barrens

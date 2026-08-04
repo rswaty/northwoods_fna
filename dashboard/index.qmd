@@ -19,7 +19,7 @@ hex_path <- "../outputs/hex/faa_hex_scores.geojson"
 has_hex <- file.exists(hex_path)
 ```
 
-Strategic screening map for northern MI, WI, and MN Arrowhead. Scores and action classes are produced in **ArcGIS Pro** (Python in `src/`); this page only displays pushed hex outputs. Default emphasis: **people-first** (`SCORE_PEOPLE` / Goldilocks).
+Strategic screening map for northern MI, WI, and MN Arrowhead. Scores and action classes are produced in **ArcGIS Pro** (Python in `src/`); this page only displays pushed hex outputs. Default emphasis: **people-first** (`SCORE_PEOPLE` / Goldilocks). **PAD** is shown as context only (not used in scoring).
 
 ```{r}
 #| label: map
@@ -44,7 +44,13 @@ if (!has_hex) {
     na.color = "#9D9D9D"
   )
 
-  leaflet(hex) |>
+  pad_pal <- colorNumeric(
+    palette = "Blues",
+    domain = if ("PADUS_FRAC" %in% names(hex)) hex$PADUS_FRAC else c(0, 1),
+    na.color = "#cccccc"
+  )
+
+  m <- leaflet(hex) |>
     addProviderTiles("CartoDB.Positron") |>
     addPolygons(
       fillColor = ~ if ("ACTION_CLASS" %in% names(hex)) {
@@ -55,23 +61,63 @@ if (!has_hex) {
       fillOpacity = 0.55,
       color = "#444444",
       weight = 0.3,
+      group = "Action class",
       popup = ~ paste0(
         "<b>", if ("GRID_ID" %in% names(hex)) GRID_ID else "hex", "</b><br/>",
         if ("ACTION_CLASS" %in% names(hex)) paste0("Action: ", ACTION_CLASS, "<br/>") else "",
         if ("TREATMENT_HINT" %in% names(hex)) paste0("How: ", TREATMENT_HINT, "<br/>") else "",
         if ("GOLDILOCKS_PRIORITY" %in% names(hex)) paste0("Priority (0-3): ", GOLDILOCKS_PRIORITY, "<br/>") else "",
-        if ("SCORE_PEOPLE" %in% names(hex)) paste0("People-first score: ", round(SCORE_PEOPLE, 3)) else ""
+        if ("SCORE_PEOPLE" %in% names(hex)) paste0("People-first score: ", round(SCORE_PEOPLE, 3), "<br/>") else "",
+        if ("PADUS_FRAC" %in% names(hex)) paste0("PAD frac (context): ", round(PADUS_FRAC, 3), "<br/>") else "",
+        if ("FDIST_FUEL_DELTA" %in% names(hex)) paste0("FDist fuel delta: ", round(FDIST_FUEL_DELTA, 3), "<br/>") else "",
+        if ("PINE_HEX" %in% names(hex)) paste0("Pine/barrens hex: ", PINE_HEX, "<br/>") else "",
+        if ("EVT_FIRE" %in% names(hex)) paste0("EVT FIRE (−1/0/1): ", EVT_FIRE) else ""
       )
-    ) |>
+    )
+
+  if ("PADUS_FRAC" %in% names(hex)) {
+    m <- m |>
+      addPolygons(
+        fillColor = ~ pad_pal(PADUS_FRAC),
+        fillOpacity = 0.55,
+        color = "#444444",
+        weight = 0.2,
+        group = "PAD context (GAP 1–3 frac)",
+        popup = ~ paste0(
+          "<b>", if ("GRID_ID" %in% names(hex)) GRID_ID else "hex", "</b><br/>",
+          "PADUS_FRAC: ", round(PADUS_FRAC, 3), " (context only)"
+        )
+      ) |>
+      addLegend(
+        position = "bottomleft",
+        pal = pad_pal,
+        values = ~ PADUS_FRAC,
+        title = "PAD frac",
+        group = "PAD context (GAP 1–3 frac)"
+      )
+  }
+
+  groups <- "Action class"
+  if ("PADUS_FRAC" %in% names(hex)) {
+    groups <- c(groups, "PAD context (GAP 1–3 frac)")
+  }
+
+  m <- m |>
     addLegend(
       position = "bottomright",
       pal = action_pal,
       values = ~ if ("ACTION_CLASS" %in% names(hex)) ACTION_CLASS else "defer_monitor",
       title = "Action class"
+    ) |>
+    addLayersControl(
+      baseGroups = groups,
+      options = layersControlOptions(collapsed = FALSE)
     )
+
+  m
 }
 ```
 
 ## Weight presets (from config)
 
-Dashboard default emphasis is **people-first**. Presets: `people_first` (Goldilocks default), `plantation_asset_first`, `pad_first` (GAP 1–3), `balanced`. Goldilocks ranks **actionable** hexes only (`defer_monitor` excluded; peat / wetlands included); `GOLDILOCKS_PRIORITY` runs 0–3 (3 = top 5% people-first). Recreation deferred. Disturbance polygons toggle when files appear in `data/disturbances/`.
+Dashboard default emphasis is **people-first**. PAD is **context only** (layer toggle above; not in Goldilocks score). Fuel-add and pine/barrens flags feed actions after you re-run 03→05. Goldilocks ranks **actionable** hexes only (`defer_monitor` excluded); `GOLDILOCKS_PRIORITY` runs 0–3.

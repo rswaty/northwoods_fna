@@ -243,6 +243,64 @@ def _bps_mfri(arcpy, hexes: str, hex_id: str, bps: str, mfri_csv: str, fri_max: 
     print(f"Added BPS_MAJORITY / BPS_FRI / BPS_FRG / FIRE_DEP_HEX (fire-dependent hexes: {n_fd})")
 
 
+def _fdist_fuel_delta(
+    arcpy, hexes: str, hex_id: str, fdist: str, lookup_csv: str
+) -> None:
+    """Reclass FDist VALUE → FUEL_DIRECTION_1 (−1/0/+1); zonal MEAN → FDIST_FUEL_DELTA."""
+    import csv
+
+    print(f"FDist fuel-direction zonal: {fdist}")
+    mapping = []
+    with open(lookup_csv, newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            try:
+                val = int(float(r["VALUE"]))
+                direction = int(float(r.get("FUEL_DIRECTION_1", "0")))
+            except (TypeError, ValueError, KeyError):
+                continue
+            mapping.append([val, direction])
+    if not mapping:
+        raise SystemExit(f"No VALUE→FUEL_DIRECTION_1 rows in {lookup_csv}")
+
+    n_add = sum(1 for _, d in mapping if d > 0)
+    n_rem = sum(1 for _, d in mapping if d < 0)
+    print(f"  Lookup: {len(mapping)} codes ({n_add} fuel-add, {n_rem} fuel-remove)")
+
+    rat_fields = [f.name for f in arcpy.ListFields(fdist)]
+    value_field = next((c for c in ("Value", "VALUE", "value") if c in rat_fields), "Value")
+    remap = arcpy.sa.RemapValue(mapping)
+    directed = arcpy.sa.Reclassify(fdist, value_field, remap, "NODATA")
+    # NoData (unmapped) → 0 so hex means are not biased by missing cells
+    directed = arcpy.sa.Con(arcpy.sa.IsNull(directed), 0, directed)
+    out_raster = "fdist_fuel_direction"
+    directed.save(out_raster)
+
+    out_table = "zonal_fdist_fuel"
+    arcpy.sa.ZonalStatisticsAsTable(
+        in_zone_data=hexes,
+        zone_field=hex_id,
+        in_value_raster=out_raster,
+        out_table=out_table,
+        ignore_nodata="DATA",
+        statistics_type="MEAN",
+    )
+    if "FDIST_FUEL_DELTA" not in [f.name for f in arcpy.ListFields(hexes)]:
+        arcpy.management.AddField(hexes, "FDIST_FUEL_DELTA", "DOUBLE")
+    zonal = {}
+    with arcpy.da.SearchCursor(out_table, [hex_id, "MEAN"]) as cur:
+        for gid, mean in cur:
+            zonal[gid] = mean
+    n_pos = 0
+    with arcpy.da.UpdateCursor(hexes, [hex_id, "FDIST_FUEL_DELTA"]) as cur:
+        for row in cur:
+            val = zonal.get(row[0])
+            row[1] = 0.0 if val is None else float(val)
+            if row[1] > 0:
+                n_pos += 1
+            cur.updateRow(row)
+    print(f"Added FDIST_FUEL_DELTA ({n_pos} hexes with mean fuel-add > 0)")
+
+
 def main() -> None:
     arcpy = require_arcpy()
     cfg = load_paths()
@@ -253,6 +311,7 @@ def main() -> None:
     evt = cfg.get("landfire_evt", "")
     padus = cfg.get("padus", "")
     bps = cfg.get("landfire_bps", "")
+    fdist = cfg.get("landfire_fdist", "")
 
     if evt and arcpy.Exists(evt):
         print(f"EVT majority by hex: {evt}")
@@ -294,6 +353,7 @@ def main() -> None:
             _padus_frac_from_raster(arcpy, hexes, hex_id, padus, include, gap_field)
         else:
             _padus_frac_from_polygons(arcpy, hexes, hex_id, padus, gap_field)
+        print("  Note: PADUS_FRAC is map context only (not used in scoring).")
     else:
         print("Skipping PAD-US (padus empty or not found)")
 
@@ -318,8 +378,24 @@ def main() -> None:
                 fri_max = 100
             _bps_mfri(arcpy, hexes, hex_id, bps, mfri_csv, fri_max)
 
+    if not fdist:
+        print(
+            "Skipping FDist: landfire_fdist is empty in paths.local.yaml. "
+            "Add your clipped FDist raster path to compute FDIST_FUEL_DELTA."
+        )
+    elif not arcpy.Exists(fdist):
+        print(f"Skipping FDist: landfire_fdist not found by ArcGIS -> {fdist}")
+    else:
+        lookup = cfg.get("fdist_lookup") or str(
+            Path(cfg["_repo_root"]) / "other_outputs" / "LF2024_FDist.csv"
+        )
+        if not Path(lookup).exists():
+            print(f"Skipping FDist: lookup CSV not found ({lookup})")
+        else:
+            _fdist_fuel_delta(arcpy, hexes, hex_id, fdist, lookup)
+
     print(f"Done. Working feature class: {hexes}")
-    print("Next: 04_score_actions.py (after filling config/evt_rules_draft.csv)")
+    print("Next: 04_score_actions.py")
 
 
 if __name__ == "__main__":

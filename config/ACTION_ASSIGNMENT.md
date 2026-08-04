@@ -1,19 +1,21 @@
 # v1 action assignment
 
 **Default ranking:** people-first (`SCORE_PEOPLE` → Goldilocks 5%/10%/15%, actionable hexes only).  
-**PAD:** GAP 1–3 multiplier only. **Recreation:** deferred. **Resilient lands:** optional later.
+**PAD:** map **context only** (`PADUS_FRAC`). **Recreation:** deferred. **Resilient lands:** optional later.
 
 ## Roles of each input
 
 | Input | Picks **action class**? | Role |
 |-------|-------------------------|------|
 | EVT plantation | Yes | → **always** `protect_from_fire` (economic asset) |
-| EVT peat | Yes | → `wetlands_assess_locally` (fire-dependent *and* ground-fire hazard; screening can't decide) |
-| WFE | Yes | High WFE is the treatment trigger; **people** split it (below) |
-| WRTC **Housing Unit Risk** | Yes | "High people" routes a high-WFE hex to the people action |
-| **BpS / MFRI (`FIRE_DEP_HEX`)** | **No** | **Context/validation only.** WFE already encodes fire-behavior/return-interval, so high WFE ⇒ fire-dependent; used to check that premise, not to gate. |
-| **PAD-US GAP 1–3** | **No** | **Multiplier on priority only**. Status 4 excluded. |
-| Disturbances | Later | Calibrate when toggle on |
+| EVT peat | Yes | → `wetlands_assess_locally` |
+| WFE | Yes | High WFE → people vs ecosystem split |
+| WRTC **Housing Unit Risk** | Yes | "High people" routes WFE / fuel-add hexes to the people action |
+| FDist `FDIST_FUEL_DELTA` | Yes | High fuel-add (≈ mean ≥ 0.25) → people vs ecosystem even if WFE low |
+| EVT pine/barrens list | Yes | Fire-adapted pines away from people → `ecosystem_health_focus` (even if WFE low) |
+| EVT `FIRE` (−1/0/1) | Context | Popup / review; developed −1 does **not** auto-protect (WRTC handles people) |
+| **BpS / MFRI (`FIRE_DEP_HEX`)** | **No** | Context/validation only |
+| **PAD-US GAP 1–3** | **No** | **Map context only** — not score, not action |
 
 **Treatment hints** (`TREATMENT_HINT`) say *how* to act, not a separate action class:
 
@@ -21,22 +23,24 @@
 |-----------|------|
 | Plantation, low WFE | `silvicultural_treatment` |
 | Plantation, high WFE | `silviculture_then_fire` |
-| `treat_fire_risk_for_people` | `fuels_reduction_home_hardening` — mechanical fuels reduction + home hardening / defensible-space inspections (near homes + fire-excluded → not beneficial fire) |
+| `treat_fire_risk_for_people` | `fuels_reduction_home_hardening` |
 
 ## Action cascade (first match wins)
 
-1. **Plantation** → `protect_from_fire` (always; economic asset)
+1. **Plantation** → `protect_from_fire`
 2. **Peat** → `wetlands_assess_locally`
 3. **High WFE + high people** → `treat_fire_risk_for_people`
 4. **High WFE + not-high people** → `ecosystem_health_focus`
-5. **Else** → `defer_monitor`
+5. **High fuel-add + high people** → `treat_fire_risk_for_people`
+6. **High fuel-add + not-high people** → `ecosystem_health_focus`
+7. **Pine/barrens (config list)** → `ecosystem_health_focus`
+8. **Else** → `defer_monitor`
 
 Notes:
-- **No "high WFE but not fire-dependent" case.** WFE is built from fire behavior / return interval, so high WFE means fire-carrying, fire-adapted fuels. BpS/MFRI is folded in only as context and to validate this (script 04 prints how many high-WFE hexes come back long-interval; expect ~0).
-- **People-first:** a high-WFE hex that is *both* near people and on PAD goes to `treat_fire_risk_for_people`; PAD then just raises its priority score.
-- **High people but low WFE → `defer_monitor`** (no hazard, no fuels work). Peat no longer blanket-defers — high stakes on those hexes still surface via the priority ranking.
-
-PAD never appears in this list. People + high WFE **outside** PAD still get treated and score high.
+- Fuel-add and pine/barrens catch Arrowhead insects / MI ice–wind and red pine when WFE is soft.
+- Pine/barrens get ecosystem even near people if WFE and fuel-add are not already high (those cases still take the people action first).
+- Developed EVT `FIRE=−1` is context; do not auto-protect — people come from WRTC.
+- PAD never appears in this list or in `SCORE_PEOPLE`.
 
 ## Priority score (Goldilocks)
 

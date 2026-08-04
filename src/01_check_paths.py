@@ -21,6 +21,7 @@ RECOMMENDED = [
     "wrtc_housing_unit_density",
     "landfire_evt",
     "landfire_bps",
+    "landfire_fdist",
     "padus",
 ]
 
