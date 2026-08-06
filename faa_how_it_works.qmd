@@ -71,4 +71,4 @@ Then we flag a manageable band of that ranked list:
 
 So: **action** = what kind of conversation; **Goldilocks** = which of those conversations come first under a people-first lens.
 
-More detail for review: `config/action_triggers_review.csv`.
+More detail for review: `config/action_triggers_review.md`.
