@@ -23,16 +23,21 @@ NONACTIONABLE = {"defer_monitor"}
 
 
 def is_high_wfe(wfe: float, wfe_cat: str | None, wfe_p30: float) -> bool:
+    """High WFE = top ~30% of hex MEAN (same idea as high people / WRTC).
+
+    WFE_CAT High / Very High still counts as high. Low / Moderate / Very Low do
+    **not** veto the percentile — otherwise AOI-hot N WI hexes labeled Moderate
+    or Low stayed on defer_monitor.
+    """
     if wfe_cat:
         cat = str(wfe_cat).strip().lower()
         if cat in {"high", "very high", "very_high", "vh", "h"}:
             return True
-        if cat in {"low", "very low", "moderate", "medium", "l", "m"}:
-            return False
     return wfe >= wfe_p30
 
 
 def is_high_wrtc(homes: float, homes_p30: float) -> bool:
+    """High people = top ~30% of WRTC Housing Unit Risk on hexes."""
     return homes >= homes_p30
 
 

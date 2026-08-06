@@ -96,6 +96,22 @@ def _load_evt_fire(path: Path) -> dict[str, int]:
     return out
 
 
+def _load_evt_names(path: Path) -> dict[str, str]:
+    """EVT VALUE → EVT_NAME (majority vegetation label)."""
+    out: dict[str, str] = {}
+    if not path.exists():
+        return out
+    for r in _read_csv(path):
+        try:
+            key = str(int(float(r["VALUE"])))
+        except (TypeError, ValueError, KeyError):
+            continue
+        name = (r.get("EVT_NAME") or "").strip()
+        if name:
+            out[key] = name
+    return out
+
+
 def main() -> None:
     arcpy = require_arcpy()
     cfg = load_paths()
@@ -122,6 +138,7 @@ def main() -> None:
         or (REPO_ROOT / "other_outputs" / "evt_aoi_attributes.csv")
     )
     evt_fire = _load_evt_fire(evt_attr)
+    evt_names = _load_evt_names(evt_attr)
     presets = {r["preset_id"]: r for r in _read_csv(CONFIG_DIR / "weight_presets.csv")}
 
     new_fields = [
@@ -138,6 +155,7 @@ def main() -> None:
         ("PLANTATION_HEX", "SHORT", None),
         ("PEAT_HEX", "SHORT", None),
         ("PINE_HEX", "SHORT", None),
+        ("EVT_NAME", "TEXT", 80),
         ("EVT_FIRE", "SHORT", None),
         ("FDIST_FUEL_ADD", "SHORT", None),
     ]
@@ -176,6 +194,7 @@ def main() -> None:
             evt = rec.get("EVT_MAJORITY")
             evt_key = str(int(evt)) if evt is not None else ""
             fire_lab = evt_fire.get(evt_key)
+            evt_name = evt_names.get(evt_key, "")
             pine = evt_key in pine_codes
             fdist = _norm(rec.get("FDIST_FUEL_DELTA")) or 0.0
             records.append(
@@ -189,6 +208,7 @@ def main() -> None:
                     "peat": evt_key in peat_codes,
                     "plantation": evt_key in plant_codes,
                     "pine": pine,
+                    "evt_name": evt_name,
                     "evt_fire": fire_lab,
                     "fdist": fdist,
                     "fire_dep": rec.get("FIRE_DEP_HEX") if "FIRE_DEP_HEX" in read_fields else None,
@@ -251,6 +271,7 @@ def main() -> None:
                 "PLANTATION_HEX": 1 if rec["plantation"] else 0,
                 "PEAT_HEX": 1 if rec["peat"] else 0,
                 "PINE_HEX": 1 if rec["pine"] else 0,
+                "EVT_NAME": rec["evt_name"] or None,
                 "EVT_FIRE": rec["evt_fire"],
                 "FDIST_FUEL_ADD": 1 if fuel_flag else 0,
                 "SCORE_PEOPLE": score("people_first"),
@@ -286,6 +307,7 @@ def main() -> None:
         "PLANTATION_HEX",
         "PEAT_HEX",
         "PINE_HEX",
+        "EVT_NAME",
         "EVT_FIRE",
         "FDIST_FUEL_ADD",
         "SCORE_PEOPLE",
@@ -307,16 +329,17 @@ def main() -> None:
             row[3] = r["PLANTATION_HEX"]
             row[4] = r["PEAT_HEX"]
             row[5] = r["PINE_HEX"]
-            row[6] = r["EVT_FIRE"]
-            row[7] = r["FDIST_FUEL_ADD"]
-            row[8] = r["SCORE_PEOPLE"]
-            row[9] = r["SCORE_PLANTATION"]
-            row[10] = r["SCORE_PAD"]
-            row[11] = r["SCORE_BALANCED"]
-            row[12] = 1 if row[0] in top5 else 0
-            row[13] = 1 if row[0] in top10 else 0
-            row[14] = 1 if row[0] in top15 else 0
-            row[15] = _priority(row[0])
+            row[6] = r["EVT_NAME"]
+            row[7] = r["EVT_FIRE"]
+            row[8] = r["FDIST_FUEL_ADD"]
+            row[9] = r["SCORE_PEOPLE"]
+            row[10] = r["SCORE_PLANTATION"]
+            row[11] = r["SCORE_PAD"]
+            row[12] = r["SCORE_BALANCED"]
+            row[13] = 1 if row[0] in top5 else 0
+            row[14] = 1 if row[0] in top10 else 0
+            row[15] = 1 if row[0] in top15 else 0
+            row[16] = _priority(row[0])
             cur.updateRow(row)
 
     from collections import Counter
@@ -327,7 +350,11 @@ def main() -> None:
         f"Fuel-add hexes (FDIST_FUEL_DELTA>={fuel_add_min}): {n_fuel}; "
         f"pine/barrens→ecosystem (low/mid WFE path): ~{n_pine_act}"
     )
-    print(f"Pine list codes: {len(pine_codes)}; EVT FIRE lookup rows: {len(evt_fire)}")
+    n_named = sum(1 for r in records if r.get("evt_name"))
+    print(
+        f"Pine list codes: {len(pine_codes)}; EVT FIRE lookup rows: {len(evt_fire)}; "
+        f"EVT_NAME matched: {n_named}/{len(records)}"
+    )
     print("PAD: context only (not in score). SCORE_PAD preset label is legacy.")
 
     if not peat_codes and not plant_codes:

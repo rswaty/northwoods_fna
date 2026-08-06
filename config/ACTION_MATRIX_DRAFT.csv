@@ -2,8 +2,8 @@
 # Factors use Low / Med / High (or Y/N for flags). "*" = any / not applicable for that row.
 #
 # === Factor definitions (v1 draft — edit if you want different bins) ===
-# WFE:        Low = below top-30% cutoff (and not WFE_CAT high); Med = mid (optional bin);
-#             High = top 30% of hex MEAN or WFE_CAT in {high, very high}
+# WFE:        Low = below top-30% of hex MEAN; Med = mid (optional bin);
+#             High = top 30% of hex MEAN (same idea as people); WFE_CAT High/VH also high
 # PEOPLE:     WRTC Housing Unit Risk — Low / Med / High same idea (High = top 30%)
 # FDIST_FUEL: from area-weighted FDist lookup (−1 remove, 0 neutral, +1 add), last 10 years
 #             Low = fuel-removing (delta ≲ −0.25); Med = neutral (|delta| < 0.25);

@@ -71,6 +71,8 @@ if (!has_hex) {
         if ("PADUS_FRAC" %in% names(hex)) paste0("PAD frac (context): ", round(PADUS_FRAC, 3), "<br/>") else "",
         if ("FDIST_FUEL_DELTA" %in% names(hex)) paste0("FDist fuel delta: ", round(FDIST_FUEL_DELTA, 3), "<br/>") else "",
         if ("PINE_HEX" %in% names(hex)) paste0("Pine/barrens hex: ", PINE_HEX, "<br/>") else "",
+        if ("EVT_NAME" %in% names(hex)) paste0("EVT: ", EVT_NAME, "<br/>") else "",
+        if ("EVT_MAJORITY" %in% names(hex)) paste0("EVT code: ", EVT_MAJORITY, "<br/>") else "",
         if ("EVT_FIRE" %in% names(hex)) paste0("EVT FIRE (−1/0/1): ", EVT_FIRE) else ""
       )
     )
