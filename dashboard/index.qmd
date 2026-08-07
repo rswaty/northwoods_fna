@@ -1,6 +1,7 @@
 ---
-title: "Actions"
-subtitle: "Fire Action Assessment — strategic screening"
+author: "Randy Swaty"
+title: "Actions and Priority Areas: Fire Adapted Ecosystems Focus"
+subtitle: "Setting the stage for conversation and deeper dives"
 format:
   html:
     toc: false
@@ -41,11 +42,14 @@ gold_colors <- c(
   "Top 5%" = "#00441b",
   "Top 10%" = "#238b45",
   "Top 15%" = "#a1d99b",
-  "Outside Goldilocks band" = "#ffffff"
+  "Outside Goldilocks band" = "#FFFFFF00"
 )
 ```
 
-Strategic screening for northern MI, WI, and MN Arrowhead. Switch **Action class** vs **Goldilocks** (top-right). See also [Context](context.qmd) inputs and [Methods](methods.qmd).
+The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.
+
+
+You can toggle **Action class** vs **Goldilocks** in the top-right panel. For more information also see [Context](context.qmd) inputs and exploratory datasets and [Methods](methods.qmd) for details of how these maps were made.
 
 ```{r}
 #| label: map
@@ -276,4 +280,6 @@ if (!has_hex) {
 }
 ```
 
-**Action class** = what kind of conversation for that hex. **Goldilocks** = which actionable hexes to talk about first under a people-first lens (top 5% / 10% / 15% nested bands; white = outside that band or defer).
+**Action class** = what kind of conversation  or proposed for that hex. 
+
+**Goldilocks** = which actionable hexes to talk about first  (top 5% / 10% / 15% hexagons; transparent = defer).
