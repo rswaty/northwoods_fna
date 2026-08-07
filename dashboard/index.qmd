@@ -109,15 +109,57 @@ if (!has_hex) {
       }
     )
 
+  # Precompute EVT top-3 popup block (area ranks from script 03)
+  if (all(c("EVT_1_NAME", "EVT_1_PCT") %in% names(hex))) {
+    fmt_one <- function(nm, pct, rank) {
+      ifelse(
+        is.na(nm) | nm == "",
+        "",
+        paste0(
+          rank, ". ", nm, " (",
+          ifelse(is.na(pct), "?", paste0(round(pct, 0), "%")),
+          ")"
+        )
+      )
+    }
+    e1 <- fmt_one(hex$EVT_1_NAME, hex$EVT_1_PCT, 1)
+    e2 <- if ("EVT_2_NAME" %in% names(hex)) {
+      fmt_one(hex$EVT_2_NAME, hex$EVT_2_PCT, 2)
+    } else {
+      rep("", nrow(hex))
+    }
+    e3 <- if ("EVT_3_NAME" %in% names(hex)) {
+      fmt_one(hex$EVT_3_NAME, hex$EVT_3_PCT, 3)
+    } else {
+      rep("", nrow(hex))
+    }
+    hex$EVT_TOP3_HTML <- vapply(seq_len(nrow(hex)), function(i) {
+      parts <- c(e1[i], e2[i], e3[i])
+      parts <- parts[nzchar(parts)]
+      if (!length(parts)) {
+        return("")
+      }
+      paste0(
+        "<br/><b>EVT (top 3 by area)</b><br/>",
+        paste(parts, collapse = "<br/>"),
+        "<br/><i>WFE is blended ember transmission across the hex fuel mosaic (Beverly-style), not majority EVT alone.</i>"
+      )
+    }, character(1))
+  } else if ("EVT_NAME" %in% names(hex)) {
+    hex$EVT_TOP3_HTML <- ifelse(
+      is.na(hex$EVT_NAME) | hex$EVT_NAME == "",
+      "",
+      paste0("<br/>EVT: ", hex$EVT_NAME)
+    )
+  } else {
+    hex$EVT_TOP3_HTML <- ""
+  }
+
   popup_html <- ~ paste0(
     "<b>", GRID_ID, "</b><br/>",
     "Action: ", as.character(action_label), "<br/>",
     "Goldilocks: ", as.character(gold_label),
-    if ("EVT_NAME" %in% names(hex) && !all(is.na(EVT_NAME))) {
-      paste0("<br/>EVT: ", EVT_NAME)
-    } else {
-      ""
-    },
+    EVT_TOP3_HTML,
     "<br/>People-first urgency: ", urgency_0_100, " (0–100; 100 = highest in this map)"
   )
 

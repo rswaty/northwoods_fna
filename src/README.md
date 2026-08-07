@@ -6,7 +6,7 @@ Run in order from **ArcGIS Pro Python** (Python window, Notebook, or Pro `python
 |--------|---------|
 | `01_check_paths.py` | Validate `config/paths.local.yaml` |
 | `02_zonal_wrtc.py` | WRTC **Housing Unit Risk** (primary) → `WRTC_HU_RISK_MEAN`; optional Exposure / Density |
-| `03_zonal_evt_padus.py` | EVT majority; PAD → `PADUS_FRAC` (**context**); BpS/MFRI; FDist → `FDIST_FUEL_DELTA` |
+| `03_zonal_evt_padus.py` | EVT **top 3 by area** (+ majority); PAD → `PADUS_FRAC` (**context**); BpS/MFRI; FDist → `FDIST_FUEL_DELTA` |
 | `04_score_actions.py` | Action cascade + scores; **Goldilocks = people_first**; EVT_NAME / FIRE / pine flags |
 | `05_export_hex_geojson.py` | Write `outputs/hex/` for GitHub / Quarto |
 

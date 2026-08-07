@@ -1,7 +1,11 @@
-"""Summarize LANDFIRE EVT (majority), PAD-US GAP 1–3, and BpS/MFRI onto hexes.
+"""Summarize LANDFIRE EVT (top-3 by area + majority), PAD-US GAP 1–3,
+BpS/MFRI, and FDist onto hexes.
 
 Expects 02_zonal_wrtc.py to have created `hex_wrtc` in the workspace, or falls
 back to the source hexes path and creates `hex_scored_work`.
+
+EVT: Tabulate Area → top three classes by area (code, name, % of hex) and
+EVT_MAJORITY = rank-1 class. Names from evt_aoi_attributes.csv.
 
 BpS: zonal majority → BPS_MAJORITY, joined to the MFRI table for reference fire
 regime (BPS_FRI / BPS_FRG / FIRE_DEP_HEX). This is context/validation only — it
@@ -17,6 +21,8 @@ See config/PADUS_AND_RESILIENT.md.
 
 from __future__ import annotations
 
+import csv
+import re
 import sys
 from pathlib import Path
 
@@ -49,6 +55,146 @@ def _is_raster(arcpy, path: str) -> bool:
         } or hasattr(desc, "meanCellWidth")
     except Exception:
         return False
+
+
+def _load_evt_names(path: Path) -> dict[int, str]:
+    """VALUE → EVT_NAME from other_outputs/evt_aoi_attributes.csv."""
+    out: dict[int, str] = {}
+    if not path.exists():
+        return out
+    with path.open(newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            try:
+                code = int(float(r["VALUE"]))
+            except (TypeError, ValueError, KeyError):
+                continue
+            name = (r.get("EVT_NAME") or "").strip()
+            if name:
+                out[code] = name
+    return out
+
+
+def _parse_tabulate_value_field(field_name: str) -> int | None:
+    """Map TabulateArea field VALUE_7302 or VALUE_N11 → integer EVT code."""
+    m = re.match(r"^VALUE_(N?)(-?\d+)$", field_name, flags=re.IGNORECASE)
+    if not m:
+        return None
+    neg, digits = m.group(1), m.group(2)
+    code = int(digits)
+    return -code if neg else code
+
+
+def _evt_top3_by_area(
+    arcpy,
+    hexes: str,
+    hex_id: str,
+    evt: str,
+    evt_attr_csv: Path,
+) -> None:
+    """Tabulate EVT area by hex → EVT_1..3 codes/names/percents; EVT_MAJORITY = EVT_1."""
+    print(f"EVT top-3 by area (TabulateArea): {evt}")
+    names = _load_evt_names(evt_attr_csv)
+    if not names:
+        print(f"  WARNING: no EVT names loaded from {evt_attr_csv}")
+
+    cell = float(arcpy.Describe(evt).meanCellWidth)
+    out_table = "tabulate_evt"
+    if arcpy.Exists(out_table):
+        arcpy.management.Delete(out_table)
+    # Class field is Value on integer LANDFIRE EVT rasters
+    arcpy.sa.TabulateArea(
+        in_zone_data=hexes,
+        zone_field=hex_id,
+        in_class_data=evt,
+        class_field="Value",
+        out_table=out_table,
+        processing_cell_size=cell,
+    )
+
+    value_fields: list[tuple[str, int]] = []
+    for f in arcpy.ListFields(out_table):
+        code = _parse_tabulate_value_field(f.name)
+        if code is not None:
+            value_fields.append((f.name, code))
+    if not value_fields:
+        raise SystemExit(
+            "TabulateArea produced no VALUE_* fields — check EVT raster / class field."
+        )
+    print(f"  TabulateArea classes: {len(value_fields)}")
+
+    by_gid: dict = {}
+    read_fields = [hex_id] + [fn for fn, _ in value_fields]
+    with arcpy.da.SearchCursor(out_table, read_fields) as cur:
+        for row in cur:
+            gid = row[0]
+            pairs: list[tuple[int, float]] = []
+            total = 0.0
+            for i, (_, code) in enumerate(value_fields):
+                area = row[i + 1]
+                if area is None:
+                    continue
+                a = float(area)
+                if a <= 0:
+                    continue
+                pairs.append((code, a))
+                total += a
+            pairs.sort(key=lambda x: -x[1])
+            by_gid[gid] = (pairs[:3], total)
+
+    new_fields = [
+        ("EVT_MAJORITY", "LONG", None),
+        ("EVT_1", "LONG", None),
+        ("EVT_2", "LONG", None),
+        ("EVT_3", "LONG", None),
+        ("EVT_1_NAME", "TEXT", 80),
+        ("EVT_2_NAME", "TEXT", 80),
+        ("EVT_3_NAME", "TEXT", 80),
+        ("EVT_1_PCT", "DOUBLE", None),
+        ("EVT_2_PCT", "DOUBLE", None),
+        ("EVT_3_PCT", "DOUBLE", None),
+    ]
+    existing = {f.name for f in arcpy.ListFields(hexes)}
+    for name, ftype, length in new_fields:
+        if name in existing:
+            continue
+        if ftype == "TEXT":
+            arcpy.management.AddField(hexes, name, ftype, field_length=length)
+        else:
+            arcpy.management.AddField(hexes, name, ftype)
+
+    update_fields = [
+        hex_id,
+        "EVT_MAJORITY",
+        "EVT_1",
+        "EVT_2",
+        "EVT_3",
+        "EVT_1_NAME",
+        "EVT_2_NAME",
+        "EVT_3_NAME",
+        "EVT_1_PCT",
+        "EVT_2_PCT",
+        "EVT_3_PCT",
+    ]
+    n_ok = 0
+    with arcpy.da.UpdateCursor(hexes, update_fields) as cur:
+        for row in cur:
+            gid = row[0]
+            top, total = by_gid.get(gid, ([], 0.0))
+            codes = [None, None, None]
+            name_vals = [None, None, None]
+            pcts = [None, None, None]
+            for i, (code, area) in enumerate(top):
+                codes[i] = int(code)
+                name_vals[i] = names.get(int(code), str(code))
+                pcts[i] = round(100.0 * area / total, 2) if total > 0 else None
+            row[1] = codes[0]  # EVT_MAJORITY
+            row[2], row[3], row[4] = codes
+            row[5], row[6], row[7] = name_vals
+            row[8], row[9], row[10] = pcts
+            cur.updateRow(row)
+            if codes[0] is not None:
+                n_ok += 1
+    print(f"Added EVT_1..3 (+ names/pcts); EVT_MAJORITY=EVT_1 ({n_ok} hexes with EVT)")
 
 
 def _padus_frac_from_raster(
@@ -314,27 +460,11 @@ def main() -> None:
     fdist = cfg.get("landfire_fdist", "")
 
     if evt and arcpy.Exists(evt):
-        print(f"EVT majority by hex: {evt}")
-        out_table = "zonal_evt"
-        arcpy.sa.ZonalStatisticsAsTable(
-            in_zone_data=hexes,
-            zone_field=hex_id,
-            in_value_raster=evt,
-            out_table=out_table,
-            ignore_nodata="DATA",
-            statistics_type="MAJORITY",
+        evt_attr = Path(
+            cfg.get("evt_attributes")
+            or (Path(cfg["_repo_root"]) / "other_outputs" / "evt_aoi_attributes.csv")
         )
-        if "EVT_MAJORITY" not in [f.name for f in arcpy.ListFields(hexes)]:
-            arcpy.management.AddField(hexes, "EVT_MAJORITY", "LONG")
-        zonal = {}
-        with arcpy.da.SearchCursor(out_table, [hex_id, "MAJORITY"]) as cur:
-            for gid, maj in cur:
-                zonal[gid] = maj
-        with arcpy.da.UpdateCursor(hexes, [hex_id, "EVT_MAJORITY"]) as cur:
-            for row in cur:
-                row[1] = zonal.get(row[0])
-                cur.updateRow(row)
-        print("Added EVT_MAJORITY")
+        _evt_top3_by_area(arcpy, hexes, hex_id, evt, evt_attr)
     else:
         print("Skipping EVT (landfire_evt empty or not found)")
 
