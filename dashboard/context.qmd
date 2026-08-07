@@ -85,21 +85,41 @@ if (!has_hex) {
     na.color = "#cccccc"
   )
 
-  popup_html <- ~ paste0(
-    "<b>", GRID_ID, "</b><br/>",
-    "WFE mean: ", round(MEAN, 3),
-    " (", as.character(WFE_CAT), ")<br/>",
-    "People (HU Risk): ", round(WRTC_HU_RISK_MEAN, 1), "<br/>",
-    "PAD frac: ", round(PADUS_FRAC, 2), "<br/>",
-    "FDist fuel delta: ", round(FDIST_FUEL_DELTA, 3), "<br/>",
-    if ("EVT_NAME" %in% names(hex) && !is.na(EVT_NAME)) {
-      paste0("Majority EVT: ", EVT_NAME, "<br/>")
-    } else {
+  # Precompute popup text (avoid if/&& on whole columns inside leaflet formulas)
+  evt_bit <- if ("EVT_NAME" %in% names(hex)) {
+    ifelse(
+      !is.na(hex$EVT_NAME) & hex$EVT_NAME != "",
+      paste0("Majority EVT: ", hex$EVT_NAME, "<br/>"),
       ""
-    },
-    if ("PINE_HEX" %in% names(hex)) paste0("Pine/barrens flag: ", PINE_HEX, "<br/>") else "",
-    if ("PEAT_HEX" %in% names(hex)) paste0("Peat flag: ", PEAT_HEX) else ""
-  )
+    )
+  } else {
+    rep("", nrow(hex))
+  }
+  pine_bit <- if ("PINE_HEX" %in% names(hex)) {
+    paste0("Pine/barrens flag: ", hex$PINE_HEX, "<br/>")
+  } else {
+    rep("", nrow(hex))
+  }
+  peat_bit <- if ("PEAT_HEX" %in% names(hex)) {
+    paste0("Peat flag: ", hex$PEAT_HEX)
+  } else {
+    rep("", nrow(hex))
+  }
+
+  hex <- hex |>
+    mutate(
+      popup_html = paste0(
+        "<b>", GRID_ID, "</b><br/>",
+        "WFE mean: ", round(MEAN, 3),
+        " (", as.character(WFE_CAT), ")<br/>",
+        "People (HU Risk): ", round(WRTC_HU_RISK_MEAN, 1), "<br/>",
+        "PAD frac: ", round(PADUS_FRAC, 2), "<br/>",
+        "FDist fuel delta: ", round(FDIST_FUEL_DELTA, 3), "<br/>",
+        evt_bit,
+        pine_bit,
+        peat_bit
+      )
+    )
 
   bb <- st_bbox(hex)
   pad_x <- (bb[["xmax"]] - bb[["xmin"]]) * 0.01
@@ -132,7 +152,7 @@ if (!has_hex) {
       weight = 0.2,
       opacity = 0.4,
       group = "Wildfire exposure (mean)",
-      popup = popup_html
+      popup = ~ popup_html
     ) |>
     addPolygons(
       data = hex,
@@ -142,7 +162,7 @@ if (!has_hex) {
       weight = 0.2,
       opacity = 0.4,
       group = "WFE category",
-      popup = popup_html
+      popup = ~ popup_html
     ) |>
     addPolygons(
       data = hex,
@@ -152,7 +172,7 @@ if (!has_hex) {
       weight = 0.2,
       opacity = 0.4,
       group = "People (HU Risk)",
-      popup = popup_html
+      popup = ~ popup_html
     ) |>
     addPolygons(
       data = hex,
@@ -162,7 +182,7 @@ if (!has_hex) {
       weight = 0.2,
       opacity = 0.4,
       group = "PAD (GAP 1–3 frac)",
-      popup = popup_html
+      popup = ~ popup_html
     ) |>
     addPolygons(
       data = hex,
@@ -172,7 +192,7 @@ if (!has_hex) {
       weight = 0.2,
       opacity = 0.4,
       group = "Recent fuel change (FDist)",
-      popup = popup_html
+      popup = ~ popup_html
     ) |>
     addLegend(
       position = "bottomright",
