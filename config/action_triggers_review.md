@@ -1,13 +1,23 @@
 # Action triggers review (FAA cascade)
 
 Partner/review notes for how hexes get an `ACTION_CLASS`. First matching rule wins.
-High WFE and high people both use **top 30%** of the continuous hex scores (WFE `MEAN`, WRTC Housing Unit Risk). `WFE_CAT` High / Very High also counts as high WFE; Low / Moderate do **not** veto the percentile.
+
+## High WFE and high people (methods)
+
+Cutoffs are AOI-relative (script 04).
+
+| Term | Definition |
+|------|------------|
+| **High people** | Top **30%** of hexes by WRTC Housing Unit Risk (`WRTC_HU_RISK_MEAN` ≥ 70th percentile). |
+| **High WFE** | (1) `WFE_CAT` High or Very High → high; (2) `WFE_CAT` Low or Very Low → **not** high; (3) else (Moderate / missing) → high if hex `MEAN` is in the top **30%** of AOI `MEAN` values. |
+| **`MEAN`** | Hex zonal mean of the continuous wildfire-exposure (WFE) surface. |
+| Design intent | **Homes alone never imply treat-for-people.** Low/Very Low WFE → defer on the WFE×people path even if people are high. |
 
 | Order | Action | Trigger (summary) | Threshold / notes | Example |
 |------:|--------|-------------------|-------------------|---------|
 | 1 | `protect_from_fire` — Protect from fire | Plantation EVT majority | `EVT_MAJORITY` in plantation codes (`config/evt_rules_draft.csv`; currently 9312). FDist/WFE/people ignored once matched. | Managed pine plantation (even with insect fuel-add) → protect |
 | 2 | `wetlands_assess_locally` — Wetlands assess locally | Peat/wetland EVT majority | Peat codes in `evt_rules_draft.csv`. | Large acidic fen/peat majority → wetlands assess |
-| 3 | `treat_fire_risk_for_people` — Treat fire risk for people | High WFE **and** high people | High WFE: MEAN ≥ 70th percentile (or WFE_CAT High/VH). High people: WRTC_HU_RISK_MEAN ≥ 70th percentile. Not plantation/peat. | Hot jack pine next to lake homes → treat for people |
+| 3 | `treat_fire_risk_for_people` — Treat fire risk for people | High WFE **and** high people | High WFE and high people as in the table above. Not plantation/peat. | Hot jack pine next to lake homes → treat for people |
 | 4 | `ecosystem_health_focus` — Ecosystem health focus | High WFE **and not** high people | Same high-WFE rule as row 3. | Hot continuous pine far from housing → ecosystem |
 | 5 | `treat_fire_risk_for_people` | High fuel-add **and** high people (WFE not already high) | `FDIST_FUEL_DELTA` ≥ `fdist_fuel_add_min` (default 0.25) and high people. Primary FDist→people path. | Low WFE + ice storm / insect mortality near homes → treat for people |
 | 6 | `ecosystem_health_focus` | High fuel-add **and not** high people | Same FDist threshold; WFE not high. | Remote insect/windthrow fuel-add → ecosystem |

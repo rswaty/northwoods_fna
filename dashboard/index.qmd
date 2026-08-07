@@ -1,9 +1,11 @@
 ---
-title: "Next Gen FAA — Northwoods (draft)"
-subtitle: "Fire Action Assessment — strategic screening only"
+title: "Next Gen FAA — Northwoods"
+subtitle: "Fire Action Assessment — strategic screening"
 format:
   html:
+    toc: false
     page-layout: full
+    css: styles.css
 execute:
   echo: false
   warning: false
@@ -17,109 +19,219 @@ library(dplyr)
 
 hex_path <- "../outputs/hex/faa_hex_scores.geojson"
 has_hex <- file.exists(hex_path)
+
+action_levels <- c(
+  "Protect from fire",
+  "Treat fire risk for people",
+  "Ecosystem health focus",
+  "Wetlands — assess locally",
+  "Defer and Monitor"
+)
+action_colors <- c(
+  "Protect from fire" = "#ba620f",
+  "Treat fire risk for people" = "#5c184b",
+  "Ecosystem health focus" = "#0f451d",
+  "Wetlands — assess locally" = "#3d42ba",
+  "Defer and Monitor" = "#74cc8c"
+)
+
+# Nested people-first bands among non-defer hexes (5% darkest)
+gold_levels <- c("Top 5%", "Top 10%", "Top 15%", "Outside Goldilocks band")
+gold_colors <- c(
+  "Top 5%" = "#00441b",
+  "Top 10%" = "#238b45",
+  "Top 15%" = "#a1d99b",
+  "Outside Goldilocks band" = "#ffffff"
+)
 ```
 
-Strategic screening map for northern MI, WI, and MN Arrowhead. Scores and action classes are produced in **ArcGIS Pro** (Python in `src/`); this page only displays pushed hex outputs. Default emphasis: **people-first** (`SCORE_PEOPLE` / Goldilocks). **PAD** is shown as context only (not used in scoring).
+Strategic screening for northern MI, WI, and MN Arrowhead. Use the layer control (top-right) to switch between **action class** and **Goldilocks** priority. Goldilocks ranks actionable hexes only (defer excluded) by people-first score.
 
 ```{r}
 #| label: map
-#| fig-height: 7
+#| fig-height: 9
 if (!has_hex) {
   cat(
     "**No hex output yet.** Run the Pro pipeline through `05_export_hex_geojson.py`, ",
     "commit `outputs/hex/faa_hex_scores.geojson`, then re-render this dashboard.\n"
   )
 } else {
-  hex <- st_read(hex_path, quiet = TRUE)
+  hex <- st_read(hex_path, quiet = TRUE) |>
+    mutate(
+      action_label = case_match(
+        ACTION_CLASS,
+        "protect_from_fire" ~ "Protect from fire",
+        "treat_fire_risk_for_people" ~ "Treat fire risk for people",
+        "ecosystem_health_focus" ~ "Ecosystem health focus",
+        "wetlands_assess_locally" ~ "Wetlands — assess locally",
+        "defer_monitor" ~ "Defer and Monitor",
+        .default = "Defer and Monitor"
+      ),
+      action_label = factor(action_label, levels = action_levels),
+      gold_pri = as.integer(round(as.numeric(GOLDILOCKS_PRIORITY))),
+      gold_label = case_match(
+        gold_pri,
+        3L ~ "Top 5%",
+        2L ~ "Top 10%",
+        1L ~ "Top 15%",
+        0L ~ "Outside Goldilocks band",
+        .default = "Outside Goldilocks band"
+      ),
+      gold_label = factor(gold_label, levels = gold_levels)
+    )
 
+  # Explicit levels= so leaflet/scales does not alphabetize and scramble colors.
   action_pal <- colorFactor(
-    palette = c("#B279A2", "#E45756", "#54A24B", "#2CA6A4", "#9D9D9D"),
-    domain = c(
-      "protect_from_fire",
-      "treat_fire_risk_for_people",
-      "ecosystem_health_focus",
-      "wetlands_assess_locally",
-      "defer_monitor"
-    ),
+    palette = unname(action_colors[action_levels]),
+    domain = action_levels,
+    levels = action_levels,
+    ordered = TRUE,
     na.color = "#9D9D9D"
   )
-
-  pad_pal <- colorNumeric(
-    palette = "Blues",
-    domain = if ("PADUS_FRAC" %in% names(hex)) hex$PADUS_FRAC else c(0, 1),
-    na.color = "#cccccc"
+  gold_pal <- colorFactor(
+    palette = unname(gold_colors[gold_levels]),
+    domain = gold_levels,
+    levels = gold_levels,
+    ordered = TRUE,
+    na.color = "#eeeeee"
   )
 
-  m <- leaflet(hex) |>
-    addProviderTiles("CartoDB.Positron") |>
-    addPolygons(
-      fillColor = ~ if ("ACTION_CLASS" %in% names(hex)) {
-        action_pal(ACTION_CLASS)
+  # People-first urgency on a 0–100 scale for the popup (100 = highest in this AOI)
+  sp <- hex$SCORE_PEOPLE
+  sp_min <- min(sp, na.rm = TRUE)
+  sp_max <- max(sp, na.rm = TRUE)
+  hex <- hex |>
+    mutate(
+      urgency_0_100 = if (is.finite(sp_max) && sp_max > sp_min) {
+        round(100 * (SCORE_PEOPLE - sp_min) / (sp_max - sp_min), 0)
       } else {
-        "#9D9D9D"
-      },
-      fillOpacity = 0.55,
-      color = "#444444",
-      weight = 0.3,
-      group = "Action class",
-      popup = ~ paste0(
-        "<b>", if ("GRID_ID" %in% names(hex)) GRID_ID else "hex", "</b><br/>",
-        if ("ACTION_CLASS" %in% names(hex)) paste0("Action: ", ACTION_CLASS, "<br/>") else "",
-        if ("TREATMENT_HINT" %in% names(hex)) paste0("How: ", TREATMENT_HINT, "<br/>") else "",
-        if ("GOLDILOCKS_PRIORITY" %in% names(hex)) paste0("Priority (0-3): ", GOLDILOCKS_PRIORITY, "<br/>") else "",
-        if ("SCORE_PEOPLE" %in% names(hex)) paste0("People-first score: ", round(SCORE_PEOPLE, 3), "<br/>") else "",
-        if ("PADUS_FRAC" %in% names(hex)) paste0("PAD frac (context): ", round(PADUS_FRAC, 3), "<br/>") else "",
-        if ("FDIST_FUEL_DELTA" %in% names(hex)) paste0("FDist fuel delta: ", round(FDIST_FUEL_DELTA, 3), "<br/>") else "",
-        if ("PINE_HEX" %in% names(hex)) paste0("Pine/barrens hex: ", PINE_HEX, "<br/>") else "",
-        if ("EVT_NAME" %in% names(hex)) paste0("EVT: ", EVT_NAME, "<br/>") else "",
-        if ("EVT_MAJORITY" %in% names(hex)) paste0("EVT code: ", EVT_MAJORITY, "<br/>") else "",
-        if ("EVT_FIRE" %in% names(hex)) paste0("EVT FIRE (−1/0/1): ", EVT_FIRE) else ""
-      )
+        0
+      }
     )
 
-  if ("PADUS_FRAC" %in% names(hex)) {
-    m <- m |>
-      addPolygons(
-        fillColor = ~ pad_pal(PADUS_FRAC),
-        fillOpacity = 0.55,
-        color = "#444444",
-        weight = 0.2,
-        group = "PAD context (GAP 1–3 frac)",
-        popup = ~ paste0(
-          "<b>", if ("GRID_ID" %in% names(hex)) GRID_ID else "hex", "</b><br/>",
-          "PADUS_FRAC: ", round(PADUS_FRAC, 3), " (context only)"
-        )
-      ) |>
-      addLegend(
-        position = "bottomleft",
-        pal = pad_pal,
-        values = ~ PADUS_FRAC,
-        title = "PAD frac",
-        group = "PAD context (GAP 1–3 frac)"
-      )
-  }
+  popup_html <- ~ paste0(
+    "<b>", GRID_ID, "</b><br/>",
+    "Action: ", as.character(action_label), "<br/>",
+    "Goldilocks: ", as.character(gold_label),
+    if ("EVT_NAME" %in% names(hex) && !all(is.na(EVT_NAME))) {
+      paste0("<br/>EVT: ", EVT_NAME)
+    } else {
+      ""
+    },
+    "<br/>People-first urgency: ", urgency_0_100, " (0–100; 100 = highest in this map)"
+  )
 
-  groups <- "Action class"
-  if ("PADUS_FRAC" %in% names(hex)) {
-    groups <- c(groups, "PAD context (GAP 1–3 frac)")
-  }
+  bb <- st_bbox(hex)
+  # Tiny margin only — avoid zooming out past the AOI
+  pad_x <- (bb[["xmax"]] - bb[["xmin"]]) * 0.01
+  pad_y <- (bb[["ymax"]] - bb[["ymin"]]) * 0.01
+  west <- bb[["xmin"]] - pad_x
+  south <- bb[["ymin"]] - pad_y
+  east <- bb[["xmax"]] + pad_x
+  north <- bb[["ymax"]] + pad_y
 
-  m <- m |>
+  leaflet(
+    height = "85vh",
+    width = "100%",
+    options = leafletOptions(zoomSnap = 0.25, zoomDelta = 0.5)
+  ) |>
+    addProviderTiles("CartoDB.Positron") |>
+    fitBounds(west, south, east, north) |>
+    addPolygons(
+      data = hex,
+      # Map colors by name (not palette index) so labels never drift
+      fillColor = ~ unname(action_colors[as.character(action_label)]),
+      fillOpacity = 0.72,
+      color = "#333333",
+      weight = 0.25,
+      opacity = 0.5,
+      group = "Action class",
+      popup = popup_html
+    ) |>
+    addPolygons(
+      data = hex,
+      fillColor = ~ unname(gold_colors[as.character(gold_label)]),
+      fillOpacity = 0.78,
+      color = "#333333",
+      weight = 0.25,
+      opacity = 0.45,
+      group = "Goldilocks",
+      popup = popup_html
+    ) |>
     addLegend(
       position = "bottomright",
-      pal = action_pal,
-      values = ~ if ("ACTION_CLASS" %in% names(hex)) ACTION_CLASS else "defer_monitor",
-      title = "Action class"
+      colors = unname(action_colors[action_levels]),
+      labels = action_levels,
+      title = "Action class",
+      opacity = 0.9,
+      group = "Action class"
+    ) |>
+    addLegend(
+      position = "bottomright",
+      colors = unname(gold_colors[gold_levels]),
+      labels = gold_levels,
+      title = "Goldilocks (people-first)",
+      opacity = 0.9,
+      group = "Goldilocks"
     ) |>
     addLayersControl(
-      baseGroups = groups,
+      baseGroups = c("Action class", "Goldilocks"),
       options = layersControlOptions(collapsed = FALSE)
-    )
-
-  m
+    ) |>
+    htmlwidgets::onRender(sprintf(
+      "
+      function(el, x) {
+        var map = this;
+        var bounds = [[%f, %f], [%f, %f]];
+        function legendTitle(leg) {
+          var s = leg.querySelector('strong');
+          return s ? s.textContent.trim() : '';
+        }
+        function syncLegends() {
+          var legends = el.querySelectorAll('.legend');
+          var inputs = el.querySelectorAll('.leaflet-control-layers-base input');
+          var active = null;
+          inputs.forEach(function(inp) {
+            if (inp.checked) {
+              active = inp.parentElement.textContent.trim();
+            }
+          });
+          legends.forEach(function(leg) {
+            var title = legendTitle(leg);
+            var show =
+              (active === 'Action class' && title.indexOf('Action') === 0) ||
+              (active === 'Goldilocks' && title.indexOf('Goldilocks') === 0);
+            leg.style.display = show ? 'block' : 'none';
+          });
+        }
+        function fitAOI() {
+          map.invalidateSize(false);
+          map.fitBounds(bounds, { padding: [10, 10], animate: false });
+        }
+        map.on('baselayerchange', syncLegends);
+        setTimeout(syncLegends, 50);
+        // Quarto/preview often lays out after first paint — refit a few times only
+        var nFit = 0;
+        function fitOnce() {
+          fitAOI();
+          nFit += 1;
+        }
+        fitOnce();
+        setTimeout(fitOnce, 150);
+        setTimeout(fitOnce, 500);
+        setTimeout(fitOnce, 1200);
+        if (window.ResizeObserver) {
+          var ro = new ResizeObserver(function() {
+            if (nFit < 8) fitOnce();
+            else ro.disconnect();
+          });
+          ro.observe(el);
+        }
+      }
+      ",
+      south, west, north, east
+    ))
 }
 ```
 
-## Weight presets (from config)
-
-Dashboard default emphasis is **people-first**. PAD is **context only** (layer toggle above; not in Goldilocks score). Fuel-add and pine/barrens flags feed actions after you re-run 03→05. Goldilocks ranks **actionable** hexes only (`defer_monitor` excluded); `GOLDILOCKS_PRIORITY` runs 0–3.
+**Action class** = what kind of conversation for that hex. **Goldilocks** = which actionable hexes to talk about first under a people-first lens (top 5% / 10% / 15% nested bands; white = outside that band or defer).

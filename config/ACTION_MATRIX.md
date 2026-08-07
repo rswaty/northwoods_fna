@@ -6,7 +6,7 @@ Fill **`ACTION_CLASS`** / **`TREATMENT_HINT`** in [`ACTION_MATRIX_DRAFT.csv`](AC
 
 | Factor | Low | Med | High |
 |--------|-----|-----|------|
-| **WFE** | Below top-30% of hex `MEAN` | Mid (optional; today’s code is only high vs not) | Top 30% of `MEAN` (or `WFE_CAT` High / Very High) |
+| **WFE** | `WFE_CAT` Low / Very Low, or below top-30% when Moderate | Moderate mid (optional) | `WFE_CAT` High / VH, or Moderate/missing in top 30% of `MEAN` |
 | **PEOPLE** (WRTC HU Risk) | Below top-30% | Mid (optional) | Top 30% |
 | **FDIST_FUEL** (last **10** yr, area-weighted −1/0/+1) | Fuel **remove** (δ ≲ −0.25) | Neutral (\|δ\| < 0.25) | Fuel **add** (δ ≳ +0.25) |
 | **PAD** (GAP 1–3 frac) | < 0.33 | 0.33–0.67 | > 0.67 — *score only today* |

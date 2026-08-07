@@ -12,4 +12,5 @@ website:
 format:
   html:
     theme: cosmo
-    toc: true
+    toc: false
+    page-layout: full
