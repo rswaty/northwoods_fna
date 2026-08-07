@@ -56,14 +56,12 @@ ArcGIS Pro (local rasters / GDB / .aprx)
 ## Repo layout
 
 ```
-config/          # values, weights, EVT/PAD/WRTC notes, paths.example.yaml
-src/             # ArcGIS Pro Python (arcpy) pipeline
-data/hex/        # WFE hexes (vectors OK to commit once copied)
-data/disturbances/
-outputs/hex/     # scored hex GeoJSON for the dashboard (commit these)
-dashboard/       # R Quarto → GitHub Pages
-docs/            # Pages output folder (optional)
-next_gen_faa.*   # working brief
+config/          # weights, EVT rules, path example — see config/README.md
+src/             # ArcGIS Pro Python (01–05)
+outputs/hex/     # scored hex GeoJSON (+ CSV) for the dashboard
+dashboard/       # Quarto map (render → docs/dashboard for Pages)
+docs/            # Pages notes; dashboard build output gitignored
+faa_overview.qmd / faa_how_it_works.qmd / next_gen_faa.md
 ```
 
 ## Quick start (ArcGIS Pro)
@@ -82,4 +80,4 @@ next_gen_faa.*   # working brief
 
 ## Brief
 
-See `next_gen_faa.html` (also `.md` / `.txt` / `.odt`).
+See `next_gen_faa.md` and `faa_overview.qmd`.

@@ -2,6 +2,8 @@
 .venv/
 __pycache__/
 *.pyc
+.Rhistory
+.Rproj.user
 
 # Local ArcGIS path overrides (keep secrets / machine paths off GitHub)
 config/paths.local.yaml
@@ -41,4 +43,11 @@ outputs/large/
 *.sd
 esriMap*/
 
-.Rproj.user
+# Quarto / pandoc renders at repo root (keep .qmd / .md sources)
+/faa_*.html
+/next_gen_faa.html
+/next_gen_faa.odt
+/next_gen_faa.txt
+
+# Quarto website build (re-render dashboard/ → docs/dashboard for Pages)
+/docs/dashboard/

@@ -1,16 +1,19 @@
 # Docs / GitHub Pages
 
-- Working brief lives at repo root: `next_gen_faa.html` (also `.md` / `.txt` / `.odt`).
-- **FAA = Fire Action Assessment**
-- Design details: `config/ACTION_ASSIGNMENT.md`, `WRTC_DATASETS.md`, `PADUS_AND_RESILIENT.md`, `EVT_RULES_LOGIC.md`.
-- Overview: root `README.md`.
+Partner-facing sources (edit these, don’t commit root `*.html` renders):
 
-## Quarto site (optional)
+| Doc | Path |
+|-----|------|
+| Overview | `faa_overview.qmd` (+ optional `faa_overview.pdf`) |
+| How it works | `faa_how_it_works.qmd` |
+| Working brief | `next_gen_faa.md` |
+| Design detail | `config/` (see `config/README.md`) |
+
+## Quarto dashboard → Pages
 
 ```bash
 cd dashboard
 quarto render
 ```
 
-Output is configured to `docs/dashboard/` for GitHub Pages if you enable Pages from `/docs`.
-Default map emphasis: **people-first** scores / Goldilocks.
+Configured to write `docs/dashboard/` (`dashboard/_quarto.yml`). Enable GitHub Pages from `/docs` if you want the map live. That build folder is gitignored until you choose to publish a render.
