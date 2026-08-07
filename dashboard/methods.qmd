@@ -1,0 +1,151 @@
+---
+title: "Methods"
+subtitle: "Plain-English Fire Action Assessment for the Northwoods"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    page-layout: article
+    css: styles.css
+execute:
+  echo: false
+  warning: false
+---
+
+This page explains how the Northwoods **Fire Action Assessment (FAA)** works in everyday language. It is a **screening conversation tool** for northern Michigan, Wisconsin, and Minnesota’s Arrowhead — not a prescription, not NEPA, and not a stand-level plan.
+
+Hexes are large (~**10,000 acres**). Each hex gets **one primary action** and, among places that are not “defer,” a **Goldilocks** priority for what to talk about first.
+
+Maps: [Actions](index.qmd) · [Context](context.qmd)
+
+---
+
+## What question does FAA answer?
+
+**Where should partners start a conversation about what to do about wildfire risk — and what kind of conversation is it?**
+
+Examples of conversation types:
+
+- Protect a timber plantation from fire damage  
+- Treat fuels and homes where people and exposure both run high  
+- Focus on ecosystem / fire-adapted systems away from dense housing  
+- Pause and assess peat wetlands locally  
+- Defer / monitor for now  
+
+---
+
+## Inputs (what we look at)
+
+| Input | Plain meaning |
+|-------|----------------|
+| **Wildfire exposure (WFE)** | Where fire can transmit embers across the landscape *today* |
+| **People (WRTC Housing Unit Risk)** | Where homes and community wildfire risk are high |
+| **Plantations** | Managed tree farms treated as timber assets (from LANDFIRE EVT) |
+| **Peat / wetlands** | Peat and similar wetlands that need a local call (from EVT) |
+| **Pine / barrens list** | Fire-adapted pines and barrens so quiet WFE does not hide red/jack pine |
+| **EVT composition (top 3)** | Largest three vegetation types by area in the hex — the fuel mosaic behind WFE |
+| **Recent disturbance (FDist)** | Where insects, wind/ice, fire, or chipping recently **added or removed** fuels |
+| **PAD (protected lands)** | Share of the hex in GAP 1–3 conserved land — **map context only** |
+
+### How WFE is built (short)
+
+Each LANDFIRE **EVT** class has an ember-transmission score (about **0–100**). Those scores are mapped to the landscape, then a **neighborhood (focal) blend** softens isolated hot pixels and reinforces continuous hot fuels — in the spirit of **Beverly and others**. Hex **`MEAN`** is the average of that blended surface; **`WFE_CAT`** is the published Low → Very High label from the same product.
+
+So WFE is **vegetation-based exposure**, not a separate climate or ignition model. A hardwoods-*majority* hex can still score relatively high if enough high-transmission types (or neighbors) sit in the mosaic after blending. That is why we show **top 3 EVTs** on the action map popup after you re-run script 03.
+
+---
+
+## What “high” means
+
+Cutoffs are **relative to this Northwoods AOI** (recomputed each scoring run).
+
+### High people
+
+Hex Housing Unit Risk is in the **top 30%** of hexes (at or above the 70th percentile).
+
+### High wildfire exposure
+
+Checked **in this order**:
+
+1. **`WFE_CAT` High or Very High** → high exposure.  
+2. **`WFE_CAT` Low or Very Low** → **not** high. The category wins. **Many homes + low WFE → defer** on the exposure×people path (homes alone are not “treat for fire”).  
+3. **Moderate** (or missing category) → high if hex **`MEAN`** is in the **top 30%** of AOI exposure means.
+
+### High fuel-add
+
+Average recent FDist fuel-direction on the hex ≥ **0.25** (scale about −1 remove → +1 add). Can open treat or ecosystem paths when WFE is not high (e.g. ice storm or insects near homes).
+
+---
+
+## How each hex gets one action
+
+Rules are checked **in order**. The **first match wins**.
+
+| Order | Action | When |
+|------:|--------|------|
+| 1 | **Protect from fire** | Mostly a **plantation** |
+| 2 | **Wetlands — assess locally** | Mostly **peat / listed wetland** |
+| 3 | **Treat fire risk for people** | **High WFE** and **high people** |
+| 4 | **Ecosystem health focus** | **High WFE** but **not** high people |
+| 5 | **Treat fire risk for people** | WFE not high, but **fuel-add** and **high people** |
+| 6 | **Ecosystem health focus** | WFE not high, but **fuel-add** and **not** high people |
+| 7 | **Ecosystem health focus** | On the **pine / barrens** list (even if WFE and fuel-add are quiet) |
+| 8 | **Defer and Monitor** | Nothing above matched |
+
+PAD never picks the action. Developed EVT “don’t burn” flags are context; people risk comes from WRTC.
+
+---
+
+## Worked examples
+
+**1. Plantation with insect mortality**  
+→ **Protect from fire.** Asset rule wins first; insects may appear as fuel-add context / treatment hint, not a different action.
+
+**2. Lake homes next to hot continuous pine (High WFE + high people)**  
+→ **Treat fire risk for people.** Conversation is usually mechanical fuels and home hardening — not lighting a prescribed fire next to houses.
+
+**3. Remote jack pine, high WFE, few homes**  
+→ **Ecosystem health focus.** Beneficial / prescribed fire is on the table for discussion.
+
+**4. Northern hardwoods majority, Low WFE category, many homes**  
+→ **Defer and Monitor.** Low exposure category is not “high WFE,” so we do not invent treat-for-people from homes alone.
+
+**5. Northern hardwoods majority, Moderate WFE with MEAN in the AOI top 30%, few homes**  
+→ **Ecosystem health focus** under today’s rules. The *majority* type may not be fire-dependent; **top 3 EVTs** (and WFE’s mosaic blend) explain how exposure can still be relatively high. Partner judgment still applies.
+
+**6. Quiet WFE map, but heavy recent blowdown near homes (fuel-add)**  
+→ **Treat fire risk for people** via the FDist path.
+
+**7. Red pine majority, quiet WFE and FDist**  
+→ **Ecosystem health focus** via the pine/barrens list so fire-adapted types are not missed.
+
+**8. Typical hardwoods, quiet fuels, moderate housing**  
+→ **Defer and Monitor.**
+
+---
+
+## Goldilocks (what to talk about first)
+
+We cannot treat everything. Among hexes that are **not** defer, we rank by a **people-first urgency** score (homes weigh most, then exposure, plantations, and positive fuel-add). PAD does **not** boost that score.
+
+| Priority | Meaning |
+|----------|---------|
+| **3** | Top ~**5%** of actionable hexes — start here |
+| **2** | Top ~**10%** (outside the top 5%) |
+| **1** | Top ~**15%** (outside the top 10%) |
+| **0** | Actionable but outside that band, **or** deferred |
+
+On the Actions map, urgency in the popup is shown on a simple **0–100** scale (100 = highest in this map export).
+
+**Action** = what kind of conversation. **Goldilocks** = which of those conversations come first under a people-first lens.
+
+---
+
+## What FAA is not
+
+- Not ownership permission or tribal consultation  
+- Not a burn plan or silvicultural prescription  
+- Not “paint every high-housing hex as treat” without exposure or fuel-add  
+- Not a claim that majority EVT must match the action — WFE is a **mosaic** measure  
+
+For the living rule table used in review notes, see `config/action_triggers_review.md` in the repo. Scoring code: `src/lib/action_assign.py` (run via ArcGIS Pro scripts `01`–`05`).

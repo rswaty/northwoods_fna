@@ -7,7 +7,11 @@ website:
   navbar:
     left:
       - href: index.qmd
-        text: Map
+        text: Actions
+      - href: context.qmd
+        text: Context
+      - href: methods.qmd
+        text: Methods
 
 format:
   html:

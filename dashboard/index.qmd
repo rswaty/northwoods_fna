@@ -1,5 +1,5 @@
 ---
-title: "Next Gen FAA — Northwoods"
+title: "Actions"
 subtitle: "Fire Action Assessment — strategic screening"
 format:
   html:
@@ -45,7 +45,7 @@ gold_colors <- c(
 )
 ```
 
-Strategic screening for northern MI, WI, and MN Arrowhead. Use the layer control (top-right) to switch between **action class** and **Goldilocks** priority. Goldilocks ranks actionable hexes only (defer excluded) by people-first score.
+Strategic screening for northern MI, WI, and MN Arrowhead. Switch **Action class** vs **Goldilocks** (top-right). See also [Context](context.qmd) inputs and [Methods](methods.qmd).
 
 ```{r}
 #| label: map

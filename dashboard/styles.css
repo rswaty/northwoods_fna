@@ -5,6 +5,14 @@ main.content,
   max-width: none !important;
 }
 
+/* Methods / article pages keep a readable measure */
+body.page-columns.page-columns-article main.content,
+.page-layout-article main.content {
+  max-width: 48rem !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 #map .cell-output-display,
 .cell-output-display:has(.leaflet) {
   max-width: 100% !important;

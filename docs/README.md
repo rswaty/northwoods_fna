@@ -16,4 +16,6 @@ cd dashboard
 quarto render
 ```
 
-Configured to write `docs/dashboard/` (`dashboard/_quarto.yml`). Enable GitHub Pages from `/docs` if you want the map live. That build folder is gitignored until you choose to publish a render.
+Pages: **Actions** (`index.qmd`), **Context** (`context.qmd`), **Methods** (`methods.qmd`).
+
+Configured to write `docs/dashboard/` (`dashboard/_quarto.yml`). Enable GitHub Pages from `/docs` if you want the site live. That build folder is gitignored until you choose to publish a render.
