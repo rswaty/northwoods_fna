@@ -76,7 +76,7 @@ A short **treatment hint** may sit beside the action (e.g. silviculture on plant
 
 ## Goldilocks (what to talk about first)
 
-We cannot treat everything. Among hexes that are **not** defer, we score urgency with a **people-first** formula (homes weigh most, then fire exposure, plantations, and recent fuel-add). PAD does **not** boost that score. Goldilocks bands (top ~5% / 10% / 15%) are taken **within each state** so priorities stay visible in Wisconsin, Michigan, and Minnesota rather than one state's outliers dominating the whole map.
+We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we score urgency with a **people-first** formula (homes weigh most, then fire exposure, plantations, and recent fuel-add) across the full AOI. PAD does **not** boost that score.
 
 Then we flag a manageable band of that ranked list:
 
@@ -85,7 +85,7 @@ Then we flag a manageable band of that ranked list:
 | **3** | Top ~5% of actionable hexes — start here |
 | **2** | Top ~10% |
 | **1** | Top ~15% |
-| **0** | Actionable but outside the near-term band, *or* deferred |
+| **0** | Actionable but outside the near-term band, *or* deferred / wetlands assess-locally |
 
 So: **action** = what kind of conversation; **Goldilocks** = which of those conversations come first under a people-first lens.
 

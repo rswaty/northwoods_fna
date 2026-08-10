@@ -26,9 +26,10 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 5. High fuel-add (FDist) + high people → treat_fire_risk_for_people  
 6. High fuel-add + not-high people → ecosystem_health_focus  
 7. Fire-adapted pine/barrens (EVT list) → ecosystem_health_focus  
-8. Else → defer_monitor  
+8. BpS fire-dependent (`FIRE_DEP_HEX`) → ecosystem_health_focus  
+9. Else → defer_monitor  
 
-**PAD** is map context only (not score / not action). Developed EVT `FIRE=−1` is context; people come from WRTC.
+**PAD** is map context only (not score / not action). Developed EVT `FIRE=−1` is context; people come from WRTC. EVT `FIRE` (your AOI table) is popup/context; cascade fire-dependence uses BpS/MFRI `FIRE_DEP_HEX`.
 
 Details: `config/ACTION_ASSIGNMENT.md` · notes: `config/next_steps_partner_notes.md` · brief: `faa_overview.qmd`
 

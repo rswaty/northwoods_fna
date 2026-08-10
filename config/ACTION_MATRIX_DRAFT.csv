@@ -12,10 +12,10 @@
 #             Currently score multiplier only — leave action blank or note "no action change"
 # PEAT:       Y if EVT majority in peat codes; else N
 # PLANTATION: Y if EVT majority plantation; else N
-# FIRE_DEP:   context only (BpS FRI ≤ 100) — included for review, not a required gate
+# FIRE_DEP:   Y if BpS FRI ≤ 100 (`FIRE_DEP_HEX`) → ecosystem if no earlier cascade rule
 #
-# Cascade order reminder (current code): plantation → peat → then WFE/people rules.
-# Proposed: after WFE branches, add low-WFE + FDIST High pathways (Arrowhead insects, MI ice/wind).
+# Cascade (current code): plantation → peat → WFE×people → fuel-add×people →
+# pine/barrens → BpS fire-dep → defer.
 #
 plantation,peat,wfe,people,fdist_fuel,pad,fire_dep,ACTION_CLASS,TREATMENT_HINT,notes
 Y,*,*,*,*,*,*,,,,ALWAYS protect_from_fire today — fill or confirm

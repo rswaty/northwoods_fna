@@ -7,7 +7,7 @@ Run in order from **ArcGIS Pro Python** (Python window, Notebook, or Pro `python
 | `01_check_paths.py` | Validate `config/paths.local.yaml` |
 | `02_zonal_wrtc.py` | WRTC **Housing Unit Risk** (primary) → `WRTC_HU_RISK_MEAN`; optional Exposure / Density |
 | `03_zonal_evt_padus.py` | EVT **top 3 by area** (+ majority); PAD → `PADUS_FRAC` (**context**); BpS/MFRI; FDist → `FDIST_FUEL_DELTA` |
-| `04_score_actions.py` | Action cascade + scores; **Goldilocks = people_first**; EVT_NAME / FIRE / pine flags |
+| `04_score_actions.py` | Action cascade + scores; **Goldilocks = people_first** (AOI-wide); EVT_NAME / FIRE / pine / BpS fire-dep |
 | `05_export_hex_geojson.py` | Write `outputs/hex/` for GitHub / Quarto |
 
 ## Setup
@@ -29,7 +29,8 @@ Point paths at Pro GDB / clipped rasters (including **FDist** as `landfire_fdist
 5. High fuel-add + high people → `treat_fire_risk_for_people`
 6. High fuel-add + not-high people → `ecosystem_health_focus`
 7. Pine/barrens (`config/evt_pine_barrens.csv`) → `ecosystem_health_focus`
-8. Else → `defer_monitor`
+8. BpS fire-dependent (`FIRE_DEP_HEX=1`) → `ecosystem_health_focus`
+9. Else → `defer_monitor`
 
 PAD does **not** pick the action or score. Fuel-add uses `FDIST_FUEL_DELTA` ≥ `fdist_fuel_add_min` (default 0.25).
 
@@ -41,10 +42,10 @@ PAD does **not** pick the action or score. Fuel-add uses `FDIST_FUEL_DELTA` ≥ 
 | `SCORE_PLANTATION` | `plantation_asset_first` |
 | `SCORE_PAD` | legacy preset label — **PAD weight unused** |
 | `SCORE_BALANCED` | `balanced` |
-| `GOLDILOCKS_5` / `_10` / `_15` | Top 5/10/15% by **`SCORE_PEOPLE`** (defer + wetlands excluded) |
+| `GOLDILOCKS_5` / `_10` / `_15` | Top 5/10/15% by **`SCORE_PEOPLE`** (defer + wetlands excluded; **AOI-wide**) |
 | `GOLDILOCKS_PRIORITY` | 0–3: 3=top5%, 2=top10%, 1=top15%, 0=rest (defers and wetlands always 0) |
 
-Goldilocks excludes `defer_monitor`. Peat and new fuel-add / pine actions **are** ranked.
+Goldilocks excludes `defer_monitor` and `wetlands_assess_locally`. Fuel-add / pine / BpS fire-dep ecosystem actions **are** ranked.
 
 ### When to re-run
 

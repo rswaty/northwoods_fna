@@ -131,9 +131,9 @@ PAD never picks the action. Developed EVT “don’t burn” flags are context; 
 
 ## Goldilocks (what to talk about first)
 
-We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we rank by a **people-first urgency** score (homes weigh most, then exposure, plantations, and positive fuel-add). PAD does **not** boost that score. Ranking is done **within each state** (MI / WI / MN) so a few extreme housing-risk hexes in one state do not consume the whole regional shortlist.
+We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we rank by a **people-first urgency** score (homes weigh most, then exposure, plantations, and positive fuel-add) **across the full AOI**. PAD does **not** boost that score.
 
-Wetlands stay on the **Actions** map as “assess locally,” and appear on the **Goldilocks** map only as an optional **toggle overlay**. They are not painted in the top 5/10/15% green bands until we have a clearer fire-adaptation rule for peat.
+Wetlands stay on the **Actions** map as “assess locally,” and appear on the **Goldilocks** map only as an optional **toggle overlay**. They are not painted in the top 5/10/15% green bands until we have a clearer fire-adaptation rule for peat. The Goldilocks map draws **only in-band** hexes.
 
 | Priority | Meaning |
 |----------|---------|

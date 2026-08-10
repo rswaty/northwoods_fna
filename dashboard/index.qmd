@@ -231,7 +231,7 @@ if (!has_hex) {
       position = "bottomright",
       colors = unname(gold_colors[gold_levels]),
       labels = gold_levels,
-      title = "Goldilocks (people-first, by state)",
+      title = "Goldilocks (people-first)",
       opacity = 0.9,
       group = "Goldilocks"
     ) |>
@@ -335,4 +335,4 @@ if (!has_hex) {
 
 **Action class** = what kind of conversation is proposed for that hex.
 
-**Goldilocks** = which hexes to talk about first under a people-first lens. Bands are the top 5% / 10% / 15% **within each state** (MI / WI / MN) among actionable hexes, so one state's WRTC outliers do not erase priorities elsewhere (e.g. Burnett WI). Only in-band hexes are drawn on this view. **Wetlands — assess locally** are left out of those bands but can be toggled as a separate overlay.
+**Goldilocks** = which hexes to talk about first under a people-first lens (top 5% / 10% / 15% of actionable hexes across the AOI). Only in-band hexes are drawn on this view. **Wetlands — assess locally** are left out of those bands but can be toggled as a separate overlay.

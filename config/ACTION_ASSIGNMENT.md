@@ -61,7 +61,7 @@ score  = base × (1 + w_pad_multiplier × PADUS_FRAC)
 
 ### Goldilocks bands + priority (people-first)
 
-Ranking is over hexes that are **not** `defer_monitor` and **not** `wetlands_assess_locally`, computed **within each state** (MI / WI / MN via `config/hex_state_abbr.csv`) so one state's WRTC outliers do not erase priorities elsewhere. Wetlands keep their assess-locally action but are not in the people-first 5/10/15% bands (dashboard: optional Goldilocks overlay). Percentages are of each state's ranked pool.
+Ranking is over hexes that are **not** `defer_monitor` and **not** `wetlands_assess_locally`. Wetlands keep their assess-locally action but are not in the people-first 5/10/15% bands (dashboard: optional Goldilocks overlay). Percentages are of that ranked pool across the full AOI.
 
 | Field | Meaning |
 |-------|---------|

@@ -2,11 +2,11 @@
 
 v1:
   - Actions: plantation→protect; peat→wetlands; high WFE or high fuel-add
-    (split by people); fire-adapted pine/barrens away from people→ecosystem;
+    (split by people); pine/barrens → ecosystem; BpS fire-dep → ecosystem;
     else defer
   - PAD is map context only (PADUS_FRAC kept; not in score)
-  - Goldilocks = people_first over ranked hexes (defer + wetlands excluded);
-    bands 5/10/15% + priority 0-3; wetlands remain a dashboard overlay
+  - Goldilocks = people_first over ranked hexes AOI-wide (defer + wetlands
+    excluded); bands 5/10/15% + priority 0-3; wetlands remain a dashboard overlay
   - EVT FIRE / PINE_HEX from evt attributes + pine list; FDIST_FUEL_DELTA from 03
 
 See config/ACTION_ASSIGNMENT.md and config/next_steps_partner_notes.md §10.
@@ -55,54 +55,6 @@ def _rank_flags(values: list[tuple], top_frac: float) -> set:
         return set()
     n = max(1, int(len(ranked) * top_frac))
     return {i for i, _ in ranked[:n]}
-
-
-def _load_state_abbr(path: Path) -> dict[str, str]:
-    """GRID_ID → STATE_ABBR (MI/WI/MN). Optional; without it Goldilocks is AOI-wide."""
-    out: dict[str, str] = {}
-    if not path.exists():
-        return out
-    for r in _read_csv(path):
-        gid = (r.get("GRID_ID") or "").strip()
-        st = (r.get("STATE_ABBR") or "").strip().upper()
-        if gid and st:
-            out[gid] = st
-    return out
-
-
-def _goldilocks_bands(
-    rows_out: list[dict],
-    state_by_id: dict[str, str] | None = None,
-) -> tuple[set, set, set]:
-    """People-first top 5/10/15% among actionable hexes.
-
-    If ``state_by_id`` is provided, bands are computed **within each state**
-    so one state's WRTC outliers do not consume the whole AOI shortlist
-    (e.g. Burnett WI stays competitive with MN Arrowhead).
-    """
-    actionable = [
-        r for r in rows_out if r["ACTION_CLASS"] not in GOLDILOCKS_EXCLUDE
-    ]
-    if not state_by_id:
-        pairs = [(r["id"], r["SCORE_PEOPLE"]) for r in actionable]
-        return (
-            _rank_flags(pairs, 0.05),
-            _rank_flags(pairs, 0.10),
-            _rank_flags(pairs, 0.15),
-        )
-
-    top5: set = set()
-    top10: set = set()
-    top15: set = set()
-    by_state: dict[str, list[tuple]] = {}
-    for r in actionable:
-        st = state_by_id.get(r["id"]) or "UNK"
-        by_state.setdefault(st, []).append((r["id"], r["SCORE_PEOPLE"]))
-    for pairs in by_state.values():
-        top5 |= _rank_flags(pairs, 0.05)
-        top10 |= _rank_flags(pairs, 0.10)
-        top15 |= _rank_flags(pairs, 0.15)
-    return top5, top10, top15
 
 
 def _load_evt_flags(rules_path: Path) -> tuple[set[str], set[str]]:
@@ -182,7 +134,6 @@ def main() -> None:
 
     peat_codes, plant_codes = _load_evt_flags(CONFIG_DIR / "evt_rules_draft.csv")
     pine_codes = _load_pine_codes(CONFIG_DIR / "evt_pine_barrens.csv")
-    state_by_id = _load_state_abbr(CONFIG_DIR / "hex_state_abbr.csv")
     evt_attr = Path(
         cfg.get("evt_attributes")
         or (REPO_ROOT / "other_outputs" / "evt_aoi_attributes.csv")
@@ -346,9 +297,9 @@ def main() -> None:
         for r in rows_out
         if r["ACTION_CLASS"] not in GOLDILOCKS_EXCLUDE
     ]
-    top5, top10, top15 = _goldilocks_bands(
-        rows_out, state_by_id if state_by_id else None
-    )
+    top5 = _rank_flags(actionable, 0.05)
+    top10 = _rank_flags(actionable, 0.10)
+    top15 = _rank_flags(actionable, 0.15)
     by_id = {r["id"]: r for r in rows_out}
 
     def _priority(gid) -> int:
@@ -448,13 +399,8 @@ def main() -> None:
         )
 
     print(f"WFE top-30% cutoff={wfe_p30:.4g}; WRTC top-30% cutoff={homes_p30:.4g}")
-    gold_mode = (
-        f"within-state ({len(set(state_by_id.values()))} states from hex_state_abbr.csv)"
-        if state_by_id
-        else "AOI-wide"
-    )
     print(
-        f"Goldilocks (people_first, {gold_mode}) over {len(actionable)} ranked hexes "
+        f"Goldilocks (people_first, AOI-wide) over {len(actionable)} ranked hexes "
         f"(defer + wetlands_assess_locally excluded): "
         f"top5={len(top5)} top10={len(top10)} top15={len(top15)}"
     )
