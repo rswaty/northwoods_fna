@@ -41,8 +41,8 @@ PAD does **not** pick the action or score. Fuel-add uses `FDIST_FUEL_DELTA` ≥ 
 | `SCORE_PLANTATION` | `plantation_asset_first` |
 | `SCORE_PAD` | legacy preset label — **PAD weight unused** |
 | `SCORE_BALANCED` | `balanced` |
-| `GOLDILOCKS_5` / `_10` / `_15` | Top 5/10/15% by **`SCORE_PEOPLE`**, actionable hexes only |
-| `GOLDILOCKS_PRIORITY` | 0–3: 3=top5%, 2=top10%, 1=top15%, 0=rest (defers always 0) |
+| `GOLDILOCKS_5` / `_10` / `_15` | Top 5/10/15% by **`SCORE_PEOPLE`** (defer + wetlands excluded) |
+| `GOLDILOCKS_PRIORITY` | 0–3: 3=top5%, 2=top10%, 1=top15%, 0=rest (defers and wetlands always 0) |
 
 Goldilocks excludes `defer_monitor`. Peat and new fuel-add / pine actions **are** ranked.
 

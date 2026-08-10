@@ -60,7 +60,7 @@ score  = base × (1 + w_pad_multiplier × PADUS_FRAC)
 
 ### Goldilocks bands + priority (people-first)
 
-Ranking is over **actionable hexes only** — `defer_monitor` is excluded, so a "don't act" hex can never be flagged Goldilocks. Percentages are of the actionable pool.
+Ranking is over hexes that are **not** `defer_monitor` and **not** `wetlands_assess_locally`. Wetlands keep their assess-locally action but are not in the people-first 5/10/15% bands (dashboard: optional Goldilocks overlay). Percentages are of that ranked pool.
 
 | Field | Meaning |
 |-------|---------|

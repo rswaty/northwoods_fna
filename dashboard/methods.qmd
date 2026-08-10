@@ -14,7 +14,7 @@ execute:
 
 This page explains how the Northwoods **Fire Action Assessment (FAA)** works in everyday language. It is a **screening conversation tool** for northern Michigan, Wisconsin, and Minnesota’s Arrowhead — not a prescription, not NEPA, and not a stand-level plan.
 
-Hexes are large (~**10,000 acres**). Each hex gets **one primary action** and, among places that are not “defer,” a **Goldilocks** priority for what to talk about first.
+Hexes are large (~**10,000 acres**). Each hex gets **one primary action**. Among places that are neither “defer” nor “wetlands — assess locally,” a **Goldilocks** priority flags what to talk about first.
 
 Maps: [Actions](index.qmd) · [Context](context.qmd)
 
@@ -126,14 +126,16 @@ PAD never picks the action. Developed EVT “don’t burn” flags are context; 
 
 ## Goldilocks (what to talk about first)
 
-We cannot treat everything. Among hexes that are **not** defer, we rank by a **people-first urgency** score (homes weigh most, then exposure, plantations, and positive fuel-add). PAD does **not** boost that score.
+We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we rank by a **people-first urgency** score (homes weigh most, then exposure, plantations, and positive fuel-add). PAD does **not** boost that score.
+
+Wetlands stay on the **Actions** map as “assess locally,” and appear on the **Goldilocks** map only as an optional **toggle overlay**. They are not painted in the top 5/10/15% green bands until we have a clearer fire-adaptation rule for peat.
 
 | Priority | Meaning |
 |----------|---------|
-| **3** | Top ~**5%** of actionable hexes — start here |
+| **3** | Top ~**5%** of ranked hexes — start here |
 | **2** | Top ~**10%** (outside the top 5%) |
 | **1** | Top ~**15%** (outside the top 10%) |
-| **0** | Actionable but outside that band, **or** deferred |
+| **0** | Outside that band, **deferred**, or **wetlands assess-locally** |
 
 On the Actions map, urgency in the popup is shown on a simple **0–100** scale (100 = highest in this map export).
 

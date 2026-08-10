@@ -13,13 +13,18 @@ Actions (first match):
 PAD is context only (not an action or score input). Developed EVT FIRE=-1 is
 context; people risk comes from WRTC.
 
-Default Goldilocks: people_first over ACTIONABLE hexes only (defer excluded).
+Default Goldilocks: people_first over ranked hexes only (defer and wetlands
+assess-locally excluded from the priority bands; wetlands stay on the action map
+and as a Goldilocks-map toggle overlay).
 """
 
 from __future__ import annotations
 
-# Actions treated as "do nothing now" — excluded from Goldilocks ranking.
+# Excluded from Goldilocks 5/10/15% ranking (priority always 0).
+# defer = no near-term treatment conversation; wetlands = assess locally but
+# fire-adaptation is not classified, so they are not in the people-first queue.
 NONACTIONABLE = {"defer_monitor"}
+GOLDILOCKS_EXCLUDE = {"defer_monitor", "wetlands_assess_locally"}
 
 
 def is_high_wfe(wfe: float, wfe_cat: str | None, wfe_p30: float) -> bool:

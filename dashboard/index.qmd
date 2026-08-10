@@ -73,15 +73,16 @@ if (!has_hex) {
       ),
       action_label = factor(action_label, levels = action_levels),
       gold_pri = as.integer(round(as.numeric(GOLDILOCKS_PRIORITY))),
-      gold_label = case_match(
-        gold_pri,
-        3L ~ "Top 5%",
-        2L ~ "Top 10%",
-        1L ~ "Top 15%",
-        0L ~ "Outside Goldilocks band",
-        .default = "Outside Goldilocks band"
+      # Wetlands stay on the action map but are not in Goldilocks bands
+      gold_label = case_when(
+        ACTION_CLASS == "wetlands_assess_locally" ~ "Outside Goldilocks band",
+        gold_pri == 3L ~ "Top 5%",
+        gold_pri == 2L ~ "Top 10%",
+        gold_pri == 1L ~ "Top 15%",
+        TRUE ~ "Outside Goldilocks band"
       ),
-      gold_label = factor(gold_label, levels = gold_levels)
+      gold_label = factor(gold_label, levels = gold_levels),
+      is_wetland = ACTION_CLASS == "wetlands_assess_locally"
     )
 
   # Explicit levels= so leaflet/scales does not alphabetize and scramble colors.
@@ -204,6 +205,16 @@ if (!has_hex) {
       group = "Goldilocks",
       popup = popup_html
     ) |>
+    addPolygons(
+      data = hex[hex$is_wetland, ],
+      fillColor = unname(action_colors["Wetlands — assess locally"]),
+      fillOpacity = 0.55,
+      color = "#1a1a6e",
+      weight = 0.4,
+      opacity = 0.7,
+      group = "Wetlands — assess locally",
+      popup = popup_html
+    ) |>
     addLegend(
       position = "bottomright",
       colors = unname(action_colors[action_levels]),
@@ -220,10 +231,21 @@ if (!has_hex) {
       opacity = 0.9,
       group = "Goldilocks"
     ) |>
+    addLegend(
+      position = "bottomright",
+      colors = unname(action_colors["Wetlands — assess locally"]),
+      labels = "Wetlands — assess locally",
+      title = "Wetlands (toggle)",
+      opacity = 0.9,
+      group = "Wetlands — assess locally"
+    ) |>
     addLayersControl(
       baseGroups = c("Action class", "Goldilocks"),
+      overlayGroups = c("Wetlands — assess locally"),
       options = layersControlOptions(collapsed = FALSE)
     ) |>
+    # Wetlands overlay off by default; turn on when viewing Goldilocks
+    hideGroup("Wetlands — assess locally") |>
     htmlwidgets::onRender(sprintf(
       "
       function(el, x) {
@@ -242,21 +264,48 @@ if (!has_hex) {
               active = inp.parentElement.textContent.trim();
             }
           });
+          var overlayOn = false;
+          el.querySelectorAll('.leaflet-control-layers-overlays input').forEach(function(inp) {
+            if (inp.checked && inp.parentElement.textContent.indexOf('Wetlands') >= 0) {
+              overlayOn = true;
+            }
+          });
           legends.forEach(function(leg) {
             var title = legendTitle(leg);
-            var show =
-              (active === 'Action class' && title.indexOf('Action') === 0) ||
-              (active === 'Goldilocks' && title.indexOf('Goldilocks') === 0);
+            var show = false;
+            if (active === 'Action class' && title.indexOf('Action') === 0) show = true;
+            if (active === 'Goldilocks' && title.indexOf('Goldilocks') === 0) show = true;
+            if (overlayOn && title.indexOf('Wetlands') === 0) show = true;
             leg.style.display = show ? 'block' : 'none';
           });
+        }
+        function syncWetlandsOverlay() {
+          var inputs = el.querySelectorAll('.leaflet-control-layers-base input');
+          var active = null;
+          inputs.forEach(function(inp) {
+            if (inp.checked) active = inp.parentElement.textContent.trim();
+          });
+          // Prefer wetlands toggle with Goldilocks view
+          var overlayInputs = el.querySelectorAll('.leaflet-control-layers-overlays input');
+          overlayInputs.forEach(function(inp) {
+            if (inp.parentElement.textContent.indexOf('Wetlands') < 0) return;
+            var wantOn = (active === 'Goldilocks');
+            if (inp.checked !== wantOn) inp.click();
+          });
+          syncLegends();
         }
         function fitAOI() {
           map.invalidateSize(false);
           map.fitBounds(bounds, { padding: [10, 10], animate: false });
         }
-        map.on('baselayerchange', syncLegends);
-        setTimeout(syncLegends, 50);
-        // Quarto/preview often lays out after first paint — refit a few times only
+        map.on('baselayerchange', function() {
+          syncWetlandsOverlay();
+        });
+        map.on('overlayadd overlayremove', syncLegends);
+        setTimeout(function() {
+          syncWetlandsOverlay();
+          syncLegends();
+        }, 50);
         var nFit = 0;
         function fitOnce() {
           fitAOI();
@@ -280,6 +329,6 @@ if (!has_hex) {
 }
 ```
 
-**Action class** = what kind of conversation  or proposed for that hex. 
+**Action class** = what kind of conversation is proposed for that hex.
 
-**Goldilocks** = which actionable hexes to talk about first  (top 5% / 10% / 15% hexagons; transparent = defer).
+**Goldilocks** = which hexes to talk about first under a people-first lens (top 5% / 10% / 15%; transparent = outside that band). **Wetlands — assess locally** are left out of those bands (fire adaptation not classified here) but can be toggled as a separate overlay on the Goldilocks view.

@@ -22,7 +22,7 @@ Cutoffs are AOI-relative (script 04).
 | 5 | `treat_fire_risk_for_people` | High fuel-add **and** high people (WFE not already high) | `FDIST_FUEL_DELTA` ≥ `fdist_fuel_add_min` (default 0.25) and high people. Primary FDist→people path. | Low WFE + ice storm / insect mortality near homes → treat for people |
 | 6 | `ecosystem_health_focus` | High fuel-add **and not** high people | Same FDist threshold; WFE not high. | Remote insect/windthrow fuel-add → ecosystem |
 | 7 | `ecosystem_health_focus` | Pine/barrens EVT list | `EVT_MAJORITY` in `config/evt_pine_barrens.csv` if not caught above. | Red pine majority, low WFE, quiet FDist → ecosystem |
-| 8 | `defer_monitor` — Defer / monitor | Nothing above matched | Excluded from Goldilocks (`GOLDILOCKS_PRIORITY` always 0). | Northern hardwoods, low WFE, FDist 0.1 → defer |
+| 8 | `defer_monitor` — Defer / monitor | Nothing above matched | Excluded from Goldilocks (`GOLDILOCKS_PRIORITY` always 0), as is `wetlands_assess_locally`. | Northern hardwoods, low WFE, FDist 0.1 → defer |
 
 ## Context only (not action triggers)
 
@@ -37,7 +37,7 @@ Cutoffs are AOI-relative (script 04).
 
 | Field | Role |
 |-------|------|
-| `GOLDILOCKS_PRIORITY` | 3 = top 5%, 2 = top 10%, 1 = top 15%, 0 = rest; among actionable hexes only; ranked by `SCORE_PEOPLE`. Defers always 0. |
+| `GOLDILOCKS_PRIORITY` | 3 = top 5%, 2 = top 10%, 1 = top 15%, 0 = rest; ranked by `SCORE_PEOPLE` among hexes that are **not** `defer_monitor` and **not** `wetlands_assess_locally`. Defers and wetlands always priority 0 (wetlands stay on the action map and as a Goldilocks-map toggle). |
 | `SCORE_PEOPLE` | People-first score for Goldilocks (`config/weight_presets.csv`). PAD weight = 0. |
 
 Code source of truth: `src/lib/action_assign.py` (run via `src/04_score_actions.py`).

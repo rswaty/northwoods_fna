@@ -5,7 +5,8 @@ v1:
     (split by people); fire-adapted pine/barrens away from people→ecosystem;
     else defer
   - PAD is map context only (PADUS_FRAC kept; not in score)
-  - Goldilocks = people_first over actionable hexes; bands 5/10/15% + priority 0-3
+  - Goldilocks = people_first over ranked hexes (defer + wetlands excluded);
+    bands 5/10/15% + priority 0-3; wetlands remain a dashboard overlay
   - EVT FIRE / PINE_HEX from evt attributes + pine list; FDIST_FUEL_DELTA from 03
 
 See config/ACTION_ASSIGNMENT.md and config/next_steps_partner_notes.md §10.
@@ -19,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.action_assign import (  # noqa: E402
-    NONACTIONABLE,
+    GOLDILOCKS_EXCLUDE,
     assign_action_v1,
     is_high_fuel_add,
     is_high_wfe,
@@ -284,7 +285,7 @@ def main() -> None:
     actionable = [
         (r["id"], r["SCORE_PEOPLE"])
         for r in rows_out
-        if r["ACTION_CLASS"] not in NONACTIONABLE
+        if r["ACTION_CLASS"] not in GOLDILOCKS_EXCLUDE
     ]
     top5 = _rank_flags(actionable, 0.05)
     top10 = _rank_flags(actionable, 0.10)
@@ -388,10 +389,14 @@ def main() -> None:
 
     print(f"WFE top-30% cutoff={wfe_p30:.4g}; WRTC top-30% cutoff={homes_p30:.4g}")
     print(
-        f"Goldilocks (people_first) over {len(actionable)} actionable hexes "
-        f"(defer_monitor excluded): top5={len(top5)} top10={len(top10)} top15={len(top15)}"
+        f"Goldilocks (people_first) over {len(actionable)} ranked hexes "
+        f"(defer + wetlands_assess_locally excluded): "
+        f"top5={len(top5)} top10={len(top10)} top15={len(top15)}"
     )
-    print("GOLDILOCKS_PRIORITY: 3=top5%, 2=top10%, 1=top15%, 0=rest (defers always 0).")
+    print(
+        "GOLDILOCKS_PRIORITY: 3=top5%, 2=top10%, 1=top15%, 0=rest "
+        "(defers and wetlands assess-locally always 0)."
+    )
     print(f"Scored {len(rows_out)} hexes on {hexes}")
     print("Next: 05_export_hex_geojson.py")
 
