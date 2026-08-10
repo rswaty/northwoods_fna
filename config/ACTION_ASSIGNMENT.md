@@ -13,8 +13,8 @@
 | WRTC **Housing Unit Risk** | Yes | "High people" routes WFE / fuel-add hexes to the people action |
 | FDist `FDIST_FUEL_DELTA` | Yes | High fuel-add (≈ mean ≥ 0.25) → people vs ecosystem even if WFE low |
 | EVT pine/barrens list | Yes | Fire-adapted pines away from people → `ecosystem_health_focus` (even if WFE low) |
+| **BpS / MFRI (`FIRE_DEP_HEX`)** | Yes | Historic fire-dependent vegetation (short MFRI) → `ecosystem_health_focus` when earlier rules did not already assign an action |
 | EVT `FIRE` (−1/0/1) | Context | Popup / review; developed −1 does **not** auto-protect (WRTC handles people) |
-| **BpS / MFRI (`FIRE_DEP_HEX`)** | **No** | Context/validation only |
 | **PAD-US GAP 1–3** | **No** | **Map context only** — not score, not action |
 
 **Treatment hints** (`TREATMENT_HINT`) say *how* to act, not a separate action class:
@@ -34,11 +34,12 @@
 5. **High fuel-add + high people** → `treat_fire_risk_for_people`
 6. **High fuel-add + not-high people** → `ecosystem_health_focus`
 7. **Pine/barrens (config list)** → `ecosystem_health_focus`
-8. **Else** → `defer_monitor`
+8. **BpS fire-dependent (`FIRE_DEP_HEX=1`)** → `ecosystem_health_focus`
+9. **Else** → `defer_monitor`
 
 Notes:
-- Fuel-add and pine/barrens catch Arrowhead insects / MI ice–wind and red pine when WFE is soft.
-- Pine/barrens get ecosystem even near people if WFE and fuel-add are not already high (those cases still take the people action first).
+- Fuel-add, pine/barrens, and BpS fire-dependence catch places where today’s WFE is soft but fire still belongs in the conversation.
+- Pine/barrens and fire-dep get ecosystem even near people if WFE and fuel-add are not already high (those cases still take the people action first).
 - Developed EVT `FIRE=−1` is context; do not auto-protect — people come from WRTC.
 - PAD never appears in this list or in `SCORE_PEOPLE`.
 
@@ -60,7 +61,7 @@ score  = base × (1 + w_pad_multiplier × PADUS_FRAC)
 
 ### Goldilocks bands + priority (people-first)
 
-Ranking is over hexes that are **not** `defer_monitor` and **not** `wetlands_assess_locally`. Wetlands keep their assess-locally action but are not in the people-first 5/10/15% bands (dashboard: optional Goldilocks overlay). Percentages are of that ranked pool.
+Ranking is over hexes that are **not** `defer_monitor` and **not** `wetlands_assess_locally`, computed **within each state** (MI / WI / MN via `config/hex_state_abbr.csv`) so one state's WRTC outliers do not erase priorities elsewhere. Wetlands keep their assess-locally action but are not in the people-first 5/10/15% bands (dashboard: optional Goldilocks overlay). Percentages are of each state's ranked pool.
 
 | Field | Meaning |
 |-------|---------|

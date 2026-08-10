@@ -43,6 +43,7 @@ Examples of conversation types:
 | **Plantations** | Managed tree farms treated as timber assets (from LANDFIRE EVT) |
 | **Peat / wetlands** | Peat and similar wetlands that need a local call (from EVT) |
 | **Pine / barrens list** | Fire-adapted pines and barrens so quiet WFE does not hide red/jack pine |
+| **BpS fire-dependent** | Historic short fire-return vegetation (MFRI) so quiet WFE does not hide fire-adapted landscapes |
 | **EVT composition (top 3)** | Largest three vegetation types by area in the hex — the fuel mosaic behind WFE |
 | **Recent disturbance (FDist)** | Where insects, wind/ice, fire, or chipping recently **added or removed** fuels |
 | **PAD (protected lands)** | Share of the hex in GAP 1–3 conserved land — **map context only** |
@@ -90,7 +91,8 @@ Rules are checked **in order**. The **first match wins**.
 | 5 | **Treat fire risk for people** | WFE not high, but **fuel-add** and **high people** |
 | 6 | **Ecosystem health focus** | WFE not high, but **fuel-add** and **not** high people |
 | 7 | **Ecosystem health focus** | On the **pine / barrens** list (even if WFE and fuel-add are quiet) |
-| 8 | **Defer and Monitor** | Nothing above matched |
+| 8 | **Ecosystem health focus** | **Fire-dependent** historic vegetation (`FIRE_DEP_HEX`) — short MFRI BpS — and nothing above matched |
+| 9 | **Defer and Monitor** | Nothing above matched |
 
 PAD never picks the action. Developed EVT “don’t burn” flags are context; people risk comes from WRTC.
 
@@ -119,14 +121,17 @@ PAD never picks the action. Developed EVT “don’t burn” flags are context; 
 **7. Red pine majority, quiet WFE and FDist**  
 → **Ecosystem health focus** via the pine/barrens list so fire-adapted types are not missed.
 
-**8. Typical hardwoods, quiet fuels, moderate housing**  
+**8. Quiet WFE and FDist, but BpS says historically fire-dependent (short MFRI)**  
+→ **Ecosystem health focus** via the fire-dependent rule — same idea as pine/barrens, using LANDFIRE BpS rather than today’s EVT name.
+
+**9. Typical hardwoods, quiet fuels, not fire-dependent BpS, moderate housing**  
 → **Defer and Monitor.**
 
 ---
 
 ## Goldilocks (what to talk about first)
 
-We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we rank by a **people-first urgency** score (homes weigh most, then exposure, plantations, and positive fuel-add). PAD does **not** boost that score.
+We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we rank by a **people-first urgency** score (homes weigh most, then exposure, plantations, and positive fuel-add). PAD does **not** boost that score. Ranking is done **within each state** (MI / WI / MN) so a few extreme housing-risk hexes in one state do not consume the whole regional shortlist.
 
 Wetlands stay on the **Actions** map as “assess locally,” and appear on the **Goldilocks** map only as an optional **toggle overlay**. They are not painted in the top 5/10/15% green bands until we have a clearer fire-adaptation rule for peat.
 

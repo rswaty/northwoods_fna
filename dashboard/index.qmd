@@ -32,17 +32,17 @@ action_colors <- c(
   "Protect from fire" = "#ba620f",
   "Treat fire risk for people" = "#5c184b",
   "Ecosystem health focus" = "#0f451d",
-  "Wetlands — assess locally" = "#3d42ba",
+  "Wetlands — assess locally" = "#b0b6f0",  # lighter than other actions
   "Defer and Monitor" = "#74cc8c"
 )
 
-# Nested people-first bands among non-defer hexes (5% darkest)
-gold_levels <- c("Top 5%", "Top 10%", "Top 15%", "Outside Goldilocks band")
+# Nested people-first bands among non-defer hexes (5% darkest).
+# Outside-band hexes are not drawn (see map) — pale fills were hard to see in WI.
+gold_levels <- c("Top 5%", "Top 10%", "Top 15%")
 gold_colors <- c(
   "Top 5%" = "#00441b",
   "Top 10%" = "#238b45",
-  "Top 15%" = "#a1d99b",
-  "Outside Goldilocks band" = "#FFFFFF00"
+  "Top 15%" = "#66c2a4"
 )
 ```
 
@@ -75,11 +75,11 @@ if (!has_hex) {
       gold_pri = as.integer(round(as.numeric(GOLDILOCKS_PRIORITY))),
       # Wetlands stay on the action map but are not in Goldilocks bands
       gold_label = case_when(
-        ACTION_CLASS == "wetlands_assess_locally" ~ "Outside Goldilocks band",
+        ACTION_CLASS == "wetlands_assess_locally" ~ NA_character_,
         gold_pri == 3L ~ "Top 5%",
         gold_pri == 2L ~ "Top 10%",
         gold_pri == 1L ~ "Top 15%",
-        TRUE ~ "Outside Goldilocks band"
+        TRUE ~ NA_character_
       ),
       gold_label = factor(gold_label, levels = gold_levels),
       is_wetland = ACTION_CLASS == "wetlands_assess_locally"
@@ -160,10 +160,14 @@ if (!has_hex) {
     hex$EVT_TOP3_HTML <- ""
   }
 
+  # Goldilocks layer: in-band hexes only (after popup fields exist)
+  hex_gold <- hex |> dplyr::filter(!is.na(gold_label))
+
   popup_html <- ~ paste0(
     "<b>", GRID_ID, "</b><br/>",
     "Action: ", as.character(action_label), "<br/>",
-    "Goldilocks: ", as.character(gold_label),
+    "Goldilocks: ",
+    ifelse(is.na(gold_label), "Outside band", as.character(gold_label)),
     EVT_TOP3_HTML,
     "<br/>People-first urgency: ", urgency_0_100, " (0–100; 100 = highest in this map)"
   )
@@ -188,7 +192,7 @@ if (!has_hex) {
       data = hex,
       # Map colors by name (not palette index) so labels never drift
       fillColor = ~ unname(action_colors[as.character(action_label)]),
-      fillOpacity = 0.72,
+      fillOpacity = ~ ifelse(action_label == "Wetlands — assess locally", 0.32, 0.72),
       color = "#333333",
       weight = 0.25,
       opacity = 0.5,
@@ -196,18 +200,18 @@ if (!has_hex) {
       popup = popup_html
     ) |>
     addPolygons(
-      data = hex,
+      data = hex_gold,
       fillColor = ~ unname(gold_colors[as.character(gold_label)]),
-      fillOpacity = 0.78,
-      color = "#333333",
-      weight = 0.25,
-      opacity = 0.45,
+      fillOpacity = 0.85,
+      color = "#145a32",
+      weight = 0.6,
+      opacity = 0.8,
       group = "Goldilocks",
       popup = popup_html
     ) |>
     addPolygons(
       data = hex[hex$is_wetland, ],
-      fillColor = unname(action_colors["Wetlands — assess locally"]),
+      fillColor = "#3d42ba",
       fillOpacity = 0.55,
       color = "#1a1a6e",
       weight = 0.4,
@@ -227,13 +231,13 @@ if (!has_hex) {
       position = "bottomright",
       colors = unname(gold_colors[gold_levels]),
       labels = gold_levels,
-      title = "Goldilocks (people-first)",
+      title = "Goldilocks (people-first, by state)",
       opacity = 0.9,
       group = "Goldilocks"
     ) |>
     addLegend(
       position = "bottomright",
-      colors = unname(action_colors["Wetlands — assess locally"]),
+      colors = "#3d42ba",
       labels = "Wetlands — assess locally",
       title = "Wetlands (toggle)",
       opacity = 0.9,
@@ -331,4 +335,4 @@ if (!has_hex) {
 
 **Action class** = what kind of conversation is proposed for that hex.
 
-**Goldilocks** = which hexes to talk about first under a people-first lens (top 5% / 10% / 15%; transparent = outside that band). **Wetlands — assess locally** are left out of those bands (fire adaptation not classified here) but can be toggled as a separate overlay on the Goldilocks view.
+**Goldilocks** = which hexes to talk about first under a people-first lens. Bands are the top 5% / 10% / 15% **within each state** (MI / WI / MN) among actionable hexes, so one state's WRTC outliers do not erase priorities elsewhere (e.g. Burnett WI). Only in-band hexes are drawn on this view. **Wetlands — assess locally** are left out of those bands but can be toggled as a separate overlay.

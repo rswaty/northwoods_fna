@@ -30,7 +30,7 @@ Cutoffs are AOI-relative (script 04).
 |-------|------|
 | `PADUS_FRAC` | Map/Leaflet context only — not an action trigger and not in `SCORE_PEOPLE`. |
 | `EVT_FIRE` (−1/0/1) | Popup/context. Developed (−1) does not auto-protect; people come from WRTC. FIRE=1 alone does not assign ecosystem. |
-| `FIRE_DEP_HEX` | BpS/MFRI fire-dependent flag — validation only. |
+| `FIRE_DEP_HEX` | BpS/MFRI fire-dependent flag → `ecosystem_health_focus` if no earlier cascade rule matched. |
 | `FDIST_FUEL_DELTA` below 0.25 | Mild/negative fuel change does not trigger action by itself. |
 
 ## Goldilocks (priority, not a separate action)

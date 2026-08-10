@@ -8,6 +8,7 @@ Actions (first match):
   - high fuel-add + high people → treat_fire_risk_for_people
   - high fuel-add + not-high people → ecosystem_health_focus
   - fire-adapted pine/barrens → ecosystem_health_focus
+  - fire-dependent BpS (MFRI) → ecosystem_health_focus
   - else → defer_monitor
 
 PAD is context only (not an action or score input). Developed EVT FIRE=-1 is
@@ -76,6 +77,7 @@ def assign_action_v1(
     fdist_delta: float = 0.0,
     fuel_add_min: float = 0.25,
     pine_barrens: bool = False,
+    fire_dependent: bool = False,
 ) -> str:
     """First-match cascade. PAD is not an input. See config/ACTION_ASSIGNMENT.md."""
     high_wfe = is_high_wfe(wfe, wfe_cat, wfe_p30)
@@ -90,12 +92,14 @@ def assign_action_v1(
         if high_homes:
             return "treat_fire_risk_for_people"
         return "ecosystem_health_focus"
-    # Low/mid WFE: recent fuel-add and fire-adapted pines still get actions.
+    # Low/mid WFE: fuel-add, pine list, then BpS fire-dependent still get actions.
     if high_fuel:
         if high_homes:
             return "treat_fire_risk_for_people"
         return "ecosystem_health_focus"
     if pine_barrens:
+        return "ecosystem_health_focus"
+    if fire_dependent:
         return "ecosystem_health_focus"
     return "defer_monitor"
 

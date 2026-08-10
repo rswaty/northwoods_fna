@@ -57,6 +57,54 @@ def _rank_flags(values: list[tuple], top_frac: float) -> set:
     return {i for i, _ in ranked[:n]}
 
 
+def _load_state_abbr(path: Path) -> dict[str, str]:
+    """GRID_ID → STATE_ABBR (MI/WI/MN). Optional; without it Goldilocks is AOI-wide."""
+    out: dict[str, str] = {}
+    if not path.exists():
+        return out
+    for r in _read_csv(path):
+        gid = (r.get("GRID_ID") or "").strip()
+        st = (r.get("STATE_ABBR") or "").strip().upper()
+        if gid and st:
+            out[gid] = st
+    return out
+
+
+def _goldilocks_bands(
+    rows_out: list[dict],
+    state_by_id: dict[str, str] | None = None,
+) -> tuple[set, set, set]:
+    """People-first top 5/10/15% among actionable hexes.
+
+    If ``state_by_id`` is provided, bands are computed **within each state**
+    so one state's WRTC outliers do not consume the whole AOI shortlist
+    (e.g. Burnett WI stays competitive with MN Arrowhead).
+    """
+    actionable = [
+        r for r in rows_out if r["ACTION_CLASS"] not in GOLDILOCKS_EXCLUDE
+    ]
+    if not state_by_id:
+        pairs = [(r["id"], r["SCORE_PEOPLE"]) for r in actionable]
+        return (
+            _rank_flags(pairs, 0.05),
+            _rank_flags(pairs, 0.10),
+            _rank_flags(pairs, 0.15),
+        )
+
+    top5: set = set()
+    top10: set = set()
+    top15: set = set()
+    by_state: dict[str, list[tuple]] = {}
+    for r in actionable:
+        st = state_by_id.get(r["id"]) or "UNK"
+        by_state.setdefault(st, []).append((r["id"], r["SCORE_PEOPLE"]))
+    for pairs in by_state.values():
+        top5 |= _rank_flags(pairs, 0.05)
+        top10 |= _rank_flags(pairs, 0.10)
+        top15 |= _rank_flags(pairs, 0.15)
+    return top5, top10, top15
+
+
 def _load_evt_flags(rules_path: Path) -> tuple[set[str], set[str]]:
     peat: set[str] = set()
     plant: set[str] = set()
@@ -134,6 +182,7 @@ def main() -> None:
 
     peat_codes, plant_codes = _load_evt_flags(CONFIG_DIR / "evt_rules_draft.csv")
     pine_codes = _load_pine_codes(CONFIG_DIR / "evt_pine_barrens.csv")
+    state_by_id = _load_state_abbr(CONFIG_DIR / "hex_state_abbr.csv")
     evt_attr = Path(
         cfg.get("evt_attributes")
         or (REPO_ROOT / "other_outputs" / "evt_aoi_attributes.csv")
@@ -220,13 +269,14 @@ def main() -> None:
     homes_p30 = percentile_threshold([r["homes"] for r in records], 0.70)
 
     rows_out = []
-    n_fuel = n_pine_act = 0
+    n_fuel = n_pine_act = n_fire_dep_act = 0
     for rec in records:
         plant = 1.0 if rec["plantation"] else 0.0
         wfe_cat = str(rec["wfe_cat"]) if rec["wfe_cat"] is not None else None
         fuel_flag = is_high_fuel_add(rec["fdist"], fuel_add_min)
         if fuel_flag:
             n_fuel += 1
+        fire_dep = bool(rec.get("fire_dep") in (1, 1.0, True) or str(rec.get("fire_dep")) == "1")
         action = assign_action_v1(
             peat=rec["peat"],
             plantation=rec["plantation"],
@@ -238,11 +288,20 @@ def main() -> None:
             fdist_delta=rec["fdist"],
             fuel_add_min=fuel_add_min,
             pine_barrens=rec["pine"],
+            fire_dependent=fire_dep,
         )
         if action == "ecosystem_health_focus" and rec["pine"] and not is_high_wfe(
             rec["wfe"], wfe_cat, wfe_p30
         ):
             n_pine_act += 1
+        if (
+            action == "ecosystem_health_focus"
+            and fire_dep
+            and not rec["pine"]
+            and not is_high_wfe(rec["wfe"], wfe_cat, wfe_p30)
+            and not fuel_flag
+        ):
+            n_fire_dep_act += 1
         hint = treatment_hint(
             action=action,
             plantation=rec["plantation"],
@@ -287,9 +346,9 @@ def main() -> None:
         for r in rows_out
         if r["ACTION_CLASS"] not in GOLDILOCKS_EXCLUDE
     ]
-    top5 = _rank_flags(actionable, 0.05)
-    top10 = _rank_flags(actionable, 0.10)
-    top15 = _rank_flags(actionable, 0.15)
+    top5, top10, top15 = _goldilocks_bands(
+        rows_out, state_by_id if state_by_id else None
+    )
     by_id = {r["id"]: r for r in rows_out}
 
     def _priority(gid) -> int:
@@ -349,7 +408,8 @@ def main() -> None:
     print("ACTION_CLASS counts:", dict(counts))
     print(
         f"Fuel-add hexes (FDIST_FUEL_DELTA>={fuel_add_min}): {n_fuel}; "
-        f"pine/barrens→ecosystem (low/mid WFE path): ~{n_pine_act}"
+        f"pine/barrens→ecosystem (low/mid WFE): ~{n_pine_act}; "
+        f"BpS fire-dep→ecosystem (low/mid WFE): ~{n_fire_dep_act}"
     )
     n_named = sum(1 for r in records if r.get("evt_name"))
     print(
@@ -388,8 +448,13 @@ def main() -> None:
         )
 
     print(f"WFE top-30% cutoff={wfe_p30:.4g}; WRTC top-30% cutoff={homes_p30:.4g}")
+    gold_mode = (
+        f"within-state ({len(set(state_by_id.values()))} states from hex_state_abbr.csv)"
+        if state_by_id
+        else "AOI-wide"
+    )
     print(
-        f"Goldilocks (people_first) over {len(actionable)} ranked hexes "
+        f"Goldilocks (people_first, {gold_mode}) over {len(actionable)} ranked hexes "
         f"(defer + wetlands_assess_locally excluded): "
         f"top5={len(top5)} top10={len(top10)} top15={len(top15)}"
     )

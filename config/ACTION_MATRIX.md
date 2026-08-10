@@ -11,7 +11,7 @@ Fill **`ACTION_CLASS`** / **`TREATMENT_HINT`** in [`ACTION_MATRIX_DRAFT.csv`](AC
 | **FDIST_FUEL** (last **10** yr, area-weighted −1/0/+1) | Fuel **remove** (δ ≲ −0.25) | Neutral (\|δ\| < 0.25) | Fuel **add** (δ ≳ +0.25) |
 | **PAD** (GAP 1–3 frac) | < 0.33 | 0.33–0.67 | > 0.67 — *score only today* |
 | **PEAT** / **PLANTATION** | — | — | Use **Y/N** (first two matrix rows) |
-| **FIRE_DEP** | FRI > 100 | — | FRI ≤ 100 — *context only* |
+| **FIRE_DEP** | FRI > 100 | — | FRI ≤ 100 → ecosystem if no earlier rule |
 
 ## How to use
 
