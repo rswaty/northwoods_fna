@@ -18,8 +18,14 @@ library(sf)
 library(leaflet)
 library(dplyr)
 
-hex_path <- "../outputs/hex/faa_hex_scores.geojson"
-has_hex <- file.exists(hex_path)
+# Resolve from dashboard/ (correct) or docs/dashboard/ (stale open/render)
+hex_candidates <- c(
+  "../outputs/hex/faa_hex_scores.geojson",
+  "../../outputs/hex/faa_hex_scores.geojson",
+  "outputs/hex/faa_hex_scores.geojson"
+)
+hex_path <- hex_candidates[file.exists(hex_candidates)][1]
+has_hex <- length(hex_path) == 1 && !is.na(hex_path)
 
 action_levels <- c(
   "Value to protect from fire",

@@ -49,5 +49,5 @@ esriMap*/
 /next_gen_faa.odt
 /next_gen_faa.txt
 
-# Quarto website build (re-render dashboard/ → docs/dashboard for Pages)
-/docs/dashboard/
+# Quarto website build for GitHub Pages (commit after render)
+# /docs/dashboard/

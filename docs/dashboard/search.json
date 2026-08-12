@@ -1,0 +1,72 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Actions and Priority Areas: Fire Adapted Ecosystems Focus",
+    "section": "",
+    "text": "The Northwoods Region has no shortage of fire adapted ecosystems. We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see initial exploration (Risk tab)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft “Action” assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka “The Goldilocks” range of areas-a stretch while also being doable. These maps are not meant to be the final answer but instead guides of where to dig deeper.\nYou can toggle Action class, Goldilocks, Fuel change (FDist), or Basemap only in the top-right panel. Goldilocks ranks actionable hexes only (not defer / wetlands) white → dark purple by urgency; defer and wetlands stay grey. Fuel change is its own view (brown = add, green = remove). Choose Basemap only to hide hexes and explore the map underneath. For more information also see Context and Methods.\n\n\n\n\n\n\nAction class = what kind of conversation is proposed for that hex.\nGoldilocks = white → dark purple heat on actionable hexes only (percentile rank of urgency). Defer and wetlands are grey — not ranked.\nFuel change (FDist) = recent fuel direction (brown = net add, green = net remove). Also multiplies the Goldilocks urgency score (add raises more than remove lowers).\nBasemap only = hide hex fills so you can explore the basemap."
+  },
+  {
+    "objectID": "methods.html",
+    "href": "methods.html",
+    "title": "Methods",
+    "section": "",
+    "text": "This page explains how the Northwoods Fire Action Assessment (FAA) works in everyday language. It is a screening conversation tool for northern Michigan, Wisconsin, and Minnesota’s Arrowhead — not a prescription, not NEPA, and not a stand-level plan.\nHexes are large (~10,000 acres). Each hex gets one primary action. Among places that are neither “defer” nor “wetlands — assess locally,” a Goldilocks priority flags what to talk about first.\nMaps: Actions · Context"
+  },
+  {
+    "objectID": "methods.html#what-question-does-faa-answer",
+    "href": "methods.html#what-question-does-faa-answer",
+    "title": "Methods",
+    "section": "What question does FAA answer?",
+    "text": "What question does FAA answer?\nWhere should partners start a conversation about what to do about wildfire risk — and what kind of conversation is it?\nExamples of conversation types:\n\nProtect a timber plantation (or insert your values here) from fire damage\n\nTreat fuels and homes where people and exposure both run high\n\nFocus on ecosystem / fire-adapted systems away from dense housing\n\nPause and assess wetlands locally\n\nDefer / monitor for now"
+  },
+  {
+    "objectID": "methods.html#inputs-what-we-look-at",
+    "href": "methods.html#inputs-what-we-look-at",
+    "title": "Methods",
+    "section": "Inputs (what we look at)",
+    "text": "Inputs (what we look at)\n\n\n\n\n\n\n\nInput\nPlain meaning\n\n\n\n\nWildfire exposure (WFE)\nWhere fire can transmit embers across the landscape today\n\n\nPeople (WRTC Housing Unit Risk)\nWhere homes and community wildfire risk are high\n\n\nPlantations\nManaged tree farms treated as timber assets (from LANDFIRE EVT)\n\n\nPeat / wetlands\nPeat and similar wetlands that need a local call (from EVT)\n\n\nPine / oak list\nShort EVT list; any of top 3 EVTs + people Moderate/Low/VL → ecosystem safety net\n\n\nEVT composition (top 3)\nLargest three vegetation types by area in the hex — the fuel mosaic behind WFE\n\n\nRecent disturbance (FDist)\nFuel-add / remove — map layer only (brown = add, green = remove); not in score\n\n\nPAD (protected lands)\nShare of the hex in GAP 1–3 conserved land — map context only\n\n\nBpS / MFRI\nHistoric fire-return context — popup only, does not pick the action\n\n\n\n\nHow WFE is built (short)\nEach LANDFIRE EVT class has an ember-transmission score (about 0–100). Those scores are mapped to the landscape, then a neighborhood (focal) blend softens isolated hot pixels and reinforces continuous hot fuels — in the spirit of Beverly and others. Hex MEAN is the average of that blended surface; WFE_CAT is the published Low → Very High label from the same product.\nSo WFE is vegetation-based exposure, not a separate climate or ignition model. A hardwoods-majority hex can still score relatively high if enough high-transmission types (or neighbors) sit in the mosaic after blending. That is why we show top 3 EVTs on the action map popup after you re-run script 03."
+  },
+  {
+    "objectID": "methods.html#what-high-means",
+    "href": "methods.html#what-high-means",
+    "title": "Methods",
+    "section": "What “high” means",
+    "text": "What “high” means\nCutoffs are relative to this Northwoods AOI (recomputed each scoring run).\n\nPeople bins (PEOPLE_CAT)\nSame five labels as WFE: Very Low, Low, Moderate, High, Very High — from AOI quintiles of Housing Unit Risk (20/40/60/80th percentiles).\nTreat for people needs High or Very High people (with High/VH WFE).\n\n\nWildfire exposure\nUse WFE_CAT High or Very High only. No MEAN percentile bypass for actions.\n\n\nFuel change (score + map)\nFDIST_FUEL_DELTA multiplies the Goldilocks score (add raises more than remove lowers) and is also shown as its own layer (brown = net add, green = net remove)."
+  },
+  {
+    "objectID": "methods.html#how-each-hex-gets-one-action",
+    "href": "methods.html#how-each-hex-gets-one-action",
+    "title": "Methods",
+    "section": "How each hex gets one action",
+    "text": "How each hex gets one action\nRules are checked in order. The first match wins.\n\n\n\n\n\n\n\n\nOrder\nAction\nWhen\n\n\n\n\n1\nValue to protect from fire\nMostly a plantation\n\n\n2\nWetlands — assess locally\nMostly peat / listed wetland\n\n\n3\nTreat fire risk for people\nHigh/VH WFE and High/VH people\n\n\n4\nEcosystem health focus\nHigh/VH WFE (people not High/VH)\n\n\n5\nEcosystem health focus\nPine/oak in top 3 and people Moderate / Low / Very Low\n\n\n6\nDefer and Monitor\nNothing above matched\n\n\n\nPAD and BpS never pick the action. Fuel never picks the action."
+  },
+  {
+    "objectID": "methods.html#worked-examples",
+    "href": "methods.html#worked-examples",
+    "title": "Methods",
+    "section": "Worked examples",
+    "text": "Worked examples\n1. Plantation → Value to protect from fire.\n2. Relativity High Home Density for the AOI (High/VH people) + High WFE → Treat fire risk for people.\n3. Remote pine, Moderate or lower people → Ecosystem health focus.\n4. Quiet WFE, High/VH people → Defer. Homes alone do not treat.\n5. Quiet WFE, pine in top 3, Moderate or lower people → Ecosystem via pine safety net.\n6. Quiet WFE, pine in top 3, High/VH people → Defer (tighten).\n7. Typical quiet hardwoods → Defer."
+  },
+  {
+    "objectID": "methods.html#goldilocks-what-to-talk-about-first",
+    "href": "methods.html#goldilocks-what-to-talk-about-first",
+    "title": "Methods",
+    "section": "Goldilocks (what to talk about first)",
+    "text": "Goldilocks (what to talk about first)\nWe cannot treat everything. Each hex gets an urgency score (homes weigh most, then exposure and plantations) × an asymmetric fuel-change multiplier, across the full AOI. Hexes with High/VH Wildfire Exposure Risk or high fuel-add get a score floor (about the 40th percentile of AOI scores) so remote hot places are not near-zero. PAD does not boost that score.\nThe Goldilocks map ranks actionable hexes only (not defer, not wetlands-assess-locally) with a white → dark purple heat from percentile rank of urgency (softened so extremes don’t wash out the map). Defer / wetlands draw grey and are not in that ranking — so high-housing defer hexes (e.g. Moderate WFE + many homes) do not look like top priorities. Use Basemap only to hide hex fills.\n\n\n\nSignal\nMeaning\n\n\n\n\nHeat (fill)\nPercentile rank among actionable hexes (0–100)\n\n\nGrey\nDefer or wetlands — outside Goldilocks pool\n\n\nBasemap only\nNo hex fills — explore the basemap\n\n\n\nAction = what kind of conversation. Goldilocks = relative urgency among places with an actionable conversation."
+  },
+  {
+    "objectID": "methods.html#what-faa-is-not",
+    "href": "methods.html#what-faa-is-not",
+    "title": "Methods",
+    "section": "What FAA is not",
+    "text": "What FAA is not\n\nNot ownership permission or tribal consultation\n\nNot a burn plan or silvicultural prescription\n\nNot “paint every high-housing hex as treat” without High/VH exposure\n\nNot a claim that majority EVT must match the action — WFE is a mosaic measure\n\nFor the living rule table used in review notes, see config/ACTION_MATRIX_REVIEW.csv in the repo. Scoring code: src/lib/action_assign.py (run via ArcGIS Pro scripts 01–05)."
+  },
+  {
+    "objectID": "context.html",
+    "href": "context.html",
+    "title": "Context mapping",
+    "section": "",
+    "text": "These layers are context: they help interpret why a hex got an action. They do not replace the Actions map. Switch layers with the control (top-right); the legend updates with the active layer.\nPeople categories are relative to this Northwoods AOI, not national or urban density. This landscape is generally sparse: High / Very High means “higher housing-unit risk here,” not that the hex is densely settled. Use the labels for comparison within the map, not as absolute population.\nPAD is shown for orientation only — it does not pick actions or Goldilocks scores. See Methods."
+  }
+]

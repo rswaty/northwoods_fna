@@ -62,8 +62,8 @@ Cutoffs are **relative to this Northwoods AOI** (recomputed each scoring run).
 
 ### People bins (`PEOPLE_CAT`)
 
-Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from **AOI quintiles** of Housing Unit Risk (20/40/60/80th percentiles).  
-**Treat for people** needs **High or Very High** people (with High/VH WFE).
+Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from **AOI quintiles** of Housing Unit Risk (20/40/60/80th percentiles). In a low-density region, roughly one-fifth of hexes will always land in each bin — including High / Very High — even when absolute home density is modest. The bins rank *where people are relatively more present within this AOI*, not where cities are.  
+**Treat for people** still needs **High or Very High** people **and** High/VH WFE.
 
 ### Wildfire exposure
 
