@@ -53,3 +53,5 @@ esriMap*/
 # /docs/dashboard/
 
 /.quarto/
+
+**/*.quarto_ipynb
