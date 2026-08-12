@@ -59,7 +59,7 @@ config/          # weights, EVT rules, path example — see config/README.md
 src/             # ArcGIS Pro Python (01–05)
 outputs/hex/     # scored hex GeoJSON (+ CSV) for the dashboard
 dashboard/       # Quarto map (render → docs/dashboard for Pages)
-docs/            # Pages notes; dashboard build output gitignored
+docs/            # GitHub Pages root; dashboard build in docs/dashboard/
 faa_overview.qmd / faa_how_it_works.qmd / next_gen_faa.md
 ```
 
