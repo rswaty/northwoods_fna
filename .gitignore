@@ -51,3 +51,5 @@ esriMap*/
 
 # Quarto website build for GitHub Pages (commit after render)
 # /docs/dashboard/
+
+/.quarto/

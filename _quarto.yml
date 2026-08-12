@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: docs
+  # Only these pages — leave faa_*.qmd and other root docs alone
+  render:
+    - index.qmd
+    - context.qmd
+    - methods.qmd
+
+website:
+  title: "Next Gen FAA — Northwoods"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Actions
+      - href: context.qmd
+        text: Context
+      - href: methods.qmd
+        text: Methods
+
+format:
+  html:
+    theme: cosmo
+    toc: false
+    page-layout: full
+    css: styles.css

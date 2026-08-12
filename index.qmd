@@ -1,0 +1,417 @@
+---
+author: "Randy Swaty"
+title: "Actions and Priority Areas: Fire Adapted Ecosystems Focus"
+subtitle: "Setting the stage for conversation and deeper dives"
+format:
+  html:
+    toc: false
+    page-layout: full
+    css: styles.css
+execute:
+  echo: false
+  warning: false
+---
+
+```{r}
+#| label: setup
+library(sf)
+library(leaflet)
+library(dplyr)
+
+hex_path <- "outputs/hex/faa_hex_scores.geojson"
+has_hex <- file.exists(hex_path)
+
+action_levels <- c(
+  "Value to protect from fire",
+  "Treat fire risk for people",
+  "Ecosystem health focus",
+  "Wetlands — assess locally",
+  "Defer and Monitor"
+)
+action_colors <- c(
+  "Value to protect from fire" = "#ba620f",
+  "Treat fire risk for people" = "#5c184b",
+  "Ecosystem health focus" = "#0f451d",
+  "Wetlands — assess locally" = "#b0b6f0",  # lighter than other actions
+  "Defer and Monitor" = "#74cc8c"
+)
+
+# Goldilocks heat: all hexes, white → dark purple by percentile rank of urgency.
+gold_heat_colors <- c(
+  "#ffffff", "#f2eef6", "#e0d4e7", "#c9b0d4",
+  "#a67cba", "#7a3f96", "#542078", "#2d004b"
+)
+```
+
+
+The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.
+
+
+You can toggle **Action class**, **Goldilocks**, **Fuel change (FDist)**, or **Basemap only** in the top-right panel. Goldilocks ranks **actionable hexes only** (not defer / wetlands) white → dark purple by urgency; defer and wetlands stay grey. Fuel change is its own view (brown = add, green = remove). Choose **Basemap only** to hide hexes and explore the map underneath. For more information also see [Context](context.qmd) and [Methods](methods.qmd).
+
+```{r}
+#| label: map
+#| fig-height: 9
+if (!has_hex) {
+  cat(
+    "**No hex output yet.** Run the Pro pipeline through `05_export_hex_geojson.py`, ",
+    "commit `outputs/hex/faa_hex_scores.geojson`, then re-render this dashboard.\n"
+  )
+} else {
+  hex <- st_read(hex_path, quiet = TRUE) |>
+    mutate(
+      action_label = case_match(
+        ACTION_CLASS,
+        "value_to_protect_from_fire" ~ "Value to protect from fire",
+        "protect_from_fire" ~ "Value to protect from fire",  # legacy id
+        "treat_fire_risk_for_people" ~ "Treat fire risk for people",
+        "ecosystem_health_focus" ~ "Ecosystem health focus",
+        "wetlands_assess_locally" ~ "Wetlands — assess locally",
+        "defer_monitor" ~ "Defer and Monitor",
+        .default = "Defer and Monitor"
+      ),
+      action_label = factor(action_label, levels = action_levels),
+      is_wetland = ACTION_CLASS == "wetlands_assess_locally"
+    )
+
+  # Explicit levels= so leaflet/scales does not alphabetize and scramble colors.
+  action_pal <- colorFactor(
+    palette = unname(action_colors[action_levels]),
+    domain = action_levels,
+    levels = action_levels,
+    ordered = TRUE,
+    na.color = "#9D9D9D"
+  )
+
+  # Goldilocks rank among actionable hexes only (not defer / wetlands).
+  # Homes-heavy defer towns (e.g. BR-33) must not outrank real action hexes.
+  gold_rank_gamma <- 1.75
+  hex <- hex |>
+    mutate(
+      SCORE_PEOPLE = as.numeric(SCORE_PEOPLE),
+      gold_eligible = !ACTION_CLASS %in% c(
+        "defer_monitor", "wetlands_assess_locally"
+      ),
+      FDIST_FUEL_DELTA = as.numeric(FDIST_FUEL_DELTA),
+      fdist_dominate = dplyr::case_when(
+        is.na(FDIST_FUEL_DELTA) ~ "n/a",
+        FDIST_FUEL_DELTA >= 0.05 ~ "dominated by fuel add",
+        FDIST_FUEL_DELTA <= -0.05 ~ "dominated by fuel remove",
+        TRUE ~ "mixed / near neutral"
+      )
+    )
+
+  # Percentile within actionable pool, then mild gamma; ineligible → NA (white)
+  urg <- rep(NA_real_, nrow(hex))
+  if (any(hex$gold_eligible)) {
+    pr <- dplyr::percent_rank(hex$SCORE_PEOPLE[hex$gold_eligible])
+    urg[hex$gold_eligible] <- round(100 * (pr^gold_rank_gamma), 0)
+  }
+  hex$urgency_0_100 <- urg
+
+  gold_pal <- colorNumeric(
+    palette = gold_heat_colors,
+    domain = c(0, 100),
+    na.color = "#f7f7f7"
+  )
+
+  # FDist: brown = fuel-add (+), green = fuel-remove (−)
+  fdist_lim <- max(0.25, max(abs(hex$FDIST_FUEL_DELTA), na.rm = TRUE))
+  fdist_pal <- colorNumeric(
+    palette = c("#1b7837", "#f5f5f5", "#8c510a"),
+    domain = c(-fdist_lim, fdist_lim),
+    na.color = "#cccccc"
+  )
+
+  # Precompute EVT top-3 popup block (area ranks from script 03)
+  if (all(c("EVT_1_NAME", "EVT_1_PCT") %in% names(hex))) {
+    fmt_one <- function(nm, pct, rank) {
+      ifelse(
+        is.na(nm) | nm == "",
+        "",
+        paste0(
+          rank, ". ", nm, " (",
+          ifelse(is.na(pct), "?", paste0(round(pct, 0), "%")),
+          ")"
+        )
+      )
+    }
+    e1 <- fmt_one(hex$EVT_1_NAME, hex$EVT_1_PCT, 1)
+    e2 <- if ("EVT_2_NAME" %in% names(hex)) {
+      fmt_one(hex$EVT_2_NAME, hex$EVT_2_PCT, 2)
+    } else {
+      rep("", nrow(hex))
+    }
+    e3 <- if ("EVT_3_NAME" %in% names(hex)) {
+      fmt_one(hex$EVT_3_NAME, hex$EVT_3_PCT, 3)
+    } else {
+      rep("", nrow(hex))
+    }
+    hex$EVT_TOP3_HTML <- vapply(seq_len(nrow(hex)), function(i) {
+      parts <- c(e1[i], e2[i], e3[i])
+      parts <- parts[nzchar(parts)]
+      if (!length(parts)) {
+        return("")
+      }
+      paste0(
+        "<br/><b>EVT (top 3 by area)</b><br/>",
+        paste(parts, collapse = "<br/>"),
+        "<br/><br/><i>Wildfire Exposure Risk is blended ember transmission across the hex fuel mosaic (Beverly-style), not majority EVT alone.</i>"
+      )
+    }, character(1))
+  } else if ("EVT_NAME" %in% names(hex)) {
+    hex$EVT_TOP3_HTML <- ifelse(
+      is.na(hex$EVT_NAME) | hex$EVT_NAME == "",
+      "",
+      paste0("<br/>EVT: ", hex$EVT_NAME)
+    )
+  } else {
+    hex$EVT_TOP3_HTML <- ""
+  }
+
+  # Keep wetland subset after popup fields exist
+  hex_wetland <- hex[hex$is_wetland, ]
+
+  # Ordinal suffix for popup ("2nd" not "2th")
+  ordinal <- function(n) {
+    n <- as.integer(n)
+    ifelse(
+      is.na(n),
+      "n/a",
+      paste0(
+        n,
+        ifelse(
+          (n %% 100) %in% c(11L, 12L, 13L),
+          "th",
+          c("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th")[
+            (n %% 10) + 1L
+          ]
+        )
+      )
+    )
+  }
+
+  popup_html <- ~ paste0(
+    "<b>", GRID_ID, "</b><br/>",
+    "Action: ", as.character(action_label), "<br/>",
+    "Wildfire Exposure Risk: ", WFE_CAT, " · People: ", PEOPLE_CAT, "<br/>",
+    "Goldilocks rank: ",
+    ifelse(
+      !gold_eligible,
+      "n/a (defer / wetlands — not in Goldilocks pool)",
+      paste0(ordinal(urgency_0_100), " percentile among actionable hexes")
+    ),
+    "<br/>Fuel change (FDist): ",
+    ifelse(
+      is.na(FDIST_FUEL_DELTA),
+      "n/a",
+      paste0(
+        round(FDIST_FUEL_DELTA, 3),
+        " — ",
+        fdist_dominate
+      )
+    ),
+    EVT_TOP3_HTML,
+    "<br/>Color = rank among actionable hexes only (defer/wetlands grey)"
+  )
+
+  bb <- st_bbox(hex)
+  # Tiny margin only — avoid zooming out past the AOI
+  pad_x <- (bb[["xmax"]] - bb[["xmin"]]) * 0.01
+  pad_y <- (bb[["ymax"]] - bb[["ymin"]]) * 0.01
+  west <- bb[["xmin"]] - pad_x
+  south <- bb[["ymin"]] - pad_y
+  east <- bb[["xmax"]] + pad_x
+  north <- bb[["ymax"]] + pad_y
+
+  leaflet(
+    height = "85vh",
+    width = "100%",
+    options = leafletOptions(zoomSnap = 0.25, zoomDelta = 0.5)
+  ) |>
+    addProviderTiles("CartoDB.Positron") |>
+    fitBounds(west, south, east, north) |>
+    addPolygons(
+      data = hex,
+      # Map colors by name (not palette index) so labels never drift
+      fillColor = ~ unname(action_colors[as.character(action_label)]),
+      fillOpacity = ~ ifelse(action_label == "Wetlands — assess locally", 0.32, 0.72),
+      color = "#333333",
+      weight = 0.1,
+      opacity = 0.35,
+      group = "Action class",
+      popup = popup_html
+    ) |>
+    addPolygons(
+      data = hex,
+      fillColor = ~ gold_pal(urgency_0_100),
+      fillOpacity = 0.78,
+      color = "#666666",
+      weight = 0.1,
+      opacity = 0.3,
+      group = "Goldilocks",
+      popup = popup_html
+    ) |>
+    addPolygons(
+      data = hex,
+      fillColor = ~ fdist_pal(FDIST_FUEL_DELTA),
+      fillOpacity = 0.78,
+      color = "#333333",
+      weight = 0.1,
+      opacity = 0.35,
+      group = "Fuel change (FDist)",
+      popup = popup_html
+    ) |>
+    # Invisible layer so "Basemap only" can be a selectable base group
+    addPolygons(
+      data = hex[1, ],
+      fillOpacity = 0,
+      opacity = 0,
+      weight = 0,
+      group = "Basemap only",
+      options = pathOptions(clickable = FALSE)
+    ) |>
+    addPolygons(
+      data = hex_wetland,
+      fillColor = "#3d42ba",
+      fillOpacity = 0.55,
+      color = "#1a1a6e",
+      weight = 0.15,
+      opacity = 0.5,
+      group = "Wetlands — assess locally",
+      popup = popup_html
+    ) |>
+    addLegend(
+      position = "bottomright",
+      colors = unname(action_colors[action_levels]),
+      labels = action_levels,
+      title = "Action class",
+      opacity = 0.9,
+      group = "Action class"
+    ) |>
+    addLegend(
+      position = "bottomright",
+      pal = gold_pal,
+      values = c(0, 100),
+      title = "Goldilocks rank (percentile)",
+      opacity = 0.9,
+      group = "Goldilocks"
+    ) |>
+    addLegend(
+      position = "bottomright",
+      pal = fdist_pal,
+      values = c(-fdist_lim, fdist_lim),
+      title = "Fuel change (− remove / + add)",
+      opacity = 0.9,
+      group = "Fuel change (FDist)"
+    ) |>
+    addLegend(
+      position = "bottomright",
+      colors = "#3d42ba",
+      labels = "Wetlands — assess locally",
+      title = "Wetlands (toggle)",
+      opacity = 0.9,
+      group = "Wetlands — assess locally"
+    ) |>
+    addLayersControl(
+      baseGroups = c(
+        "Action class",
+        "Goldilocks",
+        "Fuel change (FDist)",
+        "Basemap only"
+      ),
+      overlayGroups = c("Wetlands — assess locally"),
+      options = layersControlOptions(collapsed = FALSE)
+    ) |>
+    # Wetlands overlay off by default
+    hideGroup("Wetlands — assess locally") |>
+    htmlwidgets::onRender(sprintf(
+      "
+      function(el, x) {
+        var map = this;
+        var bounds = [[%f, %f], [%f, %f]];
+        function legendTitle(leg) {
+          var s = leg.querySelector('strong');
+          return s ? s.textContent.trim() : '';
+        }
+        function syncLegends() {
+          var legends = el.querySelectorAll('.legend');
+          var inputs = el.querySelectorAll('.leaflet-control-layers-base input');
+          var active = null;
+          inputs.forEach(function(inp) {
+            if (inp.checked) {
+              active = inp.parentElement.textContent.trim();
+            }
+          });
+          var overlayOn = false;
+          el.querySelectorAll('.leaflet-control-layers-overlays input').forEach(function(inp) {
+            if (inp.checked && inp.parentElement.textContent.indexOf('Wetlands') >= 0) {
+              overlayOn = true;
+            }
+          });
+          legends.forEach(function(leg) {
+            var title = legendTitle(leg);
+            var show = false;
+            if (active === 'Action class' && title.indexOf('Action') === 0) show = true;
+            if (active === 'Goldilocks' && title.indexOf('Goldilocks') === 0) show = true;
+            if (active === 'Fuel change (FDist)' && title.indexOf('Fuel') === 0) show = true;
+            if (overlayOn && title.indexOf('Wetlands') === 0) show = true;
+            leg.style.display = show ? 'block' : 'none';
+          });
+        }
+        function syncWetlandsOverlay() {
+          var inputs = el.querySelectorAll('.leaflet-control-layers-base input');
+          var active = null;
+          inputs.forEach(function(inp) {
+            if (inp.checked) active = inp.parentElement.textContent.trim();
+          });
+          var overlayInputs = el.querySelectorAll('.leaflet-control-layers-overlays input');
+          overlayInputs.forEach(function(inp) {
+            if (inp.parentElement.textContent.indexOf('Wetlands') < 0) return;
+            // Keep wetlands off on basemap-only; otherwise leave user choice
+            if (active === 'Basemap only' && inp.checked) inp.click();
+          });
+          syncLegends();
+        }
+        function fitAOI() {
+          map.invalidateSize(false);
+          map.fitBounds(bounds, { padding: [10, 10], animate: false });
+        }
+        map.on('baselayerchange', function() {
+          syncWetlandsOverlay();
+        });
+        map.on('overlayadd overlayremove', syncLegends);
+        setTimeout(function() {
+          syncWetlandsOverlay();
+          syncLegends();
+        }, 50);
+        var nFit = 0;
+        function fitOnce() {
+          fitAOI();
+          nFit += 1;
+        }
+        fitOnce();
+        setTimeout(fitOnce, 150);
+        setTimeout(fitOnce, 500);
+        setTimeout(fitOnce, 1200);
+        if (window.ResizeObserver) {
+          var ro = new ResizeObserver(function() {
+            if (nFit < 8) fitOnce();
+            else ro.disconnect();
+          });
+          ro.observe(el);
+        }
+      }
+      ",
+      south, west, north, east
+    ))
+}
+```
+
+**Action class** = what kind of conversation is proposed for that hex.
+
+**Goldilocks** = white → dark purple **heat** on **actionable hexes only** (percentile rank of urgency). Defer and wetlands are grey — not ranked.
+
+**Fuel change (FDist)** = recent fuel direction (brown = net add, green = net remove). Also **multiplies** the Goldilocks urgency score (add raises more than remove lowers).
+
+**Basemap only** = hide hex fills so you can explore the basemap.
