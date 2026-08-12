@@ -26,10 +26,10 @@ Maps: [Actions](index.qmd) · [Context](context.qmd)
 
 Examples of conversation types:
 
-- Protect a timber plantation from fire damage  
+- Protect a timber plantation (or insert your values here) from fire damage  
 - Treat fuels and homes where people and exposure both run high  
 - Focus on ecosystem / fire-adapted systems away from dense housing  
-- Pause and assess peat wetlands locally  
+- Pause and assess wetlands locally  
 - Defer / monitor for now  
 
 ---
@@ -96,9 +96,9 @@ PAD and BpS never pick the action. Fuel never picks the action.
 
 **1. Plantation** → **Value to protect from fire.**
 
-**2. Lake homes (High/VH people) + High WFE** → **Treat fire risk for people.**
+**2. Relativity High Home Density for the AOI (High/VH people) + High WFE** → **Treat fire risk for people.**
 
-**3. Remote hot pine, Moderate or lower people** → **Ecosystem health focus.**
+**3. Remote pine, Moderate or lower people** → **Ecosystem health focus.**
 
 **4. Quiet WFE, High/VH people** → **Defer.** Homes alone do not treat.
 
