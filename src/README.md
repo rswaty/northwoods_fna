@@ -7,8 +7,9 @@ Run in order from **ArcGIS Pro Python** (Python window, Notebook, or Pro `python
 | `01_check_paths.py` | Validate `config/paths.local.yaml` |
 | `02_zonal_wrtc.py` | WRTC **Housing Unit Risk** (primary) → `WRTC_HU_RISK_MEAN`; optional Exposure / Density |
 | `03_zonal_evt_padus.py` | EVT **top 3 by area** (+ majority); PAD → `PADUS_FRAC` (**context**); BpS/MFRI; FDist → `FDIST_FUEL_DELTA` |
-| `04_score_actions.py` | Action cascade + scores; **Goldilocks = people_first** (AOI-wide); EVT_NAME / FIRE / pine / BpS fire-dep |
+| `04_score_actions.py` | Action cascade + `PEOPLE_CAT` + scores; **Goldilocks = people_first × fuel multiplier** |
 | `05_export_hex_geojson.py` | Write `outputs/hex/` for GitHub / Quarto |
+| `rescore_hex_exports.py` | Offline rescore of exported hex CSV/GeoJSON (no ArcGIS) |
 
 ## Setup
 
@@ -22,25 +23,24 @@ Point paths at Pro GDB / clipped rasters (including **FDist** as `landfire_fdist
 
 **Actions** (`lib/action_assign.py` — first match):
 
-1. Plantation → `protect_from_fire`
+1. Plantation → `value_to_protect_from_fire`
 2. Peat → `wetlands_assess_locally`
-3. Strict high WFE + high people → `treat_fire_risk_for_people`
-4. Elevated WFE for ecosystem (strict high, or Low/VL with MEAN top 30%) → `ecosystem_health_focus`
-5. High fuel-add + high people → `treat_fire_risk_for_people`
-6. High fuel-add + not-high people → `ecosystem_health_focus`
-7. Pine/barrens (`config/evt_pine_barrens.csv`) → `ecosystem_health_focus`
-8. Else → `defer_monitor`
+3. High/VH WFE + High/VH people → `treat_fire_risk_for_people`
+4. High/VH WFE → `ecosystem_health_focus`
+5. Pine/oak in EVT top 3 + people Moderate/Low/VL → `ecosystem_health_focus`
+6. Else → `defer_monitor`
 
-PAD / BpS / EVT_FIRE do **not** pick the action. Fuel-add uses `FDIST_FUEL_DELTA` ≥ `fdist_fuel_add_min` (default 0.25).
+PAD / BpS / EVT_FIRE do **not** pick the action. Fuel is a Goldilocks multiplier only.
 
 **Scores** (all written on the working hex FC):
 
 | Field | Preset |
 |-------|--------|
-| `SCORE_PEOPLE` | `people_first` — **default Goldilocks** (homes + WFE + fuel-add; no PAD) |
-| `SCORE_PLANTATION` | `plantation_asset_first` |
+| `PEOPLE_CAT` | AOI quintiles of WRTC HU Risk (Very Low … Very High) |
+| `SCORE_PEOPLE` | `people_first` base × fuel multiplier — **default Goldilocks** |
+| `SCORE_PLANTATION` | `plantation_asset_first` × fuel multiplier |
 | `SCORE_PAD` | legacy preset label — **PAD weight unused** |
-| `SCORE_BALANCED` | `balanced` |
+| `SCORE_BALANCED` | `balanced` × fuel multiplier |
 | `GOLDILOCKS_5` / `_10` / `_15` | Top 5/10/15% by **`SCORE_PEOPLE`** (defer + wetlands excluded; **AOI-wide**) |
 | `GOLDILOCKS_PRIORITY` | 0–3: 3=top5%, 2=top10%, 1=top15%, 0=rest (defers and wetlands always 0) |
 

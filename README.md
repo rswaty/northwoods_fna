@@ -8,28 +8,26 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 
 | Piece | Rule |
 |-------|------|
-| **Hazard** | Existing **WFE** on ~10k-acre hexes (`MEAN` / `WFE_CAT`) |
-| **People** | WRTC **Housing Unit Risk** (primary); Exposure + Density/Count as companions — see `config/WRTC_DATASETS.md` |
-| **Plantations** | EVT flag → always **Protect from fire** (silviculture = `TREATMENT_HINT` only) |
+| **Hazard** | Existing **WFE** on ~10k-acre hexes (`MEAN` / `WFE_CAT` bins) |
+| **People** | WRTC **Housing Unit Risk** → `PEOPLE_CAT` (AOI quintiles, same five labels as WFE) |
+| **Plantations** | EVT flag → always **Value to protect from fire** (silviculture = `TREATMENT_HINT` only) |
 | **Peat** | LANDFIRE EVT → **`wetlands_assess_locally`** (fire-dependent *and* ground-fire hazard; swap to USFS peatlands later, same flag) |
 | **PAD-US** | GAP 1–3 → `PADUS_FRAC` on hexes for **map context only** (Leaflet). Not a score multiplier or action picker. |
-| **Ranking default** | **People-first** Goldilocks over actionable hexes (top 5/10/15%; `GOLDILOCKS_PRIORITY` 0–3). Also: plantation-asset-first, **PAD-first**, balanced |
+| **Ranking default** | **People-first** Goldilocks × asymmetric **fuel** multiplier over actionable hexes (top 5/10/15%; `GOLDILOCKS_PRIORITY` 0–3) |
 | **Recreation** | Deferred |
 | **TNC Resilient Lands** | Optional later second multiplier — does not change actions; re-orders priority (including off PAD). See `config/PADUS_AND_RESILIENT.md` |
 
 ### Action cascade (first match)
 
-1. Plantation → protect_from_fire  
+1. Plantation → value_to_protect_from_fire  
 2. Peat → wetlands_assess_locally  
-3. Strict high WFE + high people → treat_fire_risk_for_people  
-4. Elevated WFE for ecosystem → ecosystem_health_focus  
-5. High fuel-add (FDist) + high people → treat_fire_risk_for_people  
-6. High fuel-add + not-high people → ecosystem_health_focus  
-7. Fire-adapted pine/barrens (EVT list) → ecosystem_health_focus  
-8. Else → defer_monitor  
+3. High/VH WFE + High/VH people → treat_fire_risk_for_people  
+4. High/VH WFE → ecosystem_health_focus  
+5. Pine/oak in EVT top 3 + people Moderate/Low/VL → ecosystem_health_focus  
+6. Else → defer_monitor  
 
-**PAD / BpS / EVT_FIRE** are map or popup context only (not score / not action).  
-Strict high WFE never includes Low/VL labels. Ecosystem can also use Low/VL when MEAN is in the AOI top 30%. Review matrix (no fuel): `config/ACTION_MATRIX.md`.
+**PAD / BpS / EVT_FIRE** are map or popup context only. **Fuel (FDist)** nudges Goldilocks only.  
+Review matrix: `config/ACTION_MATRIX_REVIEW.csv`.
 
 Details: `config/ACTION_ASSIGNMENT.md` · notes: `config/next_steps_partner_notes.md` · brief: `faa_overview.qmd`
 

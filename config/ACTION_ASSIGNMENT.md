@@ -3,41 +3,39 @@
 **Default ranking:** people-first (`SCORE_PEOPLE` → Goldilocks 5%/10%/15%, actionable hexes only, AOI-wide).  
 **PAD:** map **context only** (`PADUS_FRAC`). **BpS / EVT_FIRE:** context only. **Recreation:** deferred.
 
-Partner review matrix (no fuel): `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW.csv`.
+Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW.csv`.
 
 ## Roles of each input
 
 | Input | Picks **action class**? | Role |
 |-------|-------------------------|------|
-| EVT plantation | Yes | → **always** `protect_from_fire` |
+| EVT plantation | Yes | → **always** `value_to_protect_from_fire` |
 | EVT peat | Yes | → `wetlands_assess_locally` |
-| WFE (strict) | Yes | High/VH, or Moderate with MEAN in top 30% → people vs ecosystem split. **Low/VL never** opens treat-for-people. |
-| WFE (ecosystem elevated) | Yes | Strict high **or** Low/VL with MEAN still in top 30% → `ecosystem_health_focus` |
-| WRTC Housing Unit Risk | Yes | "High people" with **strict** high WFE → treat-for-people |
-| FDist fuel-add | Yes | Separate path (not in current review matrix) |
-| EVT pine/barrens list | Yes | Safety net → ecosystem when earlier rules did not match |
+| WFE category | Yes | **High / Very High bin only** → people vs ecosystem split |
+| People category | Yes | AOI **quintile** bins (`PEOPLE_CAT`, same five labels as WFE). High/VH + High/VH WFE → treat |
+| EVT pine/oak list (top 3) | Yes | Safety net → ecosystem when people are **Moderate / Low / Very Low** (tighten) |
+| FDist fuel direction | Goldilocks only | Asymmetric score multiplier (add raises more than remove lowers) |
 | EVT `FIRE` (−1/0/1) | Context | Popup / review only |
 | BpS / MFRI (`FIRE_DEP_HEX`) | Context | Popup / review only |
 | PAD-US GAP 1–3 | Context | Map only |
 
 ## Action cascade (first match wins)
 
-1. **Plantation** → `protect_from_fire`  
+1. **Plantation** → `value_to_protect_from_fire`  
 2. **Peat** → `wetlands_assess_locally`  
-3. **Strict high WFE + high people** → `treat_fire_risk_for_people`  
-4. **Elevated WFE for ecosystem** → `ecosystem_health_focus`  
-5. **High fuel-add + high people** → `treat_fire_risk_for_people`  
-6. **High fuel-add + not-high people** → `ecosystem_health_focus`  
-7. **Pine/barrens list** → `ecosystem_health_focus`  
-8. **Else** → `defer_monitor`  
+3. **High/VH WFE + High/VH people** → `treat_fire_risk_for_people`  
+4. **High/VH WFE** → `ecosystem_health_focus`  
+5. **Pine/oak in EVT top 3 + people Moderate/Low/VL** → `ecosystem_health_focus`  
+6. **Else** → `defer_monitor`  
 
-### What “high / elevated WFE” means
+### Bins
 
-- **Strict (people path):** High/VH category; or Moderate/missing with MEAN ≥ AOI 70th percentile. Low/VL → never.  
-- **Ecosystem elevated:** strict **or** Low/VL with MEAN ≥ AOI 70th percentile.  
-
-So a Low label can still get an ecosystem conversation if the continuous score is relatively high; it cannot get treat-for-people from that alone.
+- **WFE:** use product `WFE_CAT` (Very Low … Very High). Actions use High/VH only — no MEAN percentile bypass.  
+- **People:** `PEOPLE_CAT` from AOI quintiles of `WRTC_HU_RISK_MEAN` (20/40/60/80th cuts → Very Low … Very High). Treat needs High/VH.  
+- **Pine tighten:** High/VH people + pine + not High/VH WFE → **defer** (homes alone never create treat).
 
 ## Goldilocks
 
-Rank `SCORE_PEOPLE` over hexes that are not `defer_monitor` and not `wetlands_assess_locally` (full AOI). Priority 3/2/1 = top 5/10/15% of that pool.
+Base `SCORE_PEOPLE` (homes / plantation / WFE weights) × **fuel multiplier**  
+(`1 + 0.50·δ` if fuel-add, `1 + 0.25·δ` if fuel-remove; δ = `FDIST_FUEL_DELTA`).  
+Includes `value_to_protect_from_fire`. Rank over hexes that are not `defer_monitor` and not `wetlands_assess_locally`. Priority 3/2/1 = top 5/10/15% of that pool.

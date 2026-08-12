@@ -68,7 +68,7 @@ Ownership maps and mills can inform *feasibility* later; they do not pick the ac
 
 Each hexagon gets **one primary action** (simple rules, applied in order). These are **working hypotheses for discussion**, not orders.
 
-1. **Protect from fire** — Keep damaging fire *out* of a high-value asset (especially **plantations**). Tools are often thinning or harvest; prescribed fire is not the main goal.  
+1. **Value to protect from fire** — Keep damaging fire *out* of a high-value asset (especially **plantations**). Tools are often thinning or harvest; prescribed fire is not the main goal.  
    *Example: A managed pine plantation — protect the timber investment.*
 
 2. **Wetlands — assess locally** — Peat and similar wetlands can be fire-related *and* extremely hard to control once they burn. The map flags them; people with local hydrology and fire history decide.  

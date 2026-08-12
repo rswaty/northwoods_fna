@@ -2,7 +2,7 @@
 
 | EVT role | Effect on ACTION_CLASS |
 |----------|------------------------|
-| Plantation | **always** `protect_from_fire` |
+| Plantation | **always** `value_to_protect_from_fire` |
 | Peat / wetland | `wetlands_assess_locally` (not a blanket defer — peat can be fire-dependent *and* is the hardest ground fire to control) |
 | All other EVTs | Ignored |
 
