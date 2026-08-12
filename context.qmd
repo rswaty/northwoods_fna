@@ -31,7 +31,7 @@ wfe_cat_colors <- c(
   "Very High" = "#a50f15"
 )
 
-# Soft white → light mauve (AOI-relative bins; keep map from reading as "dense")
+# Soft purple (AOI-relative housing density; VL/Low white so sparse AOI reads light)
 people_cat_colors <- c(
   "Very Low" = "#ffffff",
   "Low" = "#ffffff",
@@ -39,6 +39,9 @@ people_cat_colors <- c(
   "High" = "#bcbddc",
   "Very High" = "#756bb1"
 )
+
+# Layer control + legend must use the same string (sync JS matches on it)
+people_layer <- "Relative wildfire risk to communities (housing density)"
 
 pine_codes <- tryCatch(
   {
@@ -150,7 +153,7 @@ if (!has_hex) {
       popup_html = paste0(
         "<b>", GRID_ID, "</b><br/>",
         "Wildfire Exposure Risk: ", as.character(WFE_CAT), "<br/>",
-        "People (AOI-relative): ", as.character(PEOPLE_CAT), "<br/>",
+        "Relative wildfire risk to communities: ", as.character(PEOPLE_CAT), "<br/>",
         "Pine/oak in top 3 EVTs: ", round(PINE_OAK_PCT, 0), "% of hex<br/>",
         "PAD-US GAP 1–3 fraction: ", round(PADUS_FRAC, 2), "<br/>",
         "Fuel change (FDist): ", round(FDIST_FUEL_DELTA, 3),
@@ -170,7 +173,7 @@ if (!has_hex) {
 
   base_groups <- c(
     "Wildfire Exposure Risk category",
-    "People (relative to AOI)",
+    people_layer,
     "Pine/oak amount (top 3 EVTs)",
     "PAD-US GAP 1–3 fraction",
     "Recent fuel change (FDist)"
@@ -200,7 +203,7 @@ if (!has_hex) {
       color = "#333333",
       weight = 0.1,
       opacity = 0.35,
-      group = "People (relative to AOI)",
+      group = people_layer,
       popup = ~ popup_html
     ) |>
     addPolygons(
@@ -245,9 +248,9 @@ if (!has_hex) {
       position = "bottomright",
       colors = unname(people_cat_colors[bin_levels]),
       labels = bin_levels,
-      title = "Relative Wildfire Risk to Communities (Housing Density)",
+      title = people_layer,
       opacity = 0.9,
-      group = "People (relative to AOI)"
+      group = people_layer
     ) |>
     addLegend(
       position = "bottomright",
@@ -284,7 +287,7 @@ if (!has_hex) {
         var bounds = [[%f, %f], [%f, %f]];
         var titleMap = {
           'Wildfire Exposure Risk category': 'Wildfire Exposure Risk',
-          'People (relative to AOI)': 'Relative Wildfire Risk to Communities (Housing Density)',
+          '%s': '%s',
           'Pine/oak amount (top 3 EVTs)': 'Pine/oak',
           'PAD-US GAP 1–3 fraction': 'PAD-US GAP 1–3 fraction',
           'Recent fuel change (FDist)': 'Fuel'
@@ -326,7 +329,8 @@ if (!has_hex) {
         }
       }
       ",
-      south, west, north, east
+      south, west, north, east,
+      people_layer, people_layer
     ))
 
   m
