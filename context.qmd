@@ -52,7 +52,7 @@ pine_codes <- tryCatch(
 
 These layers are **context**: they help interpret why a hex got an action. They do **not** replace the [Actions](index.qmd) map. Switch layers with the control (top-right); the legend updates with the active layer.
 
-People categories are **relative to this Northwoods AOI**, not national or urban density. This landscape is generally sparse: **High / Very High** means “higher housing-unit risk *here*,” not that the hex is densely settled. Use the labels for comparison within the map, not as absolute population.
+The Wildfire Risk to Communities hexagons are **relative to this Northwoods AOI** and relative to wildfire potential, not national or urban density. This landscape is generally sparse: **High / Very High** means “higher housing-unit risk *here*,” not that the hex is densely settled. Use the labels for comparison within the map, not as absolute population.
 
 PAD is shown for orientation only — it does not pick actions or Goldilocks scores. See [Methods](methods.qmd).
 

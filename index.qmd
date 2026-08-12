@@ -44,10 +44,15 @@ gold_heat_colors <- c(
 ```
 
 
-The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.  Further, the 'Defer/Monitor' hexagons are not mean to be ignored, and may well have fire-focused risks to address.
+The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.  
 
 
-You can toggle **Action class**, **Goldilocks**, **Fuel change (FDist)**, or **Basemap only** in the top-right panel. Goldilocks ranks **actionable hexes only** (not defer / wetlands) white → dark purple by urgency; defer and wetlands stay grey. Fuel change is its own view (brown = add, green = remove). Choose **Basemap only** to hide hexes and explore the map underneath. For more information also see [Context](context.qmd) and [Methods](methods.qmd).
+You can toggle **Action class**, **Goldilocks**, **Fuel change (FDist)**, or **Basemap only** in the top-right panel. Goldilocks ranks **actionable hexes only** (not defer / wetlands) white → dark purple by urgency; defer and wetlands stay grey. Fuel change is its own view (brown = add, green = remove). Choose **Basemap only** to hide hexes and explore the map underneath. For more information also see [Context](context.qmd) and [Methods](methods.qmd).  
+
+**A couple points to consider:**
+
+1. The "Value to protect from fire" hexagons are where plantations are a key part of the area.  We can add in any mappable values, e.g. fire adapted plant species.
+2. "Defer and Monitor" does not mean ignore.  Many of these hexagons will be at increasing risk over time, and/or have ecosystems of high economic value, e.g., Northern Hardwoods.
 
 ```{r}
 #| label: map
