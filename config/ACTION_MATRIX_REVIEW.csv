@@ -1,17 +1,15 @@
-plantation,peat,wfe_label,wfe_score_high,people,on_pine_barrens_list,action_code_now,action_your_call,goldilocks_eligible_code_now,goldilocks_eligible_your_call,notes
-Y,*,*,*,*,*,protect_from_fire,,Y,,Always - timber asset
-N,Y,*,*,*,*,wetlands_assess_locally,,N,,Always - local peat call; wetlands stay out of Goldilocks bands
-N,N,high,*,high,*,treat_fire_risk_for_people,,Y,,Classic: hot exposure label + many homes
-N,N,high,*,low,*,ecosystem_health_focus,,Y,,Hot exposure label + few homes
-N,N,moderate,Y,high,*,treat_fire_risk_for_people,,Y,,Moderate label + continuous WFE among highest 30% of hexes + many homes
-N,N,moderate,Y,low,*,ecosystem_health_focus,,Y,,Moderate label + continuous WFE among highest 30% of hexes + few homes
-N,N,moderate,N,high,*,defer_monitor,,N,,Rare in this AOI (almost all moderate hexes already have high continuous WFE)
-N,N,moderate,N,low,*,defer_monitor,,N,,Rare in this AOI
-N,N,low,Y,high,N,ecosystem_health_focus,,Y,,REVIEW: low/very_low label but continuous WFE among highest 30% + many homes - code says ecosystem not treat_for_people
-N,N,low,Y,low,N,ecosystem_health_focus,,Y,,Low/very_low label but continuous WFE among highest 30% + few homes
-N,N,low,Y,high,Y,ecosystem_health_focus,,Y,,Same as review row above; also on pine/barrens EVT list
-N,N,low,Y,low,Y,ecosystem_health_focus,,Y,,Same; also on pine/barrens EVT list
-N,N,low,N,high,N,defer_monitor,,N,,Homes alone do not create treat_for_people
-N,N,low,N,low,N,defer_monitor,,N,,Typical quiet hex
-N,N,low,N,high,Y,ecosystem_health_focus,,Y,,Pine/barrens EVT list safety net (continuous WFE not among highest 30%)
-N,N,low,N,low,Y,ecosystem_health_focus,,Y,,Pine/barrens EVT list safety net
+plantation,wetland_dominated,wfe_score_very_high_high,people,on_pine_oak_evt_list,action_code_now,action_your_call,goldilocks_eligible_code_now,goldilocks_eligible_your_call,notes
+Y,*,*,*,*,value_to_protect_from_fire,value_to_protect_from_fire,Y,,"Always - a value to protect.  Plantation for first draft but could be species, etc."
+N,Y,*,*,*,wetlands_assess_locally,wetlands_assess_locally,N,,Always - local wetlands call; wetlands stay out of Goldilocks bands
+N,N,Y,high,N,treat_fire_risk_for_people,treat_fire_risk_for_people,Y,Y,Classic: hot exposure label + many homes
+N,N,Y,low,*,ecosystem_health_focus,ecosystem_health_focus,Y,Y,Hot exposure label + few homes
+N,N,Y,low,Y,ecosystem_health_focus,ecosystem_health_focus,Y,Y,Moderate label + continuous WFE among highest 30% of hexes + few homes
+N,N,N,high,*,defer_monitor,defer_monitor,N,N,Rare in this AOI (almost all moderate hexes already have high continuous WFE)
+N,N,N,low,*,defer_monitor,defer_monitor,N,N,Rare in this AOI
+N,N,Y,low,N,ecosystem_health_focus,ecosystem_health_focus,Y,Y,Low/very_low label but continuous WFE among highest 30% + few homes
+N,N,Y,high,Y,ecosystem_health_focus,treat_fire_risk_for_people,Y,Y,Same as review row above; also on pine/barrens EVT list
+N,N,Y,low,Y,ecosystem_health_focus,ecosystem_health_focus,Y,Y,Same; also on pine/barrens EVT list
+N,N,N,high,N,defer_monitor,defer_monitor,N,N,Homes alone do not create treat_for_people
+N,N,N,low,N,defer_monitor,defer_monitor,N,N,Typical quiet hex
+N,N,N,high,Y,ecosystem_health_focus,ecosystem_health_focus,Y,Y,Pine/barrens EVT list safety net (continuous WFE not among highest 30%)
+N,N,N,low,Y,ecosystem_health_focus,ecosystem_health_focus,Y,Y,Pine/barrens EVT list safety net
