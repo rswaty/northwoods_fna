@@ -33,7 +33,7 @@ action_colors <- c(
   "Treat fire risk for people" = "#5c184b",
   "Ecosystem health focus" = "#0f451d",
   "Wetlands — assess locally" = "#b0b6f0",  # lighter than other actions
-  "Defer and Monitor" = "#74cc8c"
+  "Defer and Monitor" = "#cfedca"
 )
 
 # Goldilocks heat: all hexes, white → dark purple by percentile rank of urgency.
@@ -44,7 +44,7 @@ gold_heat_colors <- c(
 ```
 
 
-The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.
+The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.  Further, the 'Defer/Monitor' hexagons are not mean to be ignored, and may well have fire-focused risks to address.
 
 
 You can toggle **Action class**, **Goldilocks**, **Fuel change (FDist)**, or **Basemap only** in the top-right panel. Goldilocks ranks **actionable hexes only** (not defer / wetlands) white → dark purple by urgency; defer and wetlands stay grey. Fuel change is its own view (brown = add, green = remove). Choose **Basemap only** to hide hexes and explore the map underneath. For more information also see [Context](context.qmd) and [Methods](methods.qmd).
