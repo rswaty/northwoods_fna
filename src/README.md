@@ -24,15 +24,14 @@ Point paths at Pro GDB / clipped rasters (including **FDist** as `landfire_fdist
 
 1. Plantation → `protect_from_fire`
 2. Peat → `wetlands_assess_locally`
-3. High WFE + high people → `treat_fire_risk_for_people`
-4. High WFE + not-high people → `ecosystem_health_focus`
+3. Strict high WFE + high people → `treat_fire_risk_for_people`
+4. Elevated WFE for ecosystem (strict high, or Low/VL with MEAN top 30%) → `ecosystem_health_focus`
 5. High fuel-add + high people → `treat_fire_risk_for_people`
 6. High fuel-add + not-high people → `ecosystem_health_focus`
 7. Pine/barrens (`config/evt_pine_barrens.csv`) → `ecosystem_health_focus`
-8. BpS fire-dependent (`FIRE_DEP_HEX=1`) → `ecosystem_health_focus`
-9. Else → `defer_monitor`
+8. Else → `defer_monitor`
 
-PAD does **not** pick the action or score. Fuel-add uses `FDIST_FUEL_DELTA` ≥ `fdist_fuel_add_min` (default 0.25).
+PAD / BpS / EVT_FIRE do **not** pick the action. Fuel-add uses `FDIST_FUEL_DELTA` ≥ `fdist_fuel_add_min` (default 0.25).
 
 **Scores** (all written on the working hex FC):
 
@@ -45,7 +44,7 @@ PAD does **not** pick the action or score. Fuel-add uses `FDIST_FUEL_DELTA` ≥ 
 | `GOLDILOCKS_5` / `_10` / `_15` | Top 5/10/15% by **`SCORE_PEOPLE`** (defer + wetlands excluded; **AOI-wide**) |
 | `GOLDILOCKS_PRIORITY` | 0–3: 3=top5%, 2=top10%, 1=top15%, 0=rest (defers and wetlands always 0) |
 
-Goldilocks excludes `defer_monitor` and `wetlands_assess_locally`. Fuel-add / pine / BpS fire-dep ecosystem actions **are** ranked.
+Goldilocks excludes `defer_monitor` and `wetlands_assess_locally`.
 
 ### When to re-run
 

@@ -1,43 +1,35 @@
 # Action triggers review (FAA cascade)
 
-Partner/review notes for how hexes get an `ACTION_CLASS`. First matching rule wins.
+Partner/review notes. First matching rule wins.  
+Fillable matrix (no fuel): `config/ACTION_MATRIX.md` · `ACTION_MATRIX_REVIEW.csv`.
 
-## High WFE and high people (methods)
-
-Cutoffs are AOI-relative (script 04).
+## High WFE and high people
 
 | Term | Definition |
 |------|------------|
-| **High people** | Top **30%** of hexes by WRTC Housing Unit Risk (`WRTC_HU_RISK_MEAN` ≥ 70th percentile). |
-| **High WFE** | (1) `WFE_CAT` High or Very High → high; (2) `WFE_CAT` Low or Very Low → **not** high; (3) else (Moderate / missing) → high if hex `MEAN` is in the top **30%** of AOI `MEAN` values. |
-| **`MEAN`** | Hex zonal mean of the continuous wildfire-exposure (WFE) surface. |
-| Design intent | **Homes alone never imply treat-for-people.** Low/Very Low WFE → defer on the WFE×people path even if people are high. |
+| **High people** | Top **30%** WRTC Housing Unit Risk. |
+| **Strict high WFE** | (1) High/VH category; (2) Low/VL → **never**; (3) Moderate/missing → MEAN in top 30%. Used for **treat-for-people**. |
+| **Elevated WFE for ecosystem** | Strict high **or** Low/VL with MEAN in top 30%. |
+| Design intent | Homes alone never imply treat-for-people. Quiet labels can still open ecosystem if MEAN is relatively high. |
 
-| Order | Action | Trigger (summary) | Threshold / notes | Example |
-|------:|--------|-------------------|-------------------|---------|
-| 1 | `protect_from_fire` — Protect from fire | Plantation EVT majority | `EVT_MAJORITY` in plantation codes (`config/evt_rules_draft.csv`; currently 9312). FDist/WFE/people ignored once matched. | Managed pine plantation (even with insect fuel-add) → protect |
-| 2 | `wetlands_assess_locally` — Wetlands assess locally | Peat/wetland EVT majority | Peat codes in `evt_rules_draft.csv`. | Large acidic fen/peat majority → wetlands assess |
-| 3 | `treat_fire_risk_for_people` — Treat fire risk for people | High WFE **and** high people | High WFE and high people as in the table above. Not plantation/peat. | Hot jack pine next to lake homes → treat for people |
-| 4 | `ecosystem_health_focus` — Ecosystem health focus | High WFE **and not** high people | Same high-WFE rule as row 3. | Hot continuous pine far from housing → ecosystem |
-| 5 | `treat_fire_risk_for_people` | High fuel-add **and** high people (WFE not already high) | `FDIST_FUEL_DELTA` ≥ `fdist_fuel_add_min` (default 0.25) and high people. Primary FDist→people path. | Low WFE + ice storm / insect mortality near homes → treat for people |
-| 6 | `ecosystem_health_focus` | High fuel-add **and not** high people | Same FDist threshold; WFE not high. | Remote insect/windthrow fuel-add → ecosystem |
-| 7 | `ecosystem_health_focus` | Pine/barrens EVT list | `EVT_MAJORITY` in `config/evt_pine_barrens.csv` if not caught above. | Red pine majority, low WFE, quiet FDist → ecosystem |
-| 8 | `ecosystem_health_focus` | BpS fire-dependent | `FIRE_DEP_HEX=1` (short MFRI) if not caught above. | Quiet WFE today, historically fire-dependent BpS → ecosystem |
-| 9 | `defer_monitor` — Defer / monitor | Nothing above matched | Excluded from Goldilocks (`GOLDILOCKS_PRIORITY` always 0), as is `wetlands_assess_locally`. | Northern hardwoods, low WFE, FDist 0.1 → defer |
+| Order | Action | Trigger |
+|------:|--------|---------|
+| 1 | `protect_from_fire` | Plantation EVT majority |
+| 2 | `wetlands_assess_locally` | Peat / listed wetland majority |
+| 3 | `treat_fire_risk_for_people` | Strict high WFE **and** high people |
+| 4 | `ecosystem_health_focus` | Elevated WFE for ecosystem |
+| 5–6 | treat / ecosystem via fuel-add | When WFE not elevated — **separate review** |
+| 7 | `ecosystem_health_focus` | Pine/barrens EVT list |
+| 8 | `defer_monitor` | Nothing above |
 
-## Context only (not action triggers)
+## Context only
 
 | Field | Role |
 |-------|------|
-| `PADUS_FRAC` | Map/Leaflet context only — not an action trigger and not in `SCORE_PEOPLE`. |
-| `EVT_FIRE` (−1/0/1) | Popup/context from your EVT AOI table. Developed (−1) does not auto-protect; people come from WRTC. `FIRE=1` alone does not assign ecosystem (use pine list / BpS `FIRE_DEP_HEX`). |
-| `FDIST_FUEL_DELTA` below 0.25 | Mild/negative fuel change does not trigger action by itself. |
+| `PADUS_FRAC` | Map only |
+| `EVT_FIRE` | Popup / your EVT table — not an action trigger |
+| `FIRE_DEP_HEX` / BpS | Popup / historic context — not an action trigger |
 
-## Goldilocks (priority, not a separate action)
+## Goldilocks
 
-| Field | Role |
-|-------|------|
-| `GOLDILOCKS_PRIORITY` | 3 = top 5%, 2 = top 10%, 1 = top 15%, 0 = rest; ranked by `SCORE_PEOPLE` **AOI-wide** among hexes that are **not** `defer_monitor` and **not** `wetlands_assess_locally`. Defers and wetlands always priority 0 (wetlands stay on the action map and as a Goldilocks-map toggle). |
-| `SCORE_PEOPLE` | People-first score for Goldilocks (`config/weight_presets.csv`). PAD weight = 0. |
-
-Code source of truth: `src/lib/action_assign.py` (run via `src/04_score_actions.py`).
+`GOLDILOCKS_PRIORITY` 3/2/1 = top 5/10/15% of `SCORE_PEOPLE` among actionable hexes (**AOI-wide**). Defers and wetlands always 0.

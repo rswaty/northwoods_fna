@@ -21,15 +21,15 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 
 1. Plantation → protect_from_fire  
 2. Peat → wetlands_assess_locally  
-3. High WFE + high people → treat_fire_risk_for_people  
-4. High WFE + not-high people → ecosystem_health_focus  
+3. Strict high WFE + high people → treat_fire_risk_for_people  
+4. Elevated WFE for ecosystem → ecosystem_health_focus  
 5. High fuel-add (FDist) + high people → treat_fire_risk_for_people  
 6. High fuel-add + not-high people → ecosystem_health_focus  
 7. Fire-adapted pine/barrens (EVT list) → ecosystem_health_focus  
-8. BpS fire-dependent (`FIRE_DEP_HEX`) → ecosystem_health_focus  
-9. Else → defer_monitor  
+8. Else → defer_monitor  
 
-**PAD** is map context only (not score / not action). Developed EVT `FIRE=−1` is context; people come from WRTC. EVT `FIRE` (your AOI table) is popup/context; cascade fire-dependence uses BpS/MFRI `FIRE_DEP_HEX`.
+**PAD / BpS / EVT_FIRE** are map or popup context only (not score / not action).  
+Strict high WFE never includes Low/VL labels. Ecosystem can also use Low/VL when MEAN is in the AOI top 30%. Review matrix (no fuel): `config/ACTION_MATRIX.md`.
 
 Details: `config/ACTION_ASSIGNMENT.md` · notes: `config/next_steps_partner_notes.md` · brief: `faa_overview.qmd`
 

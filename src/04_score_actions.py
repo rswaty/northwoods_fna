@@ -1,15 +1,14 @@
 """Assign action class + weighted priority scores from config tables.
 
 v1:
-  - Actions: plantation→protect; peat→wetlands; high WFE or high fuel-add
-    (split by people); pine/barrens → ecosystem; BpS fire-dep → ecosystem;
-    else defer
-  - PAD is map context only (PADUS_FRAC kept; not in score)
-  - Goldilocks = people_first over ranked hexes AOI-wide (defer + wetlands
-    excluded); bands 5/10/15% + priority 0-3; wetlands remain a dashboard overlay
-  - EVT FIRE / PINE_HEX from evt attributes + pine list; FDIST_FUEL_DELTA from 03
+  - Actions: plantation→protect; peat→wetlands;
+    strict high WFE + high people → treat;
+    elevated WFE for ecosystem (strict high, or Low/VL with MEAN top 30%) → ecosystem;
+    fuel-add paths; pine/barrens list → ecosystem; else defer
+  - BpS / FIRE_DEP_HEX / EVT_FIRE / PAD = context only
+  - Goldilocks = people_first AOI-wide (defer + wetlands excluded)
 
-See config/ACTION_ASSIGNMENT.md and config/next_steps_partner_notes.md §10.
+See config/ACTION_ASSIGNMENT.md and config/ACTION_MATRIX.md.
 """
 
 from __future__ import annotations
@@ -22,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.action_assign import (  # noqa: E402
     GOLDILOCKS_EXCLUDE,
     assign_action_v1,
+    is_elevated_wfe_for_ecosystem,
     is_high_fuel_add,
     is_high_wfe,
     percentile_threshold,
@@ -220,14 +220,13 @@ def main() -> None:
     homes_p30 = percentile_threshold([r["homes"] for r in records], 0.70)
 
     rows_out = []
-    n_fuel = n_pine_act = n_fire_dep_act = 0
+    n_fuel = n_pine_act = n_soft_eco = 0
     for rec in records:
         plant = 1.0 if rec["plantation"] else 0.0
         wfe_cat = str(rec["wfe_cat"]) if rec["wfe_cat"] is not None else None
         fuel_flag = is_high_fuel_add(rec["fdist"], fuel_add_min)
         if fuel_flag:
             n_fuel += 1
-        fire_dep = bool(rec.get("fire_dep") in (1, 1.0, True) or str(rec.get("fire_dep")) == "1")
         action = assign_action_v1(
             peat=rec["peat"],
             plantation=rec["plantation"],
@@ -239,20 +238,21 @@ def main() -> None:
             fdist_delta=rec["fdist"],
             fuel_add_min=fuel_add_min,
             pine_barrens=rec["pine"],
-            fire_dependent=fire_dep,
+            fire_dependent=False,
         )
         if action == "ecosystem_health_focus" and rec["pine"] and not is_high_wfe(
             rec["wfe"], wfe_cat, wfe_p30
         ):
+            # pine list path (may also have elevated Low/VL MEAN)
             n_pine_act += 1
         if (
             action == "ecosystem_health_focus"
-            and fire_dep
-            and not rec["pine"]
             and not is_high_wfe(rec["wfe"], wfe_cat, wfe_p30)
+            and is_elevated_wfe_for_ecosystem(rec["wfe"], wfe_cat, wfe_p30)
+            and not rec["pine"]
             and not fuel_flag
         ):
-            n_fire_dep_act += 1
+            n_soft_eco += 1
         hint = treatment_hint(
             action=action,
             plantation=rec["plantation"],
@@ -359,8 +359,8 @@ def main() -> None:
     print("ACTION_CLASS counts:", dict(counts))
     print(
         f"Fuel-add hexes (FDIST_FUEL_DELTA>={fuel_add_min}): {n_fuel}; "
-        f"pine/barrens→ecosystem (low/mid WFE): ~{n_pine_act}; "
-        f"BpS fire-dep→ecosystem (low/mid WFE): ~{n_fire_dep_act}"
+        f"pine/barrens→ecosystem (not strict-high WFE): ~{n_pine_act}; "
+        f"Low/VL + MEAN top30%→ecosystem: ~{n_soft_eco}"
     )
     n_named = sum(1 for r in records if r.get("evt_name"))
     print(
@@ -394,8 +394,8 @@ def main() -> None:
         n_hw = len(high_wfe_recs)
         pct = (100.0 * non_fd / n_hw) if n_hw else 0.0
         print(
-            f"Premise check (BpS/MFRI): {non_fd}/{n_hw} high-WFE hexes are NOT "
-            f"fire-dependent ({pct:.1f}%)."
+            f"Context only (BpS/MFRI): {non_fd}/{n_hw} strict-high-WFE hexes are NOT "
+            f"FIRE_DEP_HEX=1 ({pct:.1f}%). Does not change actions."
         )
 
     print(f"WFE top-30% cutoff={wfe_p30:.4g}; WRTC top-30% cutoff={homes_p30:.4g}")

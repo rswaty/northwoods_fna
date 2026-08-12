@@ -24,11 +24,11 @@ Hexes are large (~10,000 acres). This is a screening conversation tool — not a
 | **People (WRTC housing unit risk)** | Where homes and community wildfire risk are high |
 | **Plantations** | Managed tree farms we treat as timber assets (from LANDFIRE EVT) |
 | **Peat / wetlands** | Peat and similar wetlands that need a local call (from EVT) |
-| **Pine / barrens list** | Fire-adapted pines and barrens (short EVT list) so red pine is not missed when WFE looks quiet |
-| **Fire-dependent BpS** | Historic short fire-return vegetation (LANDFIRE BpS / MFRI) so quiet WFE does not hide fire-adapted landscapes |
+| **Pine / barrens list** | Short EVT list so red/jack pine is not missed when the WFE *label* is Low |
 | **EVT composition (top 3)** | Largest three EVT classes by area in the hex (name + %); majority alone can hide fire-transmissive types that still drive WFE |
 | **Recent disturbance (FDist)** | Where insects, wind/ice, fire, or chipping *recently* added or removed fuels — summarized per hex as a fuel-change score |
 | **PAD (protected lands)** | How much of the hex is GAP 1–3 public/conserved land — **shown on the map only**, does not pick the action or the priority score |
+| **BpS / fire-return (context)** | Historic vegetation reference — **map/popup context only**, does not pick the action |
 
 ### What “high” means (methods)
 
@@ -36,15 +36,18 @@ Both cutoffs are **relative to this analysis AOI** (recomputed each run of scrip
 
 **High people** — hex `WRTC_HU_RISK_MEAN` is in the **top 30%** of hexes (at or above the 70th percentile of Housing Unit Risk).
 
-**High wildfire exposure (WFE)** — decided in this order:
+**High wildfire exposure (WFE)** — two related ideas:
 
-1. If `WFE_CAT` is **High** or **Very High** → high exposure.  
-2. If `WFE_CAT` is **Low** or **Very Low** → **not** high exposure. The published category wins; a hex cannot be “high WFE” for actions merely because its continuous score is above the AOI 70th percentile. **High people + low WFE → defer** (unless a later rule such as fuel-add applies).  
-3. Otherwise (`Moderate` or missing category) → high exposure if hex **`MEAN`** (zonal mean WFE) is in the **top 30%** of `MEAN` across AOI hexes.
+1. **For “treat fire risk for people” (strict):**  
+   - `WFE_CAT` High or Very High → yes.  
+   - `WFE_CAT` Low or Very Low → **no** (label wins; homes alone do not create treat-for-people).  
+   - Moderate (or missing) → yes if hex `MEAN` is in the top 30% of this AOI.  
 
-`MEAN` is the continuous wildfire-exposure surface summarized to the hex; `WFE_CAT` is the categorical label from the same WFE product.
+2. **For “ecosystem health focus” (a bit more open):**  
+   - Same as strict, **or** Low/Very Low **if** `MEAN` is still in the top 30%.  
+   - So a quiet *label* can still open an ecosystem conversation when the continuous score is relatively high.
 
-**High fuel-add** — hex mean of recent LANDFIRE FDist fuel-direction (`FDIST_FUEL_DELTA`) ≥ 0.25 (scale about −1 to +1). This can still open a treat- or ecosystem path when WFE is not high.
+**High fuel-add** — hex mean of recent LANDFIRE FDist fuel-direction (`FDIST_FUEL_DELTA`) ≥ 0.25 (scale about −1 to +1). Reviewed separately from the main WFE×people matrix.
 
 ## How actions are labeled
 
@@ -54,23 +57,22 @@ Each hex gets **one** primary action. Rules are checked **in order**; the first 
 |----------|--------|-----------------|
 | 1 | **Protect from fire** | Mostly a **plantation** |
 | 2 | **Wetlands — assess locally** | Mostly **peat / listed wetland** |
-| 3 | **Treat fire risk for people** | **High WFE** and **high people** |
-| 4 | **Ecosystem health focus** | **High WFE** but **not** high people |
-| 5 | **Treat fire risk for people** | WFE not high, but **recent fuel-add** and **high people** (e.g. insects or ice near homes) |
-| 6 | **Ecosystem health focus** | WFE not high, but **recent fuel-add** and **not** high people |
-| 7 | **Ecosystem health focus** | On the **pine / barrens** list (even if WFE and fuel-add are quiet) |
-| 8 | **Ecosystem health focus** | **Fire-dependent** historic vegetation (`FIRE_DEP_HEX`) and nothing above matched |
-| 9 | **Defer / monitor** | None of the above — not a near-term treatment conversation |
+| 3 | **Treat fire risk for people** | **Strict high WFE** and **high people** |
+| 4 | **Ecosystem health focus** | **Elevated WFE for ecosystem** (strict high, or Low/VL with MEAN in top 30%) |
+| 5 | **Treat / ecosystem via fuel-add** | When WFE is not elevated — reviewed separately |
+| 6 | **Ecosystem health focus** | On the **pine / barrens** list if nothing above matched |
+| 7 | **Defer / monitor** | None of the above |
 
 **Examples**
 
-- Plantation with insect damage → still **protect** (asset first; fuels work may show as a “how” hint).
-- Hot exposure next to homes → **treat for people** (often mechanical fuels + home hardening, not prescribed fire next to houses).
-- Hot exposure far from homes → **ecosystem health**.
-- Quiet exposure map but heavy recent blowdown/insects near homes → **treat for people** (FDist fills the gap).
-- Red pine that is not “hot” on WFE → **ecosystem health** (pine list).
-- Quiet WFE today, but BpS says historically fire-dependent → **ecosystem health** (fire-dep rule).
-- Typical northern hardwoods, quiet fuels, not fire-dependent → **defer**.
+- Plantation with insect damage → still **protect** (asset first).  
+- Hot exposure next to homes → **treat for people**.  
+- Hot exposure far from homes → **ecosystem health**.  
+- Low label, but MEAN in the top 30%, few homes → **ecosystem health**.  
+- Low label, MEAN in the top 30%, many homes → **ecosystem health** (not treat-for-people — Low/VL veto).  
+- Low label, MEAN not elevated, many homes → **defer**.  
+- Red pine on the list, quiet WFE → **ecosystem** (pine safety net).  
+- Typical northern hardwoods, quiet fuels → **defer**.
 
 A short **treatment hint** may sit beside the action (e.g. silviculture on plantations; fuels + home hardening near people). That is guidance for discussion, not a second ranking system.
 

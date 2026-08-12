@@ -1,0 +1,17 @@
+plantation,peat,wfe_label,mean_top30,people,pine,CODE_NOW,YOUR_CALL,notes
+Y,*,*,*,*,*,protect_from_fire,,Always — timber asset
+N,Y,*,*,*,*,wetlands_assess_locally,,Always — local peat call
+N,N,High,*,High,*,treat_fire_risk_for_people,,Classic people x hot exposure
+N,N,High,*,Low,*,ecosystem_health_focus,,Hot exposure few homes
+N,N,Mod,Y,High,*,treat_fire_risk_for_people,,Moderate label score top30% many homes
+N,N,Mod,Y,Low,*,ecosystem_health_focus,,Moderate + elevated score few homes
+N,N,Mod,N,High,*,defer_monitor,,Rare in this AOI
+N,N,Mod,N,Low,*,defer_monitor,,Rare in this AOI
+N,N,Low,Y,High,N,ecosystem_health_focus,,REVIEW: quiet label elevated score many homes — ecosystem not treat-for-people
+N,N,Low,Y,Low,N,ecosystem_health_focus,,Quiet label elevated score few homes
+N,N,Low,Y,High,Y,ecosystem_health_focus,,Same as row above; pine also true
+N,N,Low,Y,Low,Y,ecosystem_health_focus,,Same; pine also true
+N,N,Low,N,High,N,defer_monitor,,Homes alone do not treat
+N,N,Low,N,Low,N,defer_monitor,,Typical quiet hex
+N,N,Low,N,High,Y,ecosystem_health_focus,,Pine safety net
+N,N,Low,N,Low,Y,ecosystem_health_focus,,Pine safety net

@@ -8,9 +8,8 @@ EVT: Tabulate Area → top three classes by area (code, name, % of hex) and
 EVT_MAJORITY = rank-1 class. Names from evt_aoi_attributes.csv.
 
 BpS: zonal majority → BPS_MAJORITY, joined to the MFRI table for reference fire
-regime (BPS_FRI / BPS_FRG / FIRE_DEP_HEX). FIRE_DEP_HEX feeds the action
-cascade (ecosystem when earlier rules do not match); BPS_FRI / BPS_FRG stay
-context in popups.
+regime (BPS_FRI / BPS_FRG / FIRE_DEP_HEX). These fields are **context only**
+(popups / review); they do not pick the action.
 
 PAD may be a **raster** or a **polygon** layer.
 Raster path (default): reclassify GAP status → binary (1 where GAP in {1,2,3},
@@ -333,8 +332,7 @@ def _bps_mfri(arcpy, hexes: str, hex_id: str, bps: str, mfri_csv: str, fri_max: 
     """Zonal majority of BpS → BPS_MAJORITY; join MFRI → BPS_FRI / BPS_FRG / FIRE_DEP_HEX.
 
     FIRE_DEP_HEX = 1 when the reference all-fire return interval is short
-    (0 < FRI <= fri_max). Script 04 uses that flag for ecosystem action when
-    earlier cascade rules did not already assign something else.
+    (0 < FRI <= fri_max). Context / validation only — does not pick actions.
     """
     print(f"BpS majority by hex: {bps}")
     out_table = "zonal_bps"

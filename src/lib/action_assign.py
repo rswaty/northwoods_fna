@@ -3,44 +3,41 @@
 Actions (first match):
   - plantation → protect_from_fire
   - peat → wetlands_assess_locally
-  - high WFE + high people → treat_fire_risk_for_people
-  - high WFE + not-high people → ecosystem_health_focus
+  - strict high WFE + high people → treat_fire_risk_for_people
+  - elevated WFE for ecosystem (see below) → ecosystem_health_focus
   - high fuel-add + high people → treat_fire_risk_for_people
   - high fuel-add + not-high people → ecosystem_health_focus
-  - fire-adapted pine/barrens → ecosystem_health_focus
-  - fire-dependent BpS (MFRI) → ecosystem_health_focus
+  - fire-adapted pine/barrens EVT list → ecosystem_health_focus
   - else → defer_monitor
 
-PAD is context only (not an action or score input). Developed EVT FIRE=-1 is
-context; people risk comes from WRTC.
+Strict high WFE (people path):
+  High/VH category, or Moderate/missing with MEAN in AOI top 30%.
+  Low/VL category never counts — homes alone do not create treat-for-people.
 
-Default Goldilocks: people_first over ranked hexes only (defer and wetlands
-assess-locally excluded from the priority bands; wetlands stay on the action map
-and as a Goldilocks-map toggle overlay).
+Elevated WFE for ecosystem:
+  Strict high WFE, OR Low/VL category with MEAN still in AOI top 30%.
+  So a quiet label can still open an ecosystem conversation if continuous
+  exposure is relatively high; it cannot open treat-for-people.
+
+BpS / FIRE_DEP_HEX and EVT_FIRE are context only (not cascade inputs).
+PAD is context only.
+
+Default Goldilocks: people_first over ranked hexes AOI-wide (defer and wetlands
+assess-locally excluded; wetlands stay on the action map / overlay).
 """
 
 from __future__ import annotations
 
-# Excluded from Goldilocks 5/10/15% ranking (priority always 0).
-# defer = no near-term treatment conversation; wetlands = assess locally but
-# fire-adaptation is not classified, so they are not in the people-first queue.
 NONACTIONABLE = {"defer_monitor"}
 GOLDILOCKS_EXCLUDE = {"defer_monitor", "wetlands_assess_locally"}
 
 
 def is_high_wfe(wfe: float, wfe_cat: str | None, wfe_p30: float) -> bool:
-    """Return True if the hex has high wildfire exposure (WFE).
+    """Strict high WFE — used for treat-for-people (and as part of ecosystem).
 
-    Methods rule (AOI-relative):
-      1. If WFE_CAT is High or Very High → high.
-      2. If WFE_CAT is Low or Very Low → not high
-         (category wins; homes nearby do not create fire risk).
-      3. Otherwise (Moderate or missing category) → high if hex MEAN
-         is in the top 30% of MEAN values across the analysis AOI
-         (i.e. MEAN ≥ 70th percentile of hexes).
-
-    ``wfe`` is the hex zonal mean of the WFE surface (field MEAN).
-    ``wfe_p30`` is that 70th-percentile cutoff computed in script 04.
+    1. WFE_CAT High or Very High → high.
+    2. WFE_CAT Low or Very Low → not high (category veto).
+    3. Moderate or missing → high if MEAN ≥ AOI 70th percentile (top 30%).
     """
     if wfe_cat:
         cat = str(wfe_cat).strip().lower()
@@ -51,12 +48,24 @@ def is_high_wfe(wfe: float, wfe_cat: str | None, wfe_p30: float) -> bool:
     return wfe >= wfe_p30
 
 
-def is_high_wrtc(homes: float, homes_p30: float) -> bool:
-    """Return True if the hex has high people / community wildfire risk.
+def is_elevated_wfe_for_ecosystem(
+    wfe: float, wfe_cat: str | None, wfe_p30: float
+) -> bool:
+    """Exposure high enough to discuss ecosystem fire.
 
-    High = top 30% of WRTC Housing Unit Risk among hexes in the AOI
-    (WRTC_HU_RISK_MEAN ≥ 70th percentile). Independent of WFE.
+    True if strict high WFE, or Low/VL with MEAN still in the AOI top 30%.
     """
+    if is_high_wfe(wfe, wfe_cat, wfe_p30):
+        return True
+    if wfe_cat:
+        cat = str(wfe_cat).strip().lower()
+        if cat in {"low", "very low", "very_low", "l", "vl"}:
+            return wfe >= wfe_p30
+    return False
+
+
+def is_high_wrtc(homes: float, homes_p30: float) -> bool:
+    """High people = top 30% WRTC Housing Unit Risk in the AOI."""
     return homes >= homes_p30
 
 
@@ -77,10 +86,12 @@ def assign_action_v1(
     fdist_delta: float = 0.0,
     fuel_add_min: float = 0.25,
     pine_barrens: bool = False,
-    fire_dependent: bool = False,
+    fire_dependent: bool = False,  # unused; BpS is context only
 ) -> str:
-    """First-match cascade. PAD is not an input. See config/ACTION_ASSIGNMENT.md."""
+    """First-match cascade. PAD / BpS / EVT_FIRE are not inputs."""
+    del fire_dependent  # context only — kept in signature so 04 callers stay stable
     high_wfe = is_high_wfe(wfe, wfe_cat, wfe_p30)
+    eco_wfe = is_elevated_wfe_for_ecosystem(wfe, wfe_cat, wfe_p30)
     high_homes = is_high_wrtc(homes, homes_p30)
     high_fuel = is_high_fuel_add(fdist_delta, fuel_add_min)
 
@@ -88,18 +99,18 @@ def assign_action_v1(
         return "protect_from_fire"
     if peat:
         return "wetlands_assess_locally"
-    if high_wfe:
-        if high_homes:
-            return "treat_fire_risk_for_people"
+    # People treatment requires strict high WFE (Low/VL veto).
+    if high_wfe and high_homes:
+        return "treat_fire_risk_for_people"
+    # Ecosystem: strict high WFE, or Low/VL with elevated MEAN.
+    if eco_wfe:
         return "ecosystem_health_focus"
-    # Low/mid WFE: fuel-add, pine list, then BpS fire-dependent still get actions.
+    # Fuel-add bypass when WFE is not elevated for ecosystem either.
     if high_fuel:
         if high_homes:
             return "treat_fire_risk_for_people"
         return "ecosystem_health_focus"
     if pine_barrens:
-        return "ecosystem_health_focus"
-    if fire_dependent:
         return "ecosystem_health_focus"
     return "defer_monitor"
 
@@ -114,7 +125,11 @@ def treatment_hint(
 ) -> str:
     """How to carry out the action — secondary to ACTION_CLASS."""
     if plantation:
-        return "silviculture_then_fire" if is_high_wfe(wfe, wfe_cat, wfe_p30) else "silvicultural_treatment"
+        return (
+            "silviculture_then_fire"
+            if is_high_wfe(wfe, wfe_cat, wfe_p30)
+            else "silvicultural_treatment"
+        )
     if action == "treat_fire_risk_for_people":
         return "fuels_reduction_home_hardening"
     return ""
@@ -131,7 +146,7 @@ def priority_score(
     w_wfe: float,
     w_fuel_add: float = 0.0,
 ) -> float:
-    """People / plantation / WFE / fuel-add urgency. PAD is not used (context only)."""
+    """People / plantation / WFE / fuel-add urgency. PAD is not used."""
     fuel = max(0.0, fuel_add)
     return (
         w_homes * homes
