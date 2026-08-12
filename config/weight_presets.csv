@@ -1,5 +1,5 @@
 preset_id,label,w_homes,w_plantations,w_wfe,w_fuel_add,w_pad_multiplier,notes
-people_first,People-first,0.50,0.15,0.25,0.20,0,DEFAULT Goldilocks. PAD is context-only (multiplier unused). Fuel-add raises urgency when WFE is soft.
-plantation_asset_first,Plantation-asset-first,0.20,0.45,0.25,0.15,0,Emphasize plantations as assets to protect
-pad_first,PAD-first (legacy label),0.20,0.15,0.25,0.15,0,PAD no longer multiplies score — kept for compare; same as light people/WFE mix
-balanced,Balanced,0.30,0.25,0.25,0.20,0,Even mix of homes plantations WFE fuel-add; PAD unused
+people_first,People-first,0.50,0.15,0.25,0.20,0,DEFAULT Goldilocks base. Fuel is a separate asymmetric multiplier (α add > β remove); w_fuel_add unused.
+plantation_asset_first,Plantation-asset-first,0.20,0.45,0.25,0.15,0,Emphasize plantations as assets to protect; same fuel multiplier
+pad_first,PAD-first (legacy label),0.20,0.15,0.25,0.15,0,PAD no longer multiplies score — kept for compare
+balanced,Balanced,0.30,0.25,0.25,0.20,0,Even mix of homes plantations WFE; fuel multiplier still applied

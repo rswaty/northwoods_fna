@@ -103,7 +103,7 @@ Do not force every operational layer into the FAA action cascade. Many belong as
 
 | Meaning | In FAA today | Risk if confused |
 |---------|----------------|------------------|
-| **A. Action class `protect_from_fire`** | Keep damaging fire *out* of a listed **asset** (v1: mainly plantations; people path is now `treat_fire_risk_for_people`) | Calling everything “protect” sounds like land-protection (PAD) or suppression-only. |
+| **A. Action class `value_to_protect_from_fire`** | Keep damaging fire *out* of a listed **asset** (v1: mainly plantations; people path is now `treat_fire_risk_for_people`) | Calling everything “protect” sounds like land-protection (PAD) or suppression-only. |
 | **B. Values to protect (catalog)** | Homes/communities, plantations; infrastructure placeholder; PAD/resilient as context or multipliers — see `config/values_to_protect.csv` | Catalog grows; each value needs a spatial rule and whether it **picks action** or only **raises score**. |
 | **C. Protected lands (PAD-US)** | Ownership/mandate context; GAP 1–3 was a score multiplier — partners already worry it skews away from private industrial timber | PAD ≠ “must protect from fire”; wilderness may want fire *in*. |
 
@@ -114,7 +114,7 @@ Do not force every operational layer into the FAA action cascade. Many belong as
 | Candidate | Action vs score? | Notes |
 |-----------|------------------|--------|
 | Homes / communities | Already drives people action + people-first score | Keep primary. |
-| Plantations / industrial timber | Action: protect_from_fire | Improve map beyond EVT; adjacency to “risky” fuels (limitation). |
+| Plantations / industrial timber | Action: value_to_protect_from_fire | Improve map beyond EVT; adjacency to “risky” fuels (limitation). |
 | Critical infrastructure | Placeholder | Power, water, telecom — partner layers; likely protect or people-adjacent hint. |
 | Valuable timber *beside* risky timber | Not solved | May need neighbor rules or nested hexes — protection of asset + treatment of adjacent fuels in one conversation. |
 | Municipal watersheds / water | Not in v1 | Often “protect” in agency language; decide action vs score with partners. |
@@ -125,11 +125,11 @@ Do not force every operational layer into the FAA action cascade. Many belong as
 
 - **Protect (values)** = *what we care about if fire runs.*  
 - **Stations (thread 1)** = *who can get there.*  
-- High-value + long response time = priority for **prevention, hardening, and pre-positioning conversations** — still may stay `treat_fire_risk_for_people` or `protect_from_fire`, with a feasibility flag, not a new vague “protect more” class.
+- High-value + long response time = priority for **prevention, hardening, and pre-positioning conversations** — still may stay `treat_fire_risk_for_people` or `value_to_protect_from_fire`, with a feasibility flag, not a new vague “protect more” class.
 
 ### 4d. Open design questions (answer with partners before coding)
 
-1. Should **any** new value (infrastructure, watersheds) **force** `protect_from_fire`, or only boost score under an existing action?
+1. Should **any** new value (infrastructure, watersheds) **force** `value_to_protect_from_fire`, or only boost score under an existing action?
 2. Do we **remove PAD from scoring** and keep it as context only (earlier feedback)? That changes what “protected land” means in the product.
 3. Is **suppression response gap** a dashboard overlay only, or a Goldilocks demotion/promotion?
 4. How do we name actions so “protect” never sounds like “no fire ever on this hex” when the hex is fire-adapted and away from assets?
@@ -229,7 +229,7 @@ Classify LANDFIRE **FDist** (or equivalent disturbance) codes into a simple fuel
 
 1. Is “high value” stumpage class, forest type, ownership (industrial), or mill-shed sawtimber?  
 2. Distance that counts as “near” — shared hex, 1 neighbor, or X meters?  
-3. Does adjacency ever **force** `protect_from_fire`, or only a dashboard/priority flag?
+3. Does adjacency ever **force** `value_to_protect_from_fire`, or only a dashboard/priority flag?
 
 ---
 
@@ -239,7 +239,7 @@ Classify LANDFIRE **FDist** (or equivalent disturbance) codes into a simple fuel
 
 **Why it matters**
 
-- EVT undercounts / mislabels managed plantations → `protect_from_fire` and plantation score terms are incomplete.  
+- EVT undercounts / mislabels managed plantations → `value_to_protect_from_fire` and plantation score terms are incomplete.  
 - Design already assumed a later **swap** into the same `PLANTATION_HEX` flag without rebuilding the cascade — keep that pattern.
 
 ### Options to evaluate (thinking)
@@ -251,7 +251,7 @@ Classify LANDFIRE **FDist** (or equivalent disturbance) codes into a simple fuel
 | **Satellite / ML land cover** | Possible: texture, planting rows, spectral age classes; needs training labels and accuracy assessment for Northwoods. High effort; partner-facing accuracy claims matter. |
 | **Manual / partner digitize priority zones** | Pragmatic interim for Goldilocks corridors. |
 
-**Recommendation:** Do **not** lead with a custom satellite model unless industry layers fail. Meeting (5) first → existing vector layers → only then scope RS. Whatever wins still writes **`PLANTATION_HEX` (or successor)** and keeps action = protect_from_fire.
+**Recommendation:** Do **not** lead with a custom satellite model unless industry layers fail. Meeting (5) first → existing vector layers → only then scope RS. Whatever wins still writes **`PLANTATION_HEX` (or successor)** and keeps action = value_to_protect_from_fire.
 
 **Link to (7):** Plantation map is one slice of economic value; industrial natural stands may need a separate “timber value” layer so adjacency highlights aren’t plantation-only.
 
@@ -300,7 +300,7 @@ Flag **red pine / fire-adapted** and **fuel-add–heavy** hexes with a real acti
 
 ### Proposed cascade (first match) — for matrix review
 
-1. **Plantation** (EVT rules only) → **`protect_from_fire`**  
+1. **Plantation** (EVT rules only) → **`value_to_protect_from_fire`**  
    - EVT `FIRE = −1` includes developed/ruderal **and** plantation. **Do not** auto-protect every `FIRE=−1` hex.  
    - **Developed as `FIRE=−1`:** marks “don’t burn / development present” for context. Those places should already surface in **WRTC people** layers when housing risk is present — people actions come from **high people × (high WFE or high fuel-add)**, not from the −1 flag alone. Avoid double-counting development in both EVT and the cascade.  
    - Other non-plantation `FIRE=−1` (ruderal, etc.) → usually fall through to **defer** unless people/WFE/fuel-add rules catch them.  

@@ -22,14 +22,14 @@ hex_path <- "../outputs/hex/faa_hex_scores.geojson"
 has_hex <- file.exists(hex_path)
 
 action_levels <- c(
-  "Protect from fire",
+  "Value to protect from fire",
   "Treat fire risk for people",
   "Ecosystem health focus",
   "Wetlands — assess locally",
   "Defer and Monitor"
 )
 action_colors <- c(
-  "Protect from fire" = "#ba620f",
+  "Value to protect from fire" = "#ba620f",
   "Treat fire risk for people" = "#5c184b",
   "Ecosystem health focus" = "#0f451d",
   "Wetlands — assess locally" = "#b0b6f0",  # lighter than other actions
@@ -64,7 +64,8 @@ if (!has_hex) {
     mutate(
       action_label = case_match(
         ACTION_CLASS,
-        "protect_from_fire" ~ "Protect from fire",
+        "value_to_protect_from_fire" ~ "Value to protect from fire",
+        "protect_from_fire" ~ "Value to protect from fire",  # legacy id
         "treat_fire_risk_for_people" ~ "Treat fire risk for people",
         "ecosystem_health_focus" ~ "Ecosystem health focus",
         "wetlands_assess_locally" ~ "Wetlands — assess locally",
@@ -166,6 +167,7 @@ if (!has_hex) {
   popup_html <- ~ paste0(
     "<b>", GRID_ID, "</b><br/>",
     "Action: ", as.character(action_label), "<br/>",
+    "WFE: ", WFE_CAT, " · People: ", PEOPLE_CAT, "<br/>",
     "Goldilocks: ",
     ifelse(is.na(gold_label), "Outside band", as.character(gold_label)),
     EVT_TOP3_HTML,

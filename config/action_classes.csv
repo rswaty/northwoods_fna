@@ -1,5 +1,5 @@
 action_id,label,description
-protect_from_fire,Protect from fire,Plantation economic asset - reduce fire damage (silviculture hints)
+value_to_protect_from_fire,Value to protect from fire,Plantation or other listed asset - keep damaging fire out (silviculture hints)
 wetlands_assess_locally,Wetlands - assess locally,Peat/wetland: fire-dependent AND ground-fire hazard; needs local hydrology/peat-depth/fire-history judgement rather than a screening verdict
 treat_fire_risk_for_people,Treat fire risk for people,High WFE near people (high WRTC Housing Unit Risk); mechanical fuels reduction + home hardening / defensible-space inspections
 ecosystem_health_focus,Ecosystem health focus,High WFE away from people (low people or on PAD); beneficial/prescribed fire in fire-adapted systems

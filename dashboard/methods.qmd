@@ -42,9 +42,9 @@ Examples of conversation types:
 | **People (WRTC Housing Unit Risk)** | Where homes and community wildfire risk are high |
 | **Plantations** | Managed tree farms treated as timber assets (from LANDFIRE EVT) |
 | **Peat / wetlands** | Peat and similar wetlands that need a local call (from EVT) |
-| **Pine / barrens list** | Short EVT list so red/jack pine is not missed when the WFE *label* is Low |
+| **Pine / oak list** | Short EVT list; any of top 3 EVTs + people Moderate/Low/VL → ecosystem safety net |
 | **EVT composition (top 3)** | Largest three vegetation types by area in the hex — the fuel mosaic behind WFE |
-| **Recent disturbance (FDist)** | Fuel-add path — reviewed separately from the main WFE×people matrix |
+| **Recent disturbance (FDist)** | Fuel-add / remove — **Goldilocks multiplier only** (not an action path) |
 | **PAD (protected lands)** | Share of the hex in GAP 1–3 conserved land — **map context only** |
 | **BpS / MFRI** | Historic fire-return context — **popup only**, does not pick the action |
 
@@ -60,23 +60,18 @@ So WFE is **vegetation-based exposure**, not a separate climate or ignition mode
 
 Cutoffs are **relative to this Northwoods AOI** (recomputed each scoring run).
 
-### High people
+### People bins (`PEOPLE_CAT`)
 
-Hex Housing Unit Risk is in the **top 30%** of hexes (at or above the 70th percentile).
+Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from **AOI quintiles** of Housing Unit Risk (20/40/60/80th percentiles).  
+**Treat for people** needs **High or Very High** people (with High/VH WFE).
 
-### Wildfire exposure (two uses)
+### Wildfire exposure
 
-**Strict high WFE** (required for treat-for-people):
+Use **`WFE_CAT` High or Very High** only. No MEAN percentile bypass for actions.
 
-1. **`WFE_CAT` High or Very High** → yes.  
-2. **`WFE_CAT` Low or Very Low** → **no**. Many homes + Low label → still not treat-for-people.  
-3. **Moderate** (or missing) → yes if hex **`MEAN`** is in the **top 30%** of AOI means.
+### Fuel change (Goldilocks only)
 
-**Elevated WFE for ecosystem:** strict high, **or** Low/Very Low **with** `MEAN` still in the top 30%. Quiet labels can still open an ecosystem conversation when the continuous score is relatively high.
-
-### High fuel-add
-
-Average recent FDist fuel-direction ≥ **0.25**. Kept in code; not part of the current review matrix.
+`FDIST_FUEL_DELTA` multiplies the people-first score (add raises more than remove lowers).
 
 ---
 
@@ -86,41 +81,38 @@ Rules are checked **in order**. The **first match wins**.
 
 | Order | Action | When |
 |------:|--------|------|
-| 1 | **Protect from fire** | Mostly a **plantation** |
+| 1 | **Value to protect from fire** | Mostly a **plantation** |
 | 2 | **Wetlands — assess locally** | Mostly **peat / listed wetland** |
-| 3 | **Treat fire risk for people** | **Strict high WFE** and **high people** |
-| 4 | **Ecosystem health focus** | **Elevated WFE for ecosystem** |
-| 5–6 | Treat / ecosystem via **fuel-add** | When WFE is not elevated — separate review |
-| 7 | **Ecosystem health focus** | **Pine / barrens** list if nothing above matched |
-| 8 | **Defer and Monitor** | Nothing above matched |
+| 3 | **Treat fire risk for people** | **High/VH WFE** and **High/VH people** |
+| 4 | **Ecosystem health focus** | **High/VH WFE** (people not High/VH) |
+| 5 | **Ecosystem health focus** | **Pine/oak in top 3** and people **Moderate / Low / Very Low** |
+| 6 | **Defer and Monitor** | Nothing above matched |
 
-PAD and BpS never pick the action.
+PAD and BpS never pick the action. Fuel never picks the action.
 
 ---
 
 ## Worked examples
 
-**1. Plantation** → **Protect from fire.**
+**1. Plantation** → **Value to protect from fire.**
 
-**2. Lake homes + High WFE** → **Treat fire risk for people.**
+**2. Lake homes (High/VH people) + High WFE** → **Treat fire risk for people.**
 
-**3. Remote hot pine, few homes** → **Ecosystem health focus.**
+**3. Remote hot pine, Moderate or lower people** → **Ecosystem health focus.**
 
-**4. Low label, MEAN not elevated, many homes** → **Defer.** Homes alone do not treat.
+**4. Quiet WFE, High/VH people** → **Defer.** Homes alone do not treat.
 
-**5. Low label, MEAN in top 30%, few homes** → **Ecosystem health focus.**
+**5. Quiet WFE, pine in top 3, Moderate or lower people** → **Ecosystem** via pine safety net.
 
-**6. Low label, MEAN in top 30%, many homes** → **Ecosystem health focus** (not treat-for-people). Confirm in the review matrix.
+**6. Quiet WFE, pine in top 3, High/VH people** → **Defer** (tighten).
 
-**7. Red pine on the list, quiet WFE** → **Ecosystem** via pine safety net.
-
-**8. Typical quiet hardwoods** → **Defer.**
+**7. Typical quiet hardwoods** → **Defer.**
 
 ---
 
 ## Goldilocks (what to talk about first)
 
-We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we rank by a **people-first urgency** score (homes weigh most, then exposure, plantations, and positive fuel-add) **across the full AOI**. PAD does **not** boost that score.
+We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we rank by a **people-first urgency** score (homes weigh most, then exposure and plantations) × **fuel multiplier**, **across the full AOI**. PAD does **not** boost that score. Value-to-protect hexes are included.
 
 Wetlands stay on the **Actions** map as “assess locally,” and appear on the **Goldilocks** map only as an optional **toggle overlay**. They are not painted in the top 5/10/15% green bands until we have a clearer fire-adaptation rule for peat. The Goldilocks map draws **only in-band** hexes.
 
@@ -141,7 +133,7 @@ On the Actions map, urgency in the popup is shown on a simple **0–100** scale 
 
 - Not ownership permission or tribal consultation  
 - Not a burn plan or silvicultural prescription  
-- Not “paint every high-housing hex as treat” without exposure or fuel-add  
+- Not “paint every high-housing hex as treat” without High/VH exposure  
 - Not a claim that majority EVT must match the action — WFE is a **mosaic** measure  
 
-For the living rule table used in review notes, see `config/action_triggers_review.md` in the repo. Scoring code: `src/lib/action_assign.py` (run via ArcGIS Pro scripts `01`–`05`).
+For the living rule table used in review notes, see `config/ACTION_MATRIX_REVIEW.csv` in the repo. Scoring code: `src/lib/action_assign.py` (run via ArcGIS Pro scripts `01`–`05`).

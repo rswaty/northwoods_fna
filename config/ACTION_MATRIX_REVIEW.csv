@@ -1,15 +1,9 @@
-plantation,wetland_dominated,wfe_score_very_high_high,people,on_pine_oak_evt_list,action_code_now,action_your_call,goldilocks_eligible_code_now,goldilocks_eligible_your_call
-N,N,N,high,N,defer_monitor,defer_monitor,N,N
-N,N,N,low,N,defer_monitor,defer_monitor,N,N
-N,N,N,high,N,defer_monitor,defer_monitor,N,N
-N,N,N,low,N,defer_monitor,defer_monitor,N,N
-N,N,Y,low,N,ecosystem_health_focus,ecosystem_health_focus,Y,Y
-N,N,Y,low,Y,ecosystem_health_focus,ecosystem_health_focus,Y,Y
-N,N,Y,low,N,ecosystem_health_focus,ecosystem_health_focus,Y,Y
-N,N,Y,low,Y,ecosystem_health_focus,ecosystem_health_focus,Y,Y
-N,N,N,high,Y,ecosystem_health_focus,ecosystem_health_focus,Y,Y
-N,N,N,low,Y,ecosystem_health_focus,ecosystem_health_focus,Y,Y
-N,N,Y,high,N,treat_fire_risk_for_people,treat_fire_risk_for_people,Y,Y
-N,N,Y,high,Y,ecosystem_health_focus,treat_fire_risk_for_people,Y,Y
-Y,*,*,*,*,value_to_protect_from_fire,value_to_protect_from_fire,Y,
-N,Y,*,*,*,wetlands_assess_locally,wetlands_assess_locally,N,
+plantation,wetland_dominated,wfe_score_very_high_high,people_score_very_high_high,on_pine_oak_evt_list,action_your_call,goldilocks_eligible_your_call,notes
+Y,*,*,*,*,value_to_protect_from_fire,Y,Always — listed asset (plantation v1)
+N,Y,*,*,*,wetlands_assess_locally,N,Local wetlands call; out of Goldilocks
+N,N,Y,Y,*,treat_fire_risk_for_people,Y,High/VH WFE + High/VH people (pine does not override)
+N,N,Y,N,*,ecosystem_health_focus,Y,High/VH WFE + Moderate/Low/VL people
+N,N,N,N,Y,ecosystem_health_focus,Y,Tighten pine safety net: top-3 EVT list + people not High/VH
+N,N,N,Y,Y,defer_monitor,N,High/VH people alone (or with pine) do not create treat without High/VH WFE
+N,N,N,Y,N,defer_monitor,N,Homes alone do not create treat
+N,N,N,N,N,defer_monitor,N,Typical quiet hex

@@ -3,7 +3,7 @@
 # (fuel-add left out of that pass on purpose).
 #
 plantation,peat,wfe,people,fdist_fuel,pad,fire_dep,ACTION_CLASS,TREATMENT_HINT,notes
-Y,*,*,*,*,*,*,,,,ALWAYS protect_from_fire today — fill or confirm
+Y,*,*,*,*,*,*,,,,ALWAYS value_to_protect_from_fire today — fill or confirm
 N,Y,*,*,*,*,*,,,,ALWAYS wetlands_assess_locally today — fill or confirm
 N,N,High,High,Low,*,*,,,,
 N,N,High,High,Med,*,*,,,,

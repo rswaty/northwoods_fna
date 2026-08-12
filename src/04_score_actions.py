@@ -1,11 +1,13 @@
 """Assign action class + weighted priority scores from config tables.
 
-v1:
-  - Actions: plantation→protect; peat→wetlands;
-    strict high WFE + high people → treat;
-    elevated WFE for ecosystem (strict high, or Low/VL with MEAN top 30%) → ecosystem;
-    fuel-add paths; pine/barrens list → ecosystem; else defer
-  - BpS / FIRE_DEP_HEX / EVT_FIRE / PAD = context only
+v1 (bins):
+  - plantation → value_to_protect_from_fire
+  - peat → wetlands_assess_locally
+  - High/VH WFE + High/VH people → treat_fire_risk_for_people
+  - High/VH WFE → ecosystem_health_focus
+  - pine/oak in EVT top 3 + people Moderate/Low/VL → ecosystem_health_focus
+  - else → defer_monitor
+  - Fuel is Goldilocks score multiplier only (not cascade)
   - Goldilocks = people_first AOI-wide (defer + wetlands excluded)
 
 See config/ACTION_ASSIGNMENT.md and config/ACTION_MATRIX.md.
@@ -19,13 +21,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.action_assign import (  # noqa: E402
+    FUEL_ADD_ALPHA,
+    FUEL_REMOVE_BETA,
     GOLDILOCKS_EXCLUDE,
     assign_action_v1,
-    is_elevated_wfe_for_ecosystem,
+    assign_people_bin,
     is_high_fuel_add,
     is_high_wfe,
-    percentile_threshold,
     priority_score,
+    quintile_edges,
     treatment_hint,
 )
 from lib.paths import CONFIG_DIR, REPO_ROOT, load_paths, require_arcpy  # noqa: E402
@@ -43,6 +47,15 @@ def _norm(v):
         return float(v)
     except (TypeError, ValueError):
         return None
+
+
+def _evt_key(v) -> str:
+    if v is None:
+        return ""
+    try:
+        return str(int(float(v)))
+    except (TypeError, ValueError):
+        return ""
 
 
 def _rank_flags(values: list[tuple], top_frac: float) -> set:
@@ -113,6 +126,14 @@ def _load_evt_names(path: Path) -> dict[str, str]:
     return out
 
 
+def _pine_in_top3(rec: dict, pine_codes: set[str]) -> bool:
+    for k in ("EVT_1", "EVT_2", "EVT_3", "EVT_MAJORITY"):
+        key = _evt_key(rec.get(k))
+        if key and key in pine_codes:
+            return True
+    return False
+
+
 def main() -> None:
     arcpy = require_arcpy()
     cfg = load_paths()
@@ -131,6 +152,14 @@ def main() -> None:
         fuel_add_min = float(cfg.get("fdist_fuel_add_min", "0.25"))
     except (TypeError, ValueError):
         fuel_add_min = 0.25
+    try:
+        fuel_alpha = float(cfg.get("fuel_add_alpha", FUEL_ADD_ALPHA))
+    except (TypeError, ValueError):
+        fuel_alpha = FUEL_ADD_ALPHA
+    try:
+        fuel_beta = float(cfg.get("fuel_remove_beta", FUEL_REMOVE_BETA))
+    except (TypeError, ValueError):
+        fuel_beta = FUEL_REMOVE_BETA
 
     peat_codes, plant_codes = _load_evt_flags(CONFIG_DIR / "evt_rules_draft.csv")
     pine_codes = _load_pine_codes(CONFIG_DIR / "evt_pine_barrens.csv")
@@ -145,6 +174,7 @@ def main() -> None:
     new_fields = [
         ("ACTION_CLASS", "TEXT", 40),
         ("TREATMENT_HINT", "TEXT", 40),
+        ("PEOPLE_CAT", "TEXT", 20),
         ("SCORE_PEOPLE", "DOUBLE", None),
         ("SCORE_PLANTATION", "DOUBLE", None),
         ("SCORE_PAD", "DOUBLE", None),
@@ -179,6 +209,9 @@ def main() -> None:
     read_fields = [hex_id, wfe_field]
     for optional in (
         "EVT_MAJORITY",
+        "EVT_1",
+        "EVT_2",
+        "EVT_3",
         homes_field,
         "PADUS_FRAC",
         wfe_cat_field,
@@ -191,74 +224,66 @@ def main() -> None:
     records = []
     with arcpy.da.SearchCursor(hexes, read_fields) as cur:
         for row in cur:
-            rec = dict(zip(read_fields, row))
-            evt = rec.get("EVT_MAJORITY")
-            evt_key = str(int(evt)) if evt is not None else ""
+            rec_raw = dict(zip(read_fields, row))
+            evt_key = _evt_key(rec_raw.get("EVT_MAJORITY") or rec_raw.get("EVT_1"))
             fire_lab = evt_fire.get(evt_key)
             evt_name = evt_names.get(evt_key, "")
-            pine = evt_key in pine_codes
-            fdist = _norm(rec.get("FDIST_FUEL_DELTA")) or 0.0
+            pine = _pine_in_top3(rec_raw, pine_codes)
+            fdist = _norm(rec_raw.get("FDIST_FUEL_DELTA")) or 0.0
             records.append(
                 {
-                    "id": rec[hex_id],
+                    "id": rec_raw[hex_id],
                     "evt_key": evt_key,
-                    "wfe": _norm(rec.get(wfe_field)) or 0.0,
-                    "wfe_cat": rec.get(wfe_cat_field) if wfe_cat_field in read_fields else None,
-                    "homes": (_norm(rec.get(homes_field)) or 0.0) if homes_field else 0.0,
-                    "pad": _norm(rec.get("PADUS_FRAC")) or 0.0,
+                    "wfe": _norm(rec_raw.get(wfe_field)) or 0.0,
+                    "wfe_cat": rec_raw.get(wfe_cat_field)
+                    if wfe_cat_field in read_fields
+                    else None,
+                    "homes": (_norm(rec_raw.get(homes_field)) or 0.0)
+                    if homes_field
+                    else 0.0,
+                    "pad": _norm(rec_raw.get("PADUS_FRAC")) or 0.0,
                     "peat": evt_key in peat_codes,
                     "plantation": evt_key in plant_codes,
                     "pine": pine,
                     "evt_name": evt_name,
                     "evt_fire": fire_lab,
                     "fdist": fdist,
-                    "fire_dep": rec.get("FIRE_DEP_HEX") if "FIRE_DEP_HEX" in read_fields else None,
+                    "fire_dep": rec_raw.get("FIRE_DEP_HEX")
+                    if "FIRE_DEP_HEX" in read_fields
+                    else None,
                 }
             )
 
-    wfe_p30 = percentile_threshold([r["wfe"] for r in records], 0.70)
-    homes_p30 = percentile_threshold([r["homes"] for r in records], 0.70)
+    people_edges = quintile_edges([r["homes"] for r in records])
+    for r in records:
+        r["people_cat"] = assign_people_bin(r["homes"], people_edges)
 
     rows_out = []
-    n_fuel = n_pine_act = n_soft_eco = 0
+    n_fuel = n_pine_act = 0
     for rec in records:
         plant = 1.0 if rec["plantation"] else 0.0
         wfe_cat = str(rec["wfe_cat"]) if rec["wfe_cat"] is not None else None
+        people_cat = rec["people_cat"]
         fuel_flag = is_high_fuel_add(rec["fdist"], fuel_add_min)
         if fuel_flag:
             n_fuel += 1
         action = assign_action_v1(
             peat=rec["peat"],
             plantation=rec["plantation"],
-            wfe=rec["wfe"],
             wfe_cat=wfe_cat,
-            homes=rec["homes"],
-            wfe_p30=wfe_p30,
-            homes_p30=homes_p30,
-            fdist_delta=rec["fdist"],
-            fuel_add_min=fuel_add_min,
+            people_cat=people_cat,
             pine_barrens=rec["pine"],
-            fire_dependent=False,
         )
-        if action == "ecosystem_health_focus" and rec["pine"] and not is_high_wfe(
-            rec["wfe"], wfe_cat, wfe_p30
-        ):
-            # pine list path (may also have elevated Low/VL MEAN)
-            n_pine_act += 1
         if (
             action == "ecosystem_health_focus"
-            and not is_high_wfe(rec["wfe"], wfe_cat, wfe_p30)
-            and is_elevated_wfe_for_ecosystem(rec["wfe"], wfe_cat, wfe_p30)
-            and not rec["pine"]
-            and not fuel_flag
+            and rec["pine"]
+            and not is_high_wfe(wfe_cat)
         ):
-            n_soft_eco += 1
+            n_pine_act += 1
         hint = treatment_hint(
             action=action,
             plantation=rec["plantation"],
-            wfe=rec["wfe"],
             wfe_cat=wfe_cat,
-            wfe_p30=wfe_p30,
         )
 
         def score(pid: str) -> float:
@@ -271,7 +296,8 @@ def main() -> None:
                 w_homes=float(p["w_homes"]),
                 w_plantations=float(p["w_plantations"]),
                 w_wfe=float(p["w_wfe"]),
-                w_fuel_add=float(p.get("w_fuel_add") or 0.0),
+                fuel_alpha=fuel_alpha,
+                fuel_beta=fuel_beta,
             )
 
         rows_out.append(
@@ -279,6 +305,7 @@ def main() -> None:
                 "id": rec["id"],
                 "ACTION_CLASS": action,
                 "TREATMENT_HINT": hint,
+                "PEOPLE_CAT": people_cat,
                 "PLANTATION_HEX": 1 if rec["plantation"] else 0,
                 "PEAT_HEX": 1 if rec["peat"] else 0,
                 "PINE_HEX": 1 if rec["pine"] else 0,
@@ -315,6 +342,7 @@ def main() -> None:
         hex_id,
         "ACTION_CLASS",
         "TREATMENT_HINT",
+        "PEOPLE_CAT",
         "PLANTATION_HEX",
         "PEAT_HEX",
         "PINE_HEX",
@@ -337,30 +365,33 @@ def main() -> None:
                 continue
             row[1] = r["ACTION_CLASS"]
             row[2] = r["TREATMENT_HINT"]
-            row[3] = r["PLANTATION_HEX"]
-            row[4] = r["PEAT_HEX"]
-            row[5] = r["PINE_HEX"]
-            row[6] = r["EVT_NAME"]
-            row[7] = r["EVT_FIRE"]
-            row[8] = r["FDIST_FUEL_ADD"]
-            row[9] = r["SCORE_PEOPLE"]
-            row[10] = r["SCORE_PLANTATION"]
-            row[11] = r["SCORE_PAD"]
-            row[12] = r["SCORE_BALANCED"]
-            row[13] = 1 if row[0] in top5 else 0
-            row[14] = 1 if row[0] in top10 else 0
-            row[15] = 1 if row[0] in top15 else 0
-            row[16] = _priority(row[0])
+            row[3] = r["PEOPLE_CAT"]
+            row[4] = r["PLANTATION_HEX"]
+            row[5] = r["PEAT_HEX"]
+            row[6] = r["PINE_HEX"]
+            row[7] = r["EVT_NAME"]
+            row[8] = r["EVT_FIRE"]
+            row[9] = r["FDIST_FUEL_ADD"]
+            row[10] = r["SCORE_PEOPLE"]
+            row[11] = r["SCORE_PLANTATION"]
+            row[12] = r["SCORE_PAD"]
+            row[13] = r["SCORE_BALANCED"]
+            row[14] = 1 if row[0] in top5 else 0
+            row[15] = 1 if row[0] in top10 else 0
+            row[16] = 1 if row[0] in top15 else 0
+            row[17] = _priority(row[0])
             cur.updateRow(row)
 
     from collections import Counter
 
     counts = Counter(r["ACTION_CLASS"] for r in rows_out)
+    people_counts = Counter(r["PEOPLE_CAT"] for r in rows_out)
     print("ACTION_CLASS counts:", dict(counts))
+    print("PEOPLE_CAT (AOI quintiles):", dict(people_counts))
     print(
-        f"Fuel-add hexes (FDIST_FUEL_DELTA>={fuel_add_min}): {n_fuel}; "
-        f"pine/barrens→ecosystem (not strict-high WFE): ~{n_pine_act}; "
-        f"Low/VL + MEAN top30%→ecosystem: ~{n_soft_eco}"
+        f"Fuel-add flag hexes (FDIST_FUEL_DELTA>={fuel_add_min}): {n_fuel} "
+        f"(context only; score uses α={fuel_alpha}, β={fuel_beta}); "
+        f"pine/oak top3→ecosystem (not High/VH WFE): ~{n_pine_act}"
     )
     n_named = sum(1 for r in records if r.get("evt_name"))
     print(
@@ -368,6 +399,10 @@ def main() -> None:
         f"EVT_NAME matched: {n_named}/{len(records)}"
     )
     print("PAD: context only (not in score). SCORE_PAD preset label is legacy.")
+    print(
+        "People quintile edges (20/40/60/80th on WRTC): "
+        + ", ".join(f"{e:.4g}" for e in people_edges)
+    )
 
     if not peat_codes and not plant_codes:
         print(
@@ -377,30 +412,26 @@ def main() -> None:
     if "FDIST_FUEL_DELTA" not in field_names:
         print(
             "NOTE: FDIST_FUEL_DELTA missing — run 03 with landfire_fdist set. "
-            "Fuel-add actions stay off until then."
+            "Fuel multiplier stays ~1.0 until then."
         )
 
     if any(r.get("fire_dep") is not None for r in records):
         high_wfe_recs = [
             r
             for r in records
-            if is_high_wfe(
-                r["wfe"],
-                str(r["wfe_cat"]) if r["wfe_cat"] is not None else None,
-                wfe_p30,
-            )
+            if is_high_wfe(str(r["wfe_cat"]) if r["wfe_cat"] is not None else None)
         ]
         non_fd = sum(1 for r in high_wfe_recs if (r.get("fire_dep") or 0) == 0)
         n_hw = len(high_wfe_recs)
         pct = (100.0 * non_fd / n_hw) if n_hw else 0.0
         print(
-            f"Context only (BpS/MFRI): {non_fd}/{n_hw} strict-high-WFE hexes are NOT "
+            f"Context only (BpS/MFRI): {non_fd}/{n_hw} High/VH-WFE hexes are NOT "
             f"FIRE_DEP_HEX=1 ({pct:.1f}%). Does not change actions."
         )
 
-    print(f"WFE top-30% cutoff={wfe_p30:.4g}; WRTC top-30% cutoff={homes_p30:.4g}")
     print(
-        f"Goldilocks (people_first, AOI-wide) over {len(actionable)} ranked hexes "
+        f"Goldilocks (people_first × fuel multiplier, AOI-wide) over "
+        f"{len(actionable)} ranked hexes "
         f"(defer + wetlands_assess_locally excluded): "
         f"top5={len(top5)} top10={len(top10)} top15={len(top15)}"
     )
