@@ -12,4 +12,4 @@ See also `ACTION_ASSIGNMENT.md` and `ACTION_MATRIX_REVIEW.csv`.
 | 6 | `defer_monitor` | Else |
 
 **People bins:** AOI quintiles of WRTC HU Risk → Very Low … Very High.  
-**Fuel:** Goldilocks score multiplier only (α add = 0.50, β remove = 0.25).
+**Fuel:** map layer only (not in action cascade or Goldilocks score).

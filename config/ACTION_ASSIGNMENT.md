@@ -14,7 +14,7 @@ Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW
 | WFE category | Yes | **High / Very High bin only** → people vs ecosystem split |
 | People category | Yes | AOI **quintile** bins (`PEOPLE_CAT`, same five labels as WFE). High/VH + High/VH WFE → treat |
 | EVT pine/oak list (top 3) | Yes | Safety net → ecosystem when people are **Moderate / Low / Very Low** (tighten) |
-| FDist fuel direction | Goldilocks only | Asymmetric score multiplier (add raises more than remove lowers) |
+| FDist fuel direction | Goldilocks + map | Score multiplier (add > remove) and brown/green layer |
 | EVT `FIRE` (−1/0/1) | Context | Popup / review only |
 | BpS / MFRI (`FIRE_DEP_HEX`) | Context | Popup / review only |
 | PAD-US GAP 1–3 | Context | Map only |
@@ -36,6 +36,7 @@ Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW
 
 ## Goldilocks
 
-Base `SCORE_PEOPLE` (homes / plantation / WFE weights) × **fuel multiplier**  
-(`1 + 0.50·δ` if fuel-add, `1 + 0.25·δ` if fuel-remove; δ = `FDIST_FUEL_DELTA`).  
-Includes `value_to_protect_from_fire`. Rank over hexes that are not `defer_monitor` and not `wetlands_assess_locally`. Priority 3/2/1 = top 5/10/15% of that pool.
+Base `SCORE_PEOPLE` (homes / plantation / WFE) × asymmetric **fuel multiplier**  
+(`1 + 0.50·δ` add, `1 + 0.25·δ` remove). High/VH WFE or high fuel-add hexes are  
+lifted to at least the AOI **40th percentile** of scores (hazard floor).  
+Dashboard shows white→purple heat on all hexes (percentile stretch).

@@ -36,20 +36,18 @@ action_colors <- c(
   "Defer and Monitor" = "#74cc8c"
 )
 
-# Nested people-first bands among non-defer hexes (5% darkest).
-# Outside-band hexes are not drawn (see map) — pale fills were hard to see in WI.
-gold_levels <- c("Top 5%", "Top 10%", "Top 15%")
-gold_colors <- c(
-  "Top 5%" = "#00441b",
-  "Top 10%" = "#238b45",
-  "Top 15%" = "#66c2a4"
+# Goldilocks heat: all hexes, white → dark purple by percentile rank of urgency.
+gold_heat_colors <- c(
+  "#ffffff", "#f2eef6", "#e0d4e7", "#c9b0d4",
+  "#a67cba", "#7a3f96", "#542078", "#2d004b"
 )
 ```
+
 
 The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.
 
 
-You can toggle **Action class** vs **Goldilocks** in the top-right panel. For more information also see [Context](context.qmd) inputs and exploratory datasets and [Methods](methods.qmd) for details of how these maps were made.
+You can toggle **Action class**, **Goldilocks**, **Fuel change (FDist)**, or **Basemap only** in the top-right panel. Goldilocks ranks **actionable hexes only** (not defer / wetlands) white → dark purple by urgency; defer and wetlands stay grey. Fuel change is its own view (brown = add, green = remove). Choose **Basemap only** to hide hexes and explore the map underneath. For more information also see [Context](context.qmd) and [Methods](methods.qmd).
 
 ```{r}
 #| label: map
@@ -73,16 +71,6 @@ if (!has_hex) {
         .default = "Defer and Monitor"
       ),
       action_label = factor(action_label, levels = action_levels),
-      gold_pri = as.integer(round(as.numeric(GOLDILOCKS_PRIORITY))),
-      # Wetlands stay on the action map but are not in Goldilocks bands
-      gold_label = case_when(
-        ACTION_CLASS == "wetlands_assess_locally" ~ NA_character_,
-        gold_pri == 3L ~ "Top 5%",
-        gold_pri == 2L ~ "Top 10%",
-        gold_pri == 1L ~ "Top 15%",
-        TRUE ~ NA_character_
-      ),
-      gold_label = factor(gold_label, levels = gold_levels),
       is_wetland = ACTION_CLASS == "wetlands_assess_locally"
     )
 
@@ -94,26 +82,46 @@ if (!has_hex) {
     ordered = TRUE,
     na.color = "#9D9D9D"
   )
-  gold_pal <- colorFactor(
-    palette = unname(gold_colors[gold_levels]),
-    domain = gold_levels,
-    levels = gold_levels,
-    ordered = TRUE,
-    na.color = "#eeeeee"
-  )
 
-  # People-first urgency on a 0–100 scale for the popup (100 = highest in this AOI)
-  sp <- hex$SCORE_PEOPLE
-  sp_min <- min(sp, na.rm = TRUE)
-  sp_max <- max(sp, na.rm = TRUE)
+  # Goldilocks rank among actionable hexes only (not defer / wetlands).
+  # Homes-heavy defer towns (e.g. BR-33) must not outrank real action hexes.
+  gold_rank_gamma <- 1.75
   hex <- hex |>
     mutate(
-      urgency_0_100 = if (is.finite(sp_max) && sp_max > sp_min) {
-        round(100 * (SCORE_PEOPLE - sp_min) / (sp_max - sp_min), 0)
-      } else {
-        0
-      }
+      SCORE_PEOPLE = as.numeric(SCORE_PEOPLE),
+      gold_eligible = !ACTION_CLASS %in% c(
+        "defer_monitor", "wetlands_assess_locally"
+      ),
+      FDIST_FUEL_DELTA = as.numeric(FDIST_FUEL_DELTA),
+      fdist_dominate = dplyr::case_when(
+        is.na(FDIST_FUEL_DELTA) ~ "n/a",
+        FDIST_FUEL_DELTA >= 0.05 ~ "dominated by fuel add",
+        FDIST_FUEL_DELTA <= -0.05 ~ "dominated by fuel remove",
+        TRUE ~ "mixed / near neutral"
+      )
     )
+
+  # Percentile within actionable pool, then mild gamma; ineligible → NA (white)
+  urg <- rep(NA_real_, nrow(hex))
+  if (any(hex$gold_eligible)) {
+    pr <- dplyr::percent_rank(hex$SCORE_PEOPLE[hex$gold_eligible])
+    urg[hex$gold_eligible] <- round(100 * (pr^gold_rank_gamma), 0)
+  }
+  hex$urgency_0_100 <- urg
+
+  gold_pal <- colorNumeric(
+    palette = gold_heat_colors,
+    domain = c(0, 100),
+    na.color = "#f7f7f7"
+  )
+
+  # FDist: brown = fuel-add (+), green = fuel-remove (−)
+  fdist_lim <- max(0.25, max(abs(hex$FDIST_FUEL_DELTA), na.rm = TRUE))
+  fdist_pal <- colorNumeric(
+    palette = c("#1b7837", "#f5f5f5", "#8c510a"),
+    domain = c(-fdist_lim, fdist_lim),
+    na.color = "#cccccc"
+  )
 
   # Precompute EVT top-3 popup block (area ranks from script 03)
   if (all(c("EVT_1_NAME", "EVT_1_PCT") %in% names(hex))) {
@@ -148,7 +156,7 @@ if (!has_hex) {
       paste0(
         "<br/><b>EVT (top 3 by area)</b><br/>",
         paste(parts, collapse = "<br/>"),
-        "<br/><i>WFE is blended ember transmission across the hex fuel mosaic (Beverly-style), not majority EVT alone.</i>"
+        "<br/><br/><i>Wildfire Exposure Risk is blended ember transmission across the hex fuel mosaic (Beverly-style), not majority EVT alone.</i>"
       )
     }, character(1))
   } else if ("EVT_NAME" %in% names(hex)) {
@@ -161,17 +169,50 @@ if (!has_hex) {
     hex$EVT_TOP3_HTML <- ""
   }
 
-  # Goldilocks layer: in-band hexes only (after popup fields exist)
-  hex_gold <- hex |> dplyr::filter(!is.na(gold_label))
+  # Keep wetland subset after popup fields exist
+  hex_wetland <- hex[hex$is_wetland, ]
+
+  # Ordinal suffix for popup ("2nd" not "2th")
+  ordinal <- function(n) {
+    n <- as.integer(n)
+    ifelse(
+      is.na(n),
+      "n/a",
+      paste0(
+        n,
+        ifelse(
+          (n %% 100) %in% c(11L, 12L, 13L),
+          "th",
+          c("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th")[
+            (n %% 10) + 1L
+          ]
+        )
+      )
+    )
+  }
 
   popup_html <- ~ paste0(
     "<b>", GRID_ID, "</b><br/>",
     "Action: ", as.character(action_label), "<br/>",
-    "WFE: ", WFE_CAT, " · People: ", PEOPLE_CAT, "<br/>",
-    "Goldilocks: ",
-    ifelse(is.na(gold_label), "Outside band", as.character(gold_label)),
+    "Wildfire Exposure Risk: ", WFE_CAT, " · People: ", PEOPLE_CAT, "<br/>",
+    "Goldilocks rank: ",
+    ifelse(
+      !gold_eligible,
+      "n/a (defer / wetlands — not in Goldilocks pool)",
+      paste0(ordinal(urgency_0_100), " percentile among actionable hexes")
+    ),
+    "<br/>Fuel change (FDist): ",
+    ifelse(
+      is.na(FDIST_FUEL_DELTA),
+      "n/a",
+      paste0(
+        round(FDIST_FUEL_DELTA, 3),
+        " — ",
+        fdist_dominate
+      )
+    ),
     EVT_TOP3_HTML,
-    "<br/>People-first urgency: ", urgency_0_100, " (0–100; 100 = highest in this map)"
+    "<br/>Color = rank among actionable hexes only (defer/wetlands grey)"
   )
 
   bb <- st_bbox(hex)
@@ -196,28 +237,47 @@ if (!has_hex) {
       fillColor = ~ unname(action_colors[as.character(action_label)]),
       fillOpacity = ~ ifelse(action_label == "Wetlands — assess locally", 0.32, 0.72),
       color = "#333333",
-      weight = 0.25,
-      opacity = 0.5,
+      weight = 0.1,
+      opacity = 0.35,
       group = "Action class",
       popup = popup_html
     ) |>
     addPolygons(
-      data = hex_gold,
-      fillColor = ~ unname(gold_colors[as.character(gold_label)]),
-      fillOpacity = 0.85,
-      color = "#145a32",
-      weight = 0.6,
-      opacity = 0.8,
+      data = hex,
+      fillColor = ~ gold_pal(urgency_0_100),
+      fillOpacity = 0.78,
+      color = "#666666",
+      weight = 0.1,
+      opacity = 0.3,
       group = "Goldilocks",
       popup = popup_html
     ) |>
     addPolygons(
-      data = hex[hex$is_wetland, ],
+      data = hex,
+      fillColor = ~ fdist_pal(FDIST_FUEL_DELTA),
+      fillOpacity = 0.78,
+      color = "#333333",
+      weight = 0.1,
+      opacity = 0.35,
+      group = "Fuel change (FDist)",
+      popup = popup_html
+    ) |>
+    # Invisible layer so "Basemap only" can be a selectable base group
+    addPolygons(
+      data = hex[1, ],
+      fillOpacity = 0,
+      opacity = 0,
+      weight = 0,
+      group = "Basemap only",
+      options = pathOptions(clickable = FALSE)
+    ) |>
+    addPolygons(
+      data = hex_wetland,
       fillColor = "#3d42ba",
       fillOpacity = 0.55,
       color = "#1a1a6e",
-      weight = 0.4,
-      opacity = 0.7,
+      weight = 0.15,
+      opacity = 0.5,
       group = "Wetlands — assess locally",
       popup = popup_html
     ) |>
@@ -231,11 +291,19 @@ if (!has_hex) {
     ) |>
     addLegend(
       position = "bottomright",
-      colors = unname(gold_colors[gold_levels]),
-      labels = gold_levels,
-      title = "Goldilocks (people-first)",
+      pal = gold_pal,
+      values = c(0, 100),
+      title = "Goldilocks rank (percentile)",
       opacity = 0.9,
       group = "Goldilocks"
+    ) |>
+    addLegend(
+      position = "bottomright",
+      pal = fdist_pal,
+      values = c(-fdist_lim, fdist_lim),
+      title = "Fuel change (− remove / + add)",
+      opacity = 0.9,
+      group = "Fuel change (FDist)"
     ) |>
     addLegend(
       position = "bottomright",
@@ -246,11 +314,16 @@ if (!has_hex) {
       group = "Wetlands — assess locally"
     ) |>
     addLayersControl(
-      baseGroups = c("Action class", "Goldilocks"),
+      baseGroups = c(
+        "Action class",
+        "Goldilocks",
+        "Fuel change (FDist)",
+        "Basemap only"
+      ),
       overlayGroups = c("Wetlands — assess locally"),
       options = layersControlOptions(collapsed = FALSE)
     ) |>
-    # Wetlands overlay off by default; turn on when viewing Goldilocks
+    # Wetlands overlay off by default
     hideGroup("Wetlands — assess locally") |>
     htmlwidgets::onRender(sprintf(
       "
@@ -281,6 +354,7 @@ if (!has_hex) {
             var show = false;
             if (active === 'Action class' && title.indexOf('Action') === 0) show = true;
             if (active === 'Goldilocks' && title.indexOf('Goldilocks') === 0) show = true;
+            if (active === 'Fuel change (FDist)' && title.indexOf('Fuel') === 0) show = true;
             if (overlayOn && title.indexOf('Wetlands') === 0) show = true;
             leg.style.display = show ? 'block' : 'none';
           });
@@ -291,12 +365,11 @@ if (!has_hex) {
           inputs.forEach(function(inp) {
             if (inp.checked) active = inp.parentElement.textContent.trim();
           });
-          // Prefer wetlands toggle with Goldilocks view
           var overlayInputs = el.querySelectorAll('.leaflet-control-layers-overlays input');
           overlayInputs.forEach(function(inp) {
             if (inp.parentElement.textContent.indexOf('Wetlands') < 0) return;
-            var wantOn = (active === 'Goldilocks');
-            if (inp.checked !== wantOn) inp.click();
+            // Keep wetlands off on basemap-only; otherwise leave user choice
+            if (active === 'Basemap only' && inp.checked) inp.click();
           });
           syncLegends();
         }
@@ -337,4 +410,8 @@ if (!has_hex) {
 
 **Action class** = what kind of conversation is proposed for that hex.
 
-**Goldilocks** = which hexes to talk about first under a people-first lens (top 5% / 10% / 15% of actionable hexes across the AOI). Only in-band hexes are drawn on this view. **Wetlands — assess locally** are left out of those bands but can be toggled as a separate overlay.
+**Goldilocks** = white → dark purple **heat** on **actionable hexes only** (percentile rank of urgency). Defer and wetlands are grey — not ranked.
+
+**Fuel change (FDist)** = recent fuel direction (brown = net add, green = net remove). Also **multiplies** the Goldilocks urgency score (add raises more than remove lowers).
+
+**Basemap only** = hide hex fills so you can explore the basemap.

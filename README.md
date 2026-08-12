@@ -13,7 +13,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 | **Plantations** | EVT flag → always **Value to protect from fire** (silviculture = `TREATMENT_HINT` only) |
 | **Peat** | LANDFIRE EVT → **`wetlands_assess_locally`** (fire-dependent *and* ground-fire hazard; swap to USFS peatlands later, same flag) |
 | **PAD-US** | GAP 1–3 → `PADUS_FRAC` on hexes for **map context only** (Leaflet). Not a score multiplier or action picker. |
-| **Ranking default** | **People-first** Goldilocks × asymmetric **fuel** multiplier over actionable hexes (top 5/10/15%; `GOLDILOCKS_PRIORITY` 0–3) |
+| **Ranking default** | **People-first** Goldilocks over actionable hexes (heat map + top-25% start-here outline; `GOLDILOCKS_PRIORITY` 0–3 still written) |
 | **Recreation** | Deferred |
 | **TNC Resilient Lands** | Optional later second multiplier — does not change actions; re-orders priority (including off PAD). See `config/PADUS_AND_RESILIENT.md` |
 
@@ -26,7 +26,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 5. Pine/oak in EVT top 3 + people Moderate/Low/VL → ecosystem_health_focus  
 6. Else → defer_monitor  
 
-**PAD / BpS / EVT_FIRE** are map or popup context only. **Fuel (FDist)** nudges Goldilocks only.  
+**PAD / BpS / EVT_FIRE** are map or popup context only. **Fuel (FDist)** is a separate map layer (not score / not action).  
 Review matrix: `config/ACTION_MATRIX_REVIEW.csv`.
 
 Details: `config/ACTION_ASSIGNMENT.md` · notes: `config/next_steps_partner_notes.md` · brief: `faa_overview.qmd`

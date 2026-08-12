@@ -1,6 +1,6 @@
 """Rescore exported hex CSV (+ optional GeoJSON) without ArcGIS.
 
-Uses the same cascade / people quintiles / fuel multiplier as 04_score_actions.py.
+Uses the same cascade / people quintiles as 04_score_actions.py.
 After Pro runs 04→05, this is only needed for offline iteration.
 """
 
@@ -16,13 +16,13 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from lib.action_assign import (  # noqa: E402
-    FUEL_ADD_ALPHA,
-    FUEL_REMOVE_BETA,
     GOLDILOCKS_EXCLUDE,
+    apply_hazard_score_floor,
     assign_action_v1,
     assign_people_bin,
     is_high_fuel_add,
     is_high_wfe,
+    needs_hazard_score_floor,
     priority_score,
     quintile_edges,
     treatment_hint,
@@ -148,8 +148,6 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
                 w_homes=float(p["w_homes"]),
                 w_plantations=float(p["w_plantations"]),
                 w_wfe=float(p["w_wfe"]),
-                fuel_alpha=FUEL_ADD_ALPHA,
-                fuel_beta=FUEL_REMOVE_BETA,
             )
 
         nr = dict(r)
@@ -160,11 +158,28 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
         nr["PLANTATION_HEX"] = "1" if plantation else "0"
         nr["PEAT_HEX"] = "1" if peat else "0"
         nr["FDIST_FUEL_ADD"] = "1" if is_high_fuel_add(fdist, 0.25) else "0"
-        nr["SCORE_PEOPLE"] = f"{score('people_first'):.10g}"
-        nr["SCORE_PLANTATION"] = f"{score('plantation_asset_first'):.10g}"
-        nr["SCORE_PAD"] = f"{score('pad_first'):.10g}"
-        nr["SCORE_BALANCED"] = f"{score('balanced'):.10g}"
+        nr["SCORE_PEOPLE"] = score("people_first")
+        nr["SCORE_PLANTATION"] = score("plantation_asset_first")
+        nr["SCORE_PAD"] = score("pad_first")
+        nr["SCORE_BALANCED"] = score("balanced")
+        nr["_floor"] = needs_hazard_score_floor(wfe_cat, fdist)
+        nr["_wfe_cat"] = wfe_cat
         out.append(nr)
+
+    people_scores = [float(r["SCORE_PEOPLE"]) for r in out]
+    floor_flags = [r.pop("_floor") for r in out]
+    for r in out:
+        r.pop("_wfe_cat", None)
+    lifted, floor_val, n_lifted = apply_hazard_score_floor(people_scores, floor_flags)
+    for r, old, new, flag in zip(out, people_scores, lifted, floor_flags):
+        r["SCORE_PEOPLE"] = f"{new:.10g}"
+        if flag and new > old and old > 0:
+            ratio = new / old
+            for k in ("SCORE_PLANTATION", "SCORE_PAD", "SCORE_BALANCED"):
+                r[k] = f"{float(r[k]) * ratio:.10g}"
+        elif flag and new > old and old == 0:
+            for k in ("SCORE_PLANTATION", "SCORE_PAD", "SCORE_BALANCED"):
+                r[k] = f"{max(float(r[k]), new):.10g}"
 
     actionable = [
         (r["GRID_ID"], float(r["SCORE_PEOPLE"]))
@@ -195,6 +210,9 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
         "Goldilocks pool",
         len(actionable),
         f"top5={len(top5)} top10={len(top10)} top15={len(top15)}",
+    )
+    print(
+        f"Hazard score floor p40={floor_val:.4g}, lifted {n_lifted} hexes"
     )
     print("People edges", edges)
     print(

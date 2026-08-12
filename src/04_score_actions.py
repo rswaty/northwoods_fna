@@ -7,8 +7,8 @@ v1 (bins):
   - High/VH WFE → ecosystem_health_focus
   - pine/oak in EVT top 3 + people Moderate/Low/VL → ecosystem_health_focus
   - else → defer_monitor
-  - Fuel is Goldilocks score multiplier only (not cascade)
-  - Goldilocks = people_first AOI-wide (defer + wetlands excluded)
+  - Fuel multiplies Goldilocks score (map layer too; not cascade)
+  - Goldilocks = people_first × fuel multiplier AOI-wide
 
 See config/ACTION_ASSIGNMENT.md and config/ACTION_MATRIX.md.
 """
@@ -21,13 +21,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.action_assign import (  # noqa: E402
-    FUEL_ADD_ALPHA,
-    FUEL_REMOVE_BETA,
     GOLDILOCKS_EXCLUDE,
+    apply_hazard_score_floor,
     assign_action_v1,
     assign_people_bin,
     is_high_fuel_add,
     is_high_wfe,
+    needs_hazard_score_floor,
     priority_score,
     quintile_edges,
     treatment_hint,
@@ -152,14 +152,6 @@ def main() -> None:
         fuel_add_min = float(cfg.get("fdist_fuel_add_min", "0.25"))
     except (TypeError, ValueError):
         fuel_add_min = 0.25
-    try:
-        fuel_alpha = float(cfg.get("fuel_add_alpha", FUEL_ADD_ALPHA))
-    except (TypeError, ValueError):
-        fuel_alpha = FUEL_ADD_ALPHA
-    try:
-        fuel_beta = float(cfg.get("fuel_remove_beta", FUEL_REMOVE_BETA))
-    except (TypeError, ValueError):
-        fuel_beta = FUEL_REMOVE_BETA
 
     peat_codes, plant_codes = _load_evt_flags(CONFIG_DIR / "evt_rules_draft.csv")
     pine_codes = _load_pine_codes(CONFIG_DIR / "evt_pine_barrens.csv")
@@ -296,8 +288,6 @@ def main() -> None:
                 w_homes=float(p["w_homes"]),
                 w_plantations=float(p["w_plantations"]),
                 w_wfe=float(p["w_wfe"]),
-                fuel_alpha=fuel_alpha,
-                fuel_beta=fuel_beta,
             )
 
         rows_out.append(
@@ -316,8 +306,28 @@ def main() -> None:
                 "SCORE_PLANTATION": score("plantation_asset_first"),
                 "SCORE_PAD": score("pad_first"),
                 "SCORE_BALANCED": score("balanced"),
+                "_floor": needs_hazard_score_floor(wfe_cat, rec["fdist"]),
             }
         )
+
+    # Hazard floor: High/VH WFE or high fuel-add → at least AOI p40 of SCORE_PEOPLE
+    people_scores = [r["SCORE_PEOPLE"] for r in rows_out]
+    floor_flags = [r.pop("_floor") for r in rows_out]
+    lifted, floor_val, n_lifted = apply_hazard_score_floor(people_scores, floor_flags)
+    for r, s in zip(rows_out, lifted):
+        r["SCORE_PEOPLE"] = s
+    # Keep other presets in relative sync for hexes that were lifted on people_first
+    for r, old, new, flag in zip(
+        rows_out, people_scores, lifted, floor_flags
+    ):
+        if flag and new > old and old > 0:
+            ratio = new / old
+            for k in ("SCORE_PLANTATION", "SCORE_PAD", "SCORE_BALANCED"):
+                r[k] = r[k] * ratio
+        elif flag and new > old and old == 0:
+            # pure floor fill — mirror people score onto other presets lightly
+            for k in ("SCORE_PLANTATION", "SCORE_PAD", "SCORE_BALANCED"):
+                r[k] = max(r[k], new)
 
     actionable = [
         (r["id"], r["SCORE_PEOPLE"])
@@ -390,7 +400,7 @@ def main() -> None:
     print("PEOPLE_CAT (AOI quintiles):", dict(people_counts))
     print(
         f"Fuel-add flag hexes (FDIST_FUEL_DELTA>={fuel_add_min}): {n_fuel} "
-        f"(context only; score uses α={fuel_alpha}, β={fuel_beta}); "
+        f"(also Goldilocks score multiplier); "
         f"pine/oak top3→ecosystem (not High/VH WFE): ~{n_pine_act}"
     )
     n_named = sum(1 for r in records if r.get("evt_name"))
@@ -412,7 +422,7 @@ def main() -> None:
     if "FDIST_FUEL_DELTA" not in field_names:
         print(
             "NOTE: FDIST_FUEL_DELTA missing — run 03 with landfire_fdist set. "
-            "Fuel multiplier stays ~1.0 until then."
+            "Fuel overlay stays empty until then."
         )
 
     if any(r.get("fire_dep") is not None for r in records):
@@ -434,6 +444,10 @@ def main() -> None:
         f"{len(actionable)} ranked hexes "
         f"(defer + wetlands_assess_locally excluded): "
         f"top5={len(top5)} top10={len(top10)} top15={len(top15)}"
+    )
+    print(
+        f"Hazard score floor (High/VH WFE or fuel-add≥{fuel_add_min}): "
+        f"p40={floor_val:.4g}, lifted {n_lifted} hexes"
     )
     print(
         "GOLDILOCKS_PRIORITY: 3=top5%, 2=top10%, 1=top15%, 0=rest "

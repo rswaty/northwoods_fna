@@ -44,7 +44,7 @@ Examples of conversation types:
 | **Peat / wetlands** | Peat and similar wetlands that need a local call (from EVT) |
 | **Pine / oak list** | Short EVT list; any of top 3 EVTs + people Moderate/Low/VL → ecosystem safety net |
 | **EVT composition (top 3)** | Largest three vegetation types by area in the hex — the fuel mosaic behind WFE |
-| **Recent disturbance (FDist)** | Fuel-add / remove — **Goldilocks multiplier only** (not an action path) |
+| **Recent disturbance (FDist)** | Fuel-add / remove — **map layer only** (brown = add, green = remove); not in score |
 | **PAD (protected lands)** | Share of the hex in GAP 1–3 conserved land — **map context only** |
 | **BpS / MFRI** | Historic fire-return context — **popup only**, does not pick the action |
 
@@ -69,9 +69,9 @@ Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from **AOI
 
 Use **`WFE_CAT` High or Very High** only. No MEAN percentile bypass for actions.
 
-### Fuel change (Goldilocks only)
+### Fuel change (score + map)
 
-`FDIST_FUEL_DELTA` multiplies the people-first score (add raises more than remove lowers).
+`FDIST_FUEL_DELTA` multiplies the Goldilocks score (add raises more than remove lowers) and is also shown as its own layer (brown = net add, green = net remove).
 
 ---
 
@@ -112,20 +112,17 @@ PAD and BpS never pick the action. Fuel never picks the action.
 
 ## Goldilocks (what to talk about first)
 
-We cannot treat everything. Among hexes that are **not** defer and **not** wetlands-assess-locally, we rank by a **people-first urgency** score (homes weigh most, then exposure and plantations) × **fuel multiplier**, **across the full AOI**. PAD does **not** boost that score. Value-to-protect hexes are included.
+We cannot treat everything. Each hex gets an **urgency score** (homes weigh most, then exposure and plantations) × an asymmetric **fuel-change multiplier**, **across the full AOI**. Hexes with **High/VH Wildfire Exposure Risk** or **high fuel-add** get a **score floor** (about the 40th percentile of AOI scores) so remote hot places are not near-zero. PAD does **not** boost that score.
 
-Wetlands stay on the **Actions** map as “assess locally,” and appear on the **Goldilocks** map only as an optional **toggle overlay**. They are not painted in the top 5/10/15% green bands until we have a clearer fire-adaptation rule for peat. The Goldilocks map draws **only in-band** hexes.
+The Goldilocks map ranks **actionable hexes only** (not defer, not wetlands-assess-locally) with a **white → dark purple** heat from **percentile rank** of urgency (softened so extremes don’t wash out the map). Defer / wetlands draw **grey** and are not in that ranking — so high-housing defer hexes (e.g. Moderate WFE + many homes) do not look like top priorities. Use **Basemap only** to hide hex fills.
 
-| Priority | Meaning |
-|----------|---------|
-| **3** | Top ~**5%** of ranked hexes — start here |
-| **2** | Top ~**10%** (outside the top 5%) |
-| **1** | Top ~**15%** (outside the top 10%) |
-| **0** | Outside that band, **deferred**, or **wetlands assess-locally** |
+| Signal | Meaning |
+|--------|---------|
+| Heat (fill) | Percentile rank among actionable hexes (0–100) |
+| Grey | Defer or wetlands — outside Goldilocks pool |
+| Basemap only | No hex fills — explore the basemap |
 
-On the Actions map, urgency in the popup is shown on a simple **0–100** scale (100 = highest in this map export).
-
-**Action** = what kind of conversation. **Goldilocks** = which of those conversations come first under a people-first lens.
+**Action** = what kind of conversation. **Goldilocks** = relative urgency among places with an actionable conversation.
 
 ---
 

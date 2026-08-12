@@ -1,5 +1,5 @@
 preset_id,label,w_homes,w_plantations,w_wfe,w_fuel_add,w_pad_multiplier,notes
-people_first,People-first,0.50,0.15,0.25,0.20,0,DEFAULT Goldilocks base. Fuel is a separate asymmetric multiplier (α add > β remove); w_fuel_add unused.
-plantation_asset_first,Plantation-asset-first,0.20,0.45,0.25,0.15,0,Emphasize plantations as assets to protect; same fuel multiplier
-pad_first,PAD-first (legacy label),0.20,0.15,0.25,0.15,0,PAD no longer multiplies score — kept for compare
-balanced,Balanced,0.30,0.25,0.25,0.20,0,Even mix of homes plantations WFE; fuel multiplier still applied
+people_first,People-first,0.50,0.15,0.25,0,0,DEFAULT Goldilocks base. Fuel applied as asymmetric multiplier (α add > β remove); w_fuel_add unused.
+plantation_asset_first,Plantation-asset-first,0.20,0.45,0.25,0,0,Emphasize plantations; same fuel multiplier
+pad_first,PAD-first (legacy label),0.20,0.15,0.25,0,0,PAD unused; same fuel multiplier
+balanced,Balanced,0.30,0.25,0.25,0,0,Even mix of homes plantations WFE; same fuel multiplier

@@ -2,7 +2,7 @@
 
 CSV: [`ACTION_MATRIX_REVIEW.csv`](ACTION_MATRIX_REVIEW.csv).
 
-Fuel (FDist) is **not** an action trigger — it only multiplies Goldilocks scores.
+Fuel (FDist) is **not** an action trigger — it is a separate map layer (brown = add, green = remove).
 
 ---
 
@@ -30,4 +30,4 @@ Fuel (FDist) is **not** an action trigger — it only multiplies Goldilocks scor
 5. Pine/oak top 3 + people Moderate/Low/VL → `ecosystem_health_focus`  
 6. Else → `defer_monitor`  
 
-**Goldilocks:** among eligible actions, top 5% / 10% / 15% by people-first score × fuel multiplier.
+**Goldilocks:** among eligible actions, top 5% / 10% / 15% by people-first score (dashboard: heat + top-25% start-here outline).

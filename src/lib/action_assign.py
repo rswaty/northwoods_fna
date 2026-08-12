@@ -14,8 +14,10 @@ People gate: five AOI quintile bins (Very Low … Very High), same label set as 
 Pine safety net (tighten): top-3 EVT list match only when people are not High/VH.
   High/VH people + pine + not High/VH WFE → defer (homes alone do not create treat).
 
-Fuel (FDist) is not a cascade input. It is an asymmetric Goldilocks score multiplier
-(add raises more than remove lowers), including for value_to_protect_from_fire.
+Fuel (FDist / ``FDIST_FUEL_DELTA``) is not an action trigger. It multiplies the
+Goldilocks urgency score (add raises more than remove lowers) and stays on the
+map as its own layer. High/VH WFE or high fuel-add hexes also get a score
+**floor** (AOI percentile) so remote hot places are not near-zero on Goldilocks.
 
 BpS / FIRE_DEP_HEX / EVT_FIRE / PAD are context only.
 """
@@ -33,9 +35,14 @@ PEOPLE_BIN_LABELS = (
     "Very High",
 )
 
-# Fuel Goldilocks multiplier: score *= 1 + α·δ⁺  or  1 + β·δ⁻  (β < α).
+# Goldilocks fuel multiplier: score *= 1 + α·δ⁺  or  1 + β·δ⁻  (α > β).
 FUEL_ADD_ALPHA = 0.50
 FUEL_REMOVE_BETA = 0.25
+
+# After scoring: High/VH WFE or high fuel-add hexes get at least this AOI
+# percentile of SCORE_PEOPLE (keeps remote hot hexes from ranking near zero).
+HAZARD_SCORE_FLOOR_PCT = 0.40
+FUEL_ADD_FLOOR_MIN = 0.25
 
 
 def _norm_cat(cat: str | None) -> str:
@@ -97,7 +104,7 @@ def assign_people_bin(homes: float, edges: list[float]) -> str:
 
 
 def is_high_fuel_add(fdist_delta: float, fuel_add_min: float) -> bool:
-    """Area-weighted FDist fuel direction; positive = net fuel add (context / flag)."""
+    """Area-weighted FDist fuel direction; positive = net fuel add (map flag)."""
     return fdist_delta >= fuel_add_min
 
 
@@ -107,10 +114,7 @@ def fuel_goldilocks_multiplier(
     alpha: float = FUEL_ADD_ALPHA,
     beta: float = FUEL_REMOVE_BETA,
 ) -> float:
-    """Asymmetric score multiplier from FDist fuel direction (−1 … +1).
-
-    Fuel-add raises more powerfully than fuel-remove lowers.
-    """
+    """Asymmetric score multiplier from FDist (−1 … +1). Add > remove in strength."""
     d = float(fdist_delta or 0.0)
     if d >= 0:
         return 1.0 + alpha * d
@@ -185,21 +189,49 @@ def priority_score(
     w_plantations: float,
     w_wfe: float,
     w_fuel_add: float = 0.0,
-    apply_fuel_multiplier: bool = True,
     fuel_alpha: float = FUEL_ADD_ALPHA,
     fuel_beta: float = FUEL_REMOVE_BETA,
 ) -> float:
-    """Base urgency × asymmetric fuel Goldilocks multiplier.
-
-    ``w_fuel_add`` is ignored (fuel is a multiplier, not an additive term).
-    """
+    """Homes / plantation / WFE base × asymmetric FDist fuel multiplier."""
     del w_fuel_add
     base = w_homes * homes + w_plantations * plantation + w_wfe * wfe
-    if not apply_fuel_multiplier:
-        return base
     return base * fuel_goldilocks_multiplier(
         fuel_add, alpha=fuel_alpha, beta=fuel_beta
     )
+
+
+def needs_hazard_score_floor(
+    wfe_cat: str | None,
+    fdist_delta: float,
+    *,
+    fuel_add_min: float = FUEL_ADD_FLOOR_MIN,
+) -> bool:
+    """True when hex should get the Goldilocks hazard floor."""
+    return is_high_wfe(wfe_cat) or is_high_fuel_add(fdist_delta, fuel_add_min)
+
+
+def apply_hazard_score_floor(
+    scores: list[float],
+    apply_flags: list[bool],
+    *,
+    floor_pct: float = HAZARD_SCORE_FLOOR_PCT,
+) -> tuple[list[float], float, int]:
+    """Lift flagged scores up to an AOI percentile floor.
+
+    Returns (new_scores, floor_value, n_lifted).
+    """
+    if not scores or len(scores) != len(apply_flags):
+        return list(scores), 0.0, 0
+    floor = percentile_threshold(list(scores), floor_pct)
+    out: list[float] = []
+    n_lifted = 0
+    for score, flag in zip(scores, apply_flags):
+        if flag and score < floor:
+            out.append(floor)
+            n_lifted += 1
+        else:
+            out.append(score)
+    return out, floor, n_lifted
 
 
 def percentile_threshold(values: list[float], pct: float = 0.70) -> float:
