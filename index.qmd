@@ -234,7 +234,8 @@ if (!has_hex) {
     width = "100%",
     options = leafletOptions(zoomSnap = 0.25, zoomDelta = 0.5)
   ) |>
-    addProviderTiles("CartoDB.Positron") |>
+    # Esri gray canvas: light underlays without CARTO API-key watermarks
+    addProviderTiles("Esri.WorldGrayCanvas") |>
     fitBounds(west, south, east, north) |>
     addPolygons(
       data = hex,
