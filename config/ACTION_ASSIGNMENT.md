@@ -37,7 +37,9 @@ Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW
 
 ## Goldilocks
 
-Base `SCORE_PEOPLE` (homes / plantation / WFE) × asymmetric **fuel multiplier**  
+Base `SCORE_PEOPLE` = `0.50·people_pct + 0.15·plantation + 0.25·wfe_pct`, where  
+`people_pct` / `wfe_pct` are 0–1 AOI percentile ranks of `WRTC_BLDG_DENSITY_MEAN` / WFE `MEAN`  
+(plantation 0/1; weights from `weight_presets.csv`), × asymmetric **fuel multiplier**  
 (`1 + 0.50·δ` add, `1 + 0.25·δ` remove). High/VH WFE or high fuel-add hexes are  
 lifted to at least the AOI **40th percentile** of scores (hazard floor).  
 Dashboard shows white→purple heat on all hexes (percentile stretch).

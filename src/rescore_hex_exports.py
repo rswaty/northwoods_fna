@@ -23,6 +23,7 @@ from lib.action_assign import (  # noqa: E402
     is_high_fuel_add,
     is_high_wfe,
     needs_hazard_score_floor,
+    percentile_ranks,
     priority_score,
     quintile_edges,
     treatment_hint,
@@ -120,13 +121,15 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
 
     homes_list = [_homes(r) for r in rows]
     edges = quintile_edges(homes_list)
+    homes_pct = percentile_ranks(homes_list)
+    wfe_pct = percentile_ranks([_f(r.get("MEAN")) for r in rows])
     n_with = sum(1 for r in rows if people_field and r.get(people_field) not in (None, ""))
     print(f"People input: {people_field or 'NONE'} ({n_with}/{len(rows)} hexes)")
     if people_field != "WRTC_BLDG_DENSITY_MEAN":
         print("WARNING: WRTC_BLDG_DENSITY_MEAN missing — legacy fallback for people bins.")
 
     out = []
-    for r in rows:
+    for r, h_pct, w_pct in zip(rows, homes_pct, wfe_pct):
         evt_key = _evt_key(r.get("EVT_MAJORITY") or r.get("EVT_1"))
         # Prefer existing flags when present; else derive from EVT rules
         if r.get("PLANTATION_HEX") not in (None, ""):
@@ -140,7 +143,6 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
 
         pine_flag = _pine_top3(r, pine)
         homes = _homes(r)
-        wfe = _f(r.get("MEAN"))
         wfe_cat = (r.get("WFE_CAT") or "").strip() or None
         people_cat = assign_people_bin(homes, edges)
         fdist = _f(r.get("FDIST_FUEL_DELTA"))
@@ -159,9 +161,9 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
         def score(pid: str) -> float:
             p = presets[pid]
             return priority_score(
-                homes=homes,
+                homes=h_pct,
                 plantation=plant_f,
-                wfe=wfe,
+                wfe=w_pct,
                 fuel_add=fdist,
                 w_homes=float(p["w_homes"]),
                 w_plantations=float(p["w_plantations"]),

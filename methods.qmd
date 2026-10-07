@@ -112,7 +112,7 @@ PAD and BpS never pick the action. Fuel never picks the action.
 
 ## Goldilocks (what to talk about first)
 
-We cannot treat everything. Each hex gets an **urgency score** (homes weigh most, then exposure and plantations) × an asymmetric **fuel-change multiplier**, **across the full AOI**. Hexes with **High/VH Wildfire Exposure Risk** or **high fuel-add** get a **score floor** (about the 40th percentile of AOI scores) so remote hot places are not near-zero. PAD does **not** boost that score.
+We cannot treat everything. Each hex gets an **urgency score** (building density weighs most, then exposure and plantations) × an asymmetric **fuel-change multiplier**, **across the full AOI**. Hexes with **High/VH Wildfire Exposure Risk** or **high fuel-add** get a **score floor** (about the 40th percentile of AOI scores) so remote hot places are not near-zero. PAD does **not** boost that score. Building density and Wildfire Exposure Risk enter the score as **0–1 AOI percentile ranks** (plantation is yes/no), so the weights compare like with like — raw building density would otherwise swamp exposure.
 
 The Goldilocks map ranks **actionable hexes only** (not defer, not wetlands-assess-locally) with a **white → dark purple** heat from **percentile rank** of urgency (softened so extremes don’t wash out the map). Defer / wetlands draw **grey** and are not in that ranking — so high-housing defer hexes (e.g. Moderate WFE + many homes) do not look like top priorities. Use **Basemap only** to hide hex fills.
 

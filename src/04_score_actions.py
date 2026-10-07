@@ -28,6 +28,7 @@ from lib.action_assign import (  # noqa: E402
     is_high_fuel_add,
     is_high_wfe,
     needs_hazard_score_floor,
+    percentile_ranks,
     priority_score,
     quintile_edges,
     treatment_hint,
@@ -257,6 +258,11 @@ def main() -> None:
     people_edges = quintile_edges([r["homes"] for r in records])
     for r in records:
         r["people_cat"] = assign_people_bin(r["homes"], people_edges)
+    homes_pct = percentile_ranks([r["homes"] for r in records])
+    wfe_pct = percentile_ranks([r["wfe"] for r in records])
+    for r, hp, wp in zip(records, homes_pct, wfe_pct):
+        r["homes_pct"] = hp
+        r["wfe_pct"] = wp
 
     rows_out = []
     n_fuel = n_pine_act = 0
@@ -289,9 +295,9 @@ def main() -> None:
         def score(pid: str) -> float:
             p = presets[pid]
             return priority_score(
-                homes=rec["homes"],
+                homes=rec["homes_pct"],
                 plantation=plant,
-                wfe=rec["wfe"],
+                wfe=rec["wfe_pct"],
                 fuel_add=rec["fdist"],
                 w_homes=float(p["w_homes"]),
                 w_plantations=float(p["w_plantations"]),
@@ -417,6 +423,7 @@ def main() -> None:
         f"EVT_NAME matched: {n_named}/{len(records)}"
     )
     print("PAD: context only (not in score). SCORE_PAD preset label is legacy.")
+    print("Score inputs: people + WFE as 0–1 AOI percentile ranks; plantation 0/1.")
     print(
         f"People quintile edges (20/40/60/80th on {homes_field or 'homes'}): "
         + ", ".join(f"{e:.4g}" for e in people_edges)

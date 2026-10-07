@@ -14,6 +14,9 @@ People gate: five AOI quintile bins (Very Low … Very High), same label set as 
 Pine safety net (tighten): top-3 EVT list match only when people are not High/VH.
   High/VH people + pine + not High/VH WFE → defer (homes alone do not create treat).
 
+Scores: people (building density) and WFE enter as 0–1 AOI percentile ranks,
+plantation as 0/1, so preset weights are comparable across inputs.
+
 Fuel (FDist / ``FDIST_FUEL_DELTA``) is not an action trigger. It multiplies the
 Goldilocks urgency score (add raises more than remove lowers) and stays on the
 map as its own layer. High/VH WFE or high fuel-add hexes also get a score
@@ -179,6 +182,30 @@ def treatment_hint(
     return ""
 
 
+def percentile_ranks(values: list[float | None]) -> list[float]:
+    """AOI percentile rank on 0–1 (ties share their average rank; None → 0).
+
+    Puts score inputs on a common scale so preset weights mean what they say
+    (raw building density runs ~0–1000 while WFE runs ~0–1).
+    """
+    vals = [0.0 if v is None else float(v) for v in values]
+    n = len(vals)
+    if n < 2:
+        return [0.0] * n
+    order = sorted(range(n), key=lambda i: vals[i])
+    ranks = [0.0] * n
+    i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and vals[order[j + 1]] == vals[order[i]]:
+            j += 1
+        avg = (i + j) / 2.0 / (n - 1)
+        for k in range(i, j + 1):
+            ranks[order[k]] = avg
+        i = j + 1
+    return ranks
+
+
 def priority_score(
     *,
     homes: float,
@@ -192,7 +219,11 @@ def priority_score(
     fuel_alpha: float = FUEL_ADD_ALPHA,
     fuel_beta: float = FUEL_REMOVE_BETA,
 ) -> float:
-    """Homes / plantation / WFE base × asymmetric FDist fuel multiplier."""
+    """Homes / plantation / WFE base × asymmetric FDist fuel multiplier.
+
+    Pass ``homes`` and ``wfe`` as 0–1 AOI percentile ranks (``percentile_ranks``);
+    ``plantation`` is already 0/1.
+    """
     del w_fuel_add
     base = w_homes * homes + w_plantations * plantation + w_wfe * wfe
     return base * fuel_goldilocks_multiplier(
