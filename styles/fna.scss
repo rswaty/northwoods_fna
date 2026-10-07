@@ -1,0 +1,299 @@
+/*-- scss:defaults --*/
+// Palette borrowed from Wooden Man Weather (field slate & pine)
+$primary: #38bdf8;
+$secondary: #10b981;
+$success: #10b981;
+$info: #38bdf8;
+$warning: #f59e0b;
+$danger: #f43f5e;
+$body-bg: #06090e;
+$body-color: #cbd5e1;
+$headings-color: #ffffff;
+$link-color: #38bdf8;
+$navbar-bg: #090d13;
+$navbar-fg: #94a3b8;
+$table-color: #cbd5e1;
+$table-border-color: #1e293b;
+$table-striped-bg: #0d1520;
+$code-color: #fbbf24;
+$code-bg: #0d1520;
+$border-color: #1e293b;
+$font-family-sans-serif: "Nirmala UI", "Nirmala", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$font-size-base: 1.02rem;
+$border-radius: 0.65rem;
+
+/*-- scss:rules --*/
+body {
+  background-color: $body-bg;
+  color: $body-color;
+}
+
+.navbar {
+  background: $navbar-bg !important;
+  border-bottom: 1px solid #1e293b;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --bs-navbar-color: #94a3b8;
+  --bs-navbar-hover-color: #ffffff;
+  --bs-navbar-active-color: #38bdf8;
+  --bs-navbar-brand-color: #ffffff;
+  --bs-navbar-brand-hover-color: #38bdf8;
+}
+
+.navbar-brand,
+.navbar-title,
+.navbar-nav .nav-link {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+// Title block: slate card with a sky-blue rule
+#title-block-header.quarto-title-block {
+  background: #090d13;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 0.9rem 1.2rem 0.7rem 1.2rem;
+  margin-bottom: 1rem;
+  border-top: 3px solid #38bdf8;
+}
+
+.quarto-title .title {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.quarto-title .subtitle,
+.quarto-title-meta-heading,
+.quarto-title-meta-contents {
+  color: #94a3b8 !important;
+}
+
+h1, h2, h3, h4 {
+  color: $headings-color;
+}
+
+strong {
+  color: #f1f5f9;
+}
+
+hr {
+  border-color: #1e293b;
+  opacity: 1;
+}
+
+table,
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: #{$body-color};
+  color: $body-color;
+  border-color: #1e293b;
+  font-variant-numeric: tabular-nums;
+}
+
+.table > :not(caption) > * > * {
+  border-bottom-color: #1e293b;
+}
+
+thead th {
+  color: #ffffff;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+
+code {
+  background: $code-bg;
+  color: $code-color;
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
+}
+
+blockquote {
+  border-left: 3px solid #f59e0b;
+  color: #94a3b8;
+  background: #0d1520;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+}
+
+// ---------------------------------------------------------------------------
+// Summary boxes (outpost-style cards)
+// ---------------------------------------------------------------------------
+.fna-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.fna-stat {
+  background: #090d13;
+  border: 1px solid #1e293b;
+  border-top: 3px solid var(--accent, #38bdf8);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 10px 14px 9px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fna-stat-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fna-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  flex: 0 0 auto;
+}
+
+.fna-stat-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #cbd5e1;
+  line-height: 1.25;
+}
+
+.fna-stat-value {
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 800;
+  color: var(--accent, #ffffff);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.fna-stat-value .fna-unit {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-left: 4px;
+}
+
+.fna-stat-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.fna-stat-sub strong {
+  color: #f1f5f9;
+}
+
+.fna-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fna-pill {
+  display: inline-flex;
+  align-items: center;
+  background: #111a26;
+  border: 1px solid #233146;
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.fna-pill strong {
+  color: #f8fafc;
+  margin-left: 4px;
+}
+
+// Callout-style note cards for page text
+.fna-note {
+  background: #0d1520;
+  border: 1px solid #1f2c3f;
+  border-left: 3px solid var(--accent, #f59e0b);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  margin: 0.6rem 0;
+  color: #cbd5e1;
+}
+
+// ---------------------------------------------------------------------------
+// Leaflet chrome on the dark page (map tiles stay light for readability)
+// ---------------------------------------------------------------------------
+.leaflet-container {
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.leaflet-control-layers,
+.info.legend,
+.leaflet-control .legend,
+.legend.leaflet-control {
+  background: rgba(9, 13, 19, 0.92) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid #1e293b !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+}
+
+.info.legend strong,
+.legend strong {
+  color: #ffffff !important;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+
+.leaflet-control-layers label,
+.leaflet-control-layers span {
+  color: #cbd5e1 !important;
+}
+
+.leaflet-control-layers-separator {
+  border-top-color: #1e293b !important;
+}
+
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: #090d13 !important;
+  color: #cbd5e1 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #0d1520 !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #1f2c3f;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55) !important;
+}
+
+.leaflet-popup-content b,
+.leaflet-popup-content strong {
+  color: #ffffff;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #94a3b8;
+}
+
+.leaflet-control-attribution {
+  background: rgba(9, 13, 19, 0.75) !important;
+  color: #64748b !important;
+}
+
+.leaflet-control-attribution a {
+  color: #94a3b8 !important;
+}

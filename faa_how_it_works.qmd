@@ -36,10 +36,10 @@ Hexes are large (~10,000 acres). This is a screening conversation tool — not a
 Cut from **AOI quintiles** of hex Building Density (20th / 40th / 60th / 80th percentiles). Recomputed each run of script 04.  
 Buildings stand in for people: they show where structures are, not how many people live, work or recreate there.  
 Not Housing Unit Risk — that embeds wildfire and would double-count with WFE.  
-**Treat for people** needs **High/VH buildings with High/VH WFE**, or **Very High buildings with Moderate WFE**.
+**Treat fire risk near communities** needs **Moderate-or-higher buildings with High/VH WFE**, or **Very High buildings with Moderate WFE**.
 
 **Wildfire exposure (WFE)** — use the product category bin only.  
-**High/VH** opens treat (with High/VH buildings) or ecosystem (otherwise). **Moderate** opens treat only with Very High buildings. Low / Very Low never open those paths.
+**High/VH** opens treat (with Moderate-or-higher buildings) or ecosystem (otherwise). **Moderate** opens treat only with Very High buildings. Low / Very Low never open those paths.
 
 **Fuel change** — hex `FDIST_FUEL_DELTA` (about −1 to +1). Multiplies Goldilocks urgency (add raises more than remove lowers) and has its own map layer (brown = add, green = remove).
 
@@ -49,19 +49,19 @@ Each hex gets **one** primary action. Rules are checked **in order**; the first 
 
 | Priority | Action | When it applies |
 |----------|--------|-----------------|
-| 1 | **Value to protect from fire** | Mostly a **plantation** |
+| 1 | **Protect plantations from fire** | Mostly a **plantation** (other mapped values can be added later) |
 | 2 | **Wetlands — assess locally** | Mostly **peat / listed wetland** |
-| 3 | **Treat fire risk for people** | **High/VH WFE** and **High/VH buildings**, or **Moderate WFE** and **Very High buildings** |
-| 4 | **Ecosystem health focus** | **High/VH WFE** (buildings not High/VH) |
+| 3 | **Treat fire risk near communities** | **High/VH WFE** and **Moderate / High / VH buildings**, or **Moderate WFE** and **Very High buildings** |
+| 4 | **Ecosystem health focus** | **High/VH WFE** (buildings Low / Very Low) |
 | 5 | **Ecosystem health focus** | **Pine/oak in top 3 EVTs** and buildings **Moderate / Low / Very Low** |
 | 6 | **Defer / monitor** | None of the above |
 
 **Examples**
 
-- Plantation with insect damage → still **value to protect from fire** (asset first).  
-- Hot exposure next to High/VH buildings → **treat for people**.  
-- Moderate exposure in the densest-building places (Very High) → **treat for people**.  
-- Hot exposure with Moderate or lower buildings → **ecosystem health**.  
+- Plantation with insect damage → still **protect plantations from fire** (asset first).  
+- Hot exposure next to Moderate-or-higher buildings → **treat fire risk near communities**.  
+- Moderate exposure in the densest-building places (Very High) → **treat fire risk near communities**.  
+- Hot exposure with Low or Very Low buildings → **ecosystem health**.  
 - Low WFE, High/VH buildings → **defer** (buildings alone do not create treat).  
 - Quiet WFE, red/jack pine in top 3, Moderate or lower buildings → **ecosystem** (pine safety net).  
 - Quiet WFE, pine in top 3, High/VH buildings → **defer** (tighten).  

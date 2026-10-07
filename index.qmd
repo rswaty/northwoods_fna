@@ -22,17 +22,25 @@ hex_path <- "outputs/hex/faa_hex_scores.geojson"
 has_hex <- file.exists(hex_path)
 
 action_levels <- c(
-  "Value to protect from fire",
-  "Treat fire risk for people",
+  "Protect plantations from fire",
+  "Treat fire risk near communities",
   "Ecosystem health focus",
   "Wetlands — assess locally",
   "Defer and Monitor"
 )
 action_colors <- c(
-  "Value to protect from fire" = "#ba620f",
-  "Treat fire risk for people" = "#5c184b",
+  "Protect plantations from fire" = "#ba620f",
+  "Treat fire risk near communities" = "#5c184b",
   "Ecosystem health focus" = "#0f451d",
   "Wetlands — assess locally" = "#b0b6f0",  # lighter than other actions
+  "Defer and Monitor" = "#cfedca"
+)
+# Brighter tints of the map colors for text / accents on the dark page
+action_accents <- c(
+  "Protect plantations from fire" = "#f59e0b",
+  "Treat fire risk near communities" = "#e879c9",
+  "Ecosystem health focus" = "#34d399",
+  "Wetlands — assess locally" = "#a5b4fc",
   "Defer and Monitor" = "#cfedca"
 )
 
@@ -41,6 +49,108 @@ gold_heat_colors <- c(
   "#ffffff", "#f2eef6", "#e0d4e7", "#c9b0d4",
   "#a67cba", "#7a3f96", "#542078", "#2d004b"
 )
+
+if (has_hex) {
+  hex <- st_read(hex_path, quiet = TRUE) |>
+    mutate(
+      action_label = case_match(
+        ACTION_CLASS,
+        "value_to_protect_from_fire" ~ "Protect plantations from fire",
+        "protect_from_fire" ~ "Protect plantations from fire",  # legacy id
+        "treat_fire_risk_for_people" ~ "Treat fire risk near communities",
+        "ecosystem_health_focus" ~ "Ecosystem health focus",
+        "wetlands_assess_locally" ~ "Wetlands — assess locally",
+        "defer_monitor" ~ "Defer and Monitor",
+        .default = "Defer and Monitor"
+      ),
+      action_label = factor(action_label, levels = action_levels),
+      is_wetland = ACTION_CLASS == "wetlands_assess_locally",
+      acres = as.numeric(st_area(geometry)) / 4046.8564224
+    )
+}
+```
+
+```{r}
+#| label: summary-boxes
+if (has_hex) {
+  fmt_n <- function(x) format(round(x), big.mark = ",", scientific = FALSE)
+  fmt_ac <- function(x) {
+    if (x >= 1e6) paste0(format(round(x / 1e6, 1), nsmall = 1), "M acres")
+    else paste0(fmt_n(round(x / 1e3)), "K acres")
+  }
+  total_ac <- sum(hex$acres)
+  in_gold <- as.integer(hex$GOLDILOCKS_PRIORITY) > 0
+  high_wfe <- hex$WFE_CAT %in% c("High", "Very High")
+
+  stat_box <- function(title, value, unit, sub, pills = list(),
+                       accent = "#38bdf8", swatch = NULL) {
+    htmltools::div(
+      class = "fna-stat",
+      style = paste0("--accent:", accent, ";"),
+      htmltools::div(
+        class = "fna-stat-head",
+        if (!is.null(swatch)) {
+          htmltools::span(class = "fna-swatch", style = paste0("background:", swatch, ";"))
+        },
+        htmltools::span(class = "fna-stat-title", title)
+      ),
+      htmltools::div(class = "fna-stat-value", value, htmltools::span(class = "fna-unit", unit)),
+      htmltools::div(class = "fna-stat-sub", htmltools::HTML(sub)),
+      if (length(pills)) {
+        htmltools::div(
+          class = "fna-pills",
+          lapply(names(pills), function(nm) {
+            htmltools::span(class = "fna-pill", nm, htmltools::strong(pills[[nm]]))
+          })
+        )
+      }
+    )
+  }
+
+  action_box <- function(label, sub) {
+    sel <- hex$action_label == label
+    ac <- sum(hex$acres[sel])
+    stat_box(
+      title = label,
+      value = fmt_n(sum(sel)),
+      unit = "hexes",
+      sub = paste0("<strong>", fmt_ac(ac), "</strong> · ",
+                   round(100 * ac / total_ac, 1), "% of the AOI<br/>", sub),
+      pills = list("In Goldilocks top 15%" = fmt_n(sum(sel & in_gold))),
+      accent = action_accents[[label]],
+      swatch = action_colors[[label]]
+    )
+  }
+
+  htmltools::div(
+    class = "fna-stats",
+    stat_box(
+      title = "Area assessed",
+      value = fmt_n(nrow(hex)),
+      unit = "hexes",
+      sub = paste0("<strong>", fmt_ac(total_ac), "</strong> across the Northwoods AOI<br/>",
+                   "~10,000-acre hexagons"),
+      pills = list("Actionable" = fmt_n(sum(!hex$ACTION_CLASS %in% c("defer_monitor", "wetlands_assess_locally")))),
+      accent = "#38bdf8"
+    ),
+    stat_box(
+      title = "High / Very High exposure",
+      value = fmt_n(sum(high_wfe)),
+      unit = "hexes",
+      sub = paste0("<strong>", fmt_ac(sum(hex$acres[high_wfe])), "</strong> · ",
+                   round(100 * sum(hex$acres[high_wfe]) / total_ac, 1),
+                   "% of the AOI<br/>Wildfire Exposure Risk category"),
+      pills = list("Near communities" = fmt_n(sum(high_wfe & hex$ACTION_CLASS == "treat_fire_risk_for_people"))),
+      accent = "#f43f5e"
+    ),
+    action_box("Treat fire risk near communities",
+               "Exposure near dense buildings (a proxy for people)"),
+    action_box("Ecosystem health focus",
+               "Exposure away from dense buildings, or pine / oak systems"),
+    action_box("Protect plantations from fire",
+               "Plantations only so far — other values can be added")
+  )
+}
 ```
 
 
@@ -51,8 +161,9 @@ You can toggle **Action class**, **Goldilocks**, **Fuel change (FDist)**, or **B
 
 **A couple points to consider:**
 
-1. The "Value to protect from fire" hexagons are where plantations are a key part of the area.  We can add in any mappable values, e.g. fire adapted plant species.
-2. "Defer and Monitor" does not mean ignore.  Many of these hexagons will be at increasing risk over time, and/or have ecosystems of high economic value, e.g., Northern Hardwoods.
+1. **Orange hexes are "Protect plantations from fire"** — places where plantations are a key part of the area. Plantations are the only value mapped so far, but other values can be protected the same way: infrastructure, cultural sites, fire-sensitive species, or any other mappable value partners care about.
+2. **"Treat fire risk near communities"** uses building density as a proxy for people — it shows where structures are, not how many people live, work or recreate there.
+3. "Defer and Monitor" does not mean ignore.  Many of these hexagons will be at increasing risk over time, and/or have ecosystems of high economic value, e.g., Northern Hardwoods.
 
 ```{r}
 #| label: map
@@ -63,22 +174,6 @@ if (!has_hex) {
     "commit `outputs/hex/faa_hex_scores.geojson`, then re-render this dashboard.\n"
   )
 } else {
-  hex <- st_read(hex_path, quiet = TRUE) |>
-    mutate(
-      action_label = case_match(
-        ACTION_CLASS,
-        "value_to_protect_from_fire" ~ "Value to protect from fire",
-        "protect_from_fire" ~ "Value to protect from fire",  # legacy id
-        "treat_fire_risk_for_people" ~ "Treat fire risk for people",
-        "ecosystem_health_focus" ~ "Ecosystem health focus",
-        "wetlands_assess_locally" ~ "Wetlands — assess locally",
-        "defer_monitor" ~ "Defer and Monitor",
-        .default = "Defer and Monitor"
-      ),
-      action_label = factor(action_label, levels = action_levels),
-      is_wetland = ACTION_CLASS == "wetlands_assess_locally"
-    )
-
   # Explicit levels= so leaflet/scales does not alphabetize and scramble colors.
   action_pal <- colorFactor(
     palette = unname(action_colors[action_levels]),

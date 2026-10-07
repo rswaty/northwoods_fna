@@ -60,7 +60,7 @@ ICO / variable-density thinning is one example for some dense red pine plantatio
 
   - Plantation (EVT) → **Protect from wildfire** (always)
 
-  - High WRTC Building Density + High WFE → **Protect from wildfire** / treat for people
+  - High WRTC Building Density + High WFE → **Treat fire risk near communities**
 
   - High WFE → **Restore with beneficial fire**
 
@@ -104,7 +104,7 @@ Source: [wildfirerisk.org/download](https://wildfirerisk.org/download/) (May 202
 
   | Role | Dataset | Use |
 
-  | **Primary** | **Building Density** | Where structures ≥40 m² are (homes, cabins, camps, commercial). Proxy for people (not a population count) → `PEOPLE_CAT`; High/VH buildings × High/VH WFE, or Very High buildings × Moderate WFE → treat for people. Housing Unit Density = Context map only. |
+  | **Primary** | **Building Density** | Where structures ≥40 m² are (homes, cabins, camps, commercial). Proxy for people (not a population count) → `PEOPLE_CAT`; Moderate-or-higher buildings × High/VH WFE, or Very High buildings × Moderate WFE → treat fire risk near communities. Housing Unit Density = Context map only. |
 
   | Optional companion | **Housing Unit Risk** | Likelihood × intensity × susceptibility × density. Context only — embeds wildfire (double-counts with WFE). |
 

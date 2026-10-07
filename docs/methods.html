@@ -35,10 +35,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b53751a350365c71b6c909e95f209ed1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-bfe3204ae6465dc13537b870931e3b84.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-1c4399fa823d7ebac2a5662ba207351f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -160,9 +160,9 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li>Protect a timber plantation (or insert your values here) from fire damage<br>
 </li>
-<li>Treat fuels and homes where people and exposure both run high<br>
+<li>Treat fuels and harden homes where buildings (a proxy for people) and exposure both run high<br>
 </li>
-<li>Focus on ecosystem / fire-adapted systems away from dense housing<br>
+<li>Focus on ecosystem / fire-adapted systems away from dense buildings<br>
 </li>
 <li>Pause and assess wetlands locally<br>
 </li>
@@ -189,8 +189,8 @@ ul.task-list li input[type="checkbox"] {
 <td>Where fire can transmit embers across the landscape <em>today</em></td>
 </tr>
 <tr class="even">
-<td><strong>People (WRTC Housing Unit Density)</strong></td>
-<td>Where Census housing is (incl.&nbsp;seasonal homes) — not community wildfire risk</td>
+<td><strong>Buildings (WRTC Building Density)</strong></td>
+<td>Where structures are (homes, cabins, camps, commercial ≥40 m²) — our <strong>proxy for people</strong>; not a count of residents and not community wildfire risk</td>
 </tr>
 <tr class="odd">
 <td><strong>Plantations</strong></td>
@@ -202,7 +202,7 @@ ul.task-list li input[type="checkbox"] {
 </tr>
 <tr class="odd">
 <td><strong>Pine / oak list</strong></td>
-<td>Short EVT list; any of top 3 EVTs + people Moderate/Low/VL → ecosystem safety net</td>
+<td>Short EVT list; any of top 3 EVTs + buildings Moderate/Low/VL → ecosystem safety net</td>
 </tr>
 <tr class="even">
 <td><strong>EVT composition (top 3)</strong></td>
@@ -210,7 +210,7 @@ ul.task-list li input[type="checkbox"] {
 </tr>
 <tr class="odd">
 <td><strong>Recent disturbance (FDist)</strong></td>
-<td>Fuel-add / remove — <strong>map layer only</strong> (brown = add, green = remove); not in score</td>
+<td>Fuel-add / remove (brown = add, green = remove) — does not pick the action; multiplies the Goldilocks score</td>
 </tr>
 <tr class="even">
 <td><strong>PAD (protected lands)</strong></td>
@@ -232,14 +232,15 @@ ul.task-list li input[type="checkbox"] {
 <section id="what-high-means" class="level2">
 <h2 class="anchored" data-anchor-id="what-high-means">What “high” means</h2>
 <p>Cutoffs are <strong>relative to this Northwoods AOI</strong> (recomputed each scoring run).</p>
-<section id="people-bins-people_cat" class="level3">
-<h3 class="anchored" data-anchor-id="people-bins-people_cat">People bins (<code>PEOPLE_CAT</code>)</h3>
-<p>Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from <strong>AOI quintiles</strong> of Housing Unit Density (20/40/60/80th percentiles). In a low-density region, roughly one-fifth of hexes will always land in each bin — including High / Very High — even when absolute home density is modest. The bins rank <em>where housing is relatively more present within this AOI</em>, not where cities are. We use <strong>density</strong> (not Housing Unit Risk) so wildfire stays only in the WFE hazard leg.<br>
-<strong>Treat for people</strong> still needs <strong>High or Very High</strong> people <strong>and</strong> High/VH WFE.</p>
+<section id="building-bins-people_cat" class="level3">
+<h3 class="anchored" data-anchor-id="building-bins-people_cat">Building bins (<code>PEOPLE_CAT</code>)</h3>
+<p><strong>Buildings stand in for people.</strong> WRTC Building Density tells us where structures are, not how many people live, work or recreate there — a block of seasonal cabins and a year-round neighborhood can look alike. The field keeps its <code>PEOPLE_CAT</code> name because it plays the “people” role in the rules.</p>
+<p>Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from <strong>AOI quintiles</strong> of Building Density (20/40/60/80th percentiles). In a low-density region, roughly one-fifth of hexes will always land in each bin — including High / Very High — even when absolute building density is modest. The bins rank <em>where structures are relatively more present within this AOI</em>, not where cities are. We use <strong>Building Density</strong> rather than Census Housing Unit Density so cabins, camps and other structures that housing data undersells still count; Housing Unit Density is shown on the Context map only. We use <strong>density</strong> (not Housing Unit Risk) so wildfire stays only in the WFE hazard leg.<br>
+<strong>Treat fire risk near communities</strong> needs <strong>Moderate-or-higher buildings with High/VH WFE</strong>, or <strong>Very High buildings with Moderate WFE</strong> (the densest places get a slightly lower exposure bar).</p>
 </section>
 <section id="wildfire-exposure" class="level3">
 <h3 class="anchored" data-anchor-id="wildfire-exposure">Wildfire exposure</h3>
-<p>Use <strong><code>WFE_CAT</code> High or Very High</strong> only. No MEAN percentile bypass for actions.</p>
+<p>Use <strong><code>WFE_CAT</code></strong> bins only — High or Very High, plus Moderate for the densest-building treat rule. No MEAN percentile bypass for actions.</p>
 </section>
 <section id="fuel-change-score-map" class="level3">
 <h3 class="anchored" data-anchor-id="fuel-change-score-map">Fuel change (score + map)</h3>
@@ -266,8 +267,8 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td style="text-align: right;">1</td>
-<td><strong>Value to protect from fire</strong></td>
-<td>Mostly a <strong>plantation</strong></td>
+<td><strong>Protect plantations from fire</strong></td>
+<td>Mostly a <strong>plantation</strong> (other mapped values can be added to this category later)</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">2</td>
@@ -276,18 +277,18 @@ ul.task-list li input[type="checkbox"] {
 </tr>
 <tr class="odd">
 <td style="text-align: right;">3</td>
-<td><strong>Treat fire risk for people</strong></td>
-<td><strong>High/VH WFE</strong> and <strong>High/VH people</strong></td>
+<td><strong>Treat fire risk near communities</strong></td>
+<td><strong>High/VH WFE</strong> and <strong>Moderate / High / VH buildings</strong>, or <strong>Moderate WFE</strong> and <strong>Very High buildings</strong></td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">4</td>
 <td><strong>Ecosystem health focus</strong></td>
-<td><strong>High/VH WFE</strong> (people not High/VH)</td>
+<td><strong>High/VH WFE</strong> (buildings Low / Very Low)</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">5</td>
 <td><strong>Ecosystem health focus</strong></td>
-<td><strong>Pine/oak in top 3</strong> and people <strong>Moderate / Low / Very Low</strong></td>
+<td><strong>Pine/oak in top 3</strong> and buildings <strong>Moderate / Low / Very Low</strong></td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">6</td>
@@ -301,19 +302,20 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="worked-examples" class="level2">
 <h2 class="anchored" data-anchor-id="worked-examples">Worked examples</h2>
-<p><strong>1. Plantation</strong> → <strong>Value to protect from fire.</strong></p>
-<p><strong>2. Relativity High Home Density for the AOI (High/VH people) + High WFE</strong> → <strong>Treat fire risk for people.</strong></p>
-<p><strong>3. Remote pine, Moderate or lower people</strong> → <strong>Ecosystem health focus.</strong></p>
-<p><strong>4. Quiet WFE, High/VH people</strong> → <strong>Defer.</strong> Homes alone do not treat.</p>
-<p><strong>5. Quiet WFE, pine in top 3, Moderate or lower people</strong> → <strong>Ecosystem</strong> via pine safety net.</p>
-<p><strong>6. Quiet WFE, pine in top 3, High/VH people</strong> → <strong>Defer</strong> (tighten).</p>
-<p><strong>7. Typical quiet hardwoods</strong> → <strong>Defer.</strong></p>
+<p><strong>1. Plantation</strong> → <strong>Protect plantations from fire.</strong> Plantations are the only value mapped so far; other mappable values (infrastructure, cultural sites, fire-sensitive species) could join this category.</p>
+<p><strong>2. Moderate or higher building density for the AOI + High WFE</strong> → <strong>Treat fire risk near communities.</strong></p>
+<p><strong>3. Very High building density + Moderate WFE</strong> → <strong>Treat fire risk near communities.</strong></p>
+<p><strong>4. Remote pine, Low or Very Low buildings, High WFE</strong> → <strong>Ecosystem health focus.</strong></p>
+<p><strong>5. Low WFE, High/VH buildings</strong> → <strong>Defer.</strong> Buildings alone do not create treat.</p>
+<p><strong>6. Quiet WFE, pine in top 3, Moderate or lower buildings</strong> → <strong>Ecosystem</strong> via pine safety net.</p>
+<p><strong>7. Quiet WFE, pine in top 3, High/VH buildings</strong> → <strong>Defer</strong> (tighten).</p>
+<p><strong>8. Typical quiet hardwoods</strong> → <strong>Defer.</strong></p>
 <hr>
 </section>
 <section id="goldilocks-what-to-talk-about-first" class="level2">
 <h2 class="anchored" data-anchor-id="goldilocks-what-to-talk-about-first">Goldilocks (what to talk about first)</h2>
-<p>We cannot treat everything. Each hex gets an <strong>urgency score</strong> (homes weigh most, then exposure and plantations) × an asymmetric <strong>fuel-change multiplier</strong>, <strong>across the full AOI</strong>. Hexes with <strong>High/VH Wildfire Exposure Risk</strong> or <strong>high fuel-add</strong> get a <strong>score floor</strong> (about the 40th percentile of AOI scores) so remote hot places are not near-zero. PAD does <strong>not</strong> boost that score.</p>
-<p>The Goldilocks map ranks <strong>actionable hexes only</strong> (not defer, not wetlands-assess-locally) with a <strong>white → dark purple</strong> heat from <strong>percentile rank</strong> of urgency (softened so extremes don’t wash out the map). Defer / wetlands draw <strong>grey</strong> and are not in that ranking — so high-housing defer hexes (e.g.&nbsp;Moderate WFE + many homes) do not look like top priorities. Use <strong>Basemap only</strong> to hide hex fills.</p>
+<p>We cannot treat everything. Each hex gets an <strong>urgency score</strong> (building density weighs most, then exposure and plantations) × an asymmetric <strong>fuel-change multiplier</strong>, <strong>across the full AOI</strong>. Hexes with <strong>High/VH Wildfire Exposure Risk</strong> or <strong>high fuel-add</strong> get a <strong>score floor</strong> (about the 40th percentile of AOI scores) so remote hot places are not near-zero. PAD does <strong>not</strong> boost that score. Building density and Wildfire Exposure Risk enter the score as <strong>0–1 AOI percentile ranks</strong> (plantation is yes/no), so the weights compare like with like — raw building density would otherwise swamp exposure.</p>
+<p>The Goldilocks map ranks <strong>actionable hexes only</strong> (not defer, not wetlands-assess-locally) with a <strong>white → dark purple</strong> heat from <strong>percentile rank</strong> of urgency (softened so extremes don’t wash out the map). Defer / wetlands draw <strong>grey</strong> and are not in that ranking — so building-dense defer hexes (e.g.&nbsp;Low WFE + many buildings) do not look like top priorities. Use <strong>Basemap only</strong> to hide hex fills.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -346,7 +348,9 @@ ul.task-list li input[type="checkbox"] {
 </li>
 <li>Not a burn plan or silvicultural prescription<br>
 </li>
-<li>Not “paint every high-housing hex as treat” without High/VH exposure<br>
+<li>Not “paint every building-dense hex as treat” without real exposure<br>
+</li>
+<li>Not a population count — buildings are a proxy for where people are<br>
 </li>
 <li>Not a claim that majority EVT must match the action — WFE is a <strong>mosaic</strong> measure</li>
 </ul>

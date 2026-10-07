@@ -43,7 +43,7 @@ Most maps stop at **risk** (where something bad *could* happen). FAA goes one st
 
 | Innovation | Why it matters |
 |------------|----------------|
-| **Actions, not only heat maps** | Partners can discuss *protect*, *treat for people*, *ecosystem health*, *wetlands assess*, or *defer* — a shared vocabulary for meetings. |
+| **Actions, not only heat maps** | Partners can discuss *protect plantations*, *treat fire risk near communities*, *ecosystem health*, *wetlands assess*, or *defer* — a shared vocabulary for meetings. |
 | **People and ecosystems in one frame** | Homes and fire-adapted forests both matter; rules say when people come first and when ecosystem work is the focus. |
 | **More than one hazard signal** | Today's exposure map, ecological fire dependence, and recent fuel-adding events (insects, ice, wind) each catch situations the others miss. |
 | **"Goldilocks" priorities** | Among places where we'd *do something*, flag a top slice so leaders can size a realistic near-term footprint. |
@@ -68,13 +68,13 @@ Ownership maps and mills can inform *feasibility* later; they do not pick the ac
 
 Each hexagon gets **one primary action** (simple rules, applied in order). These are **working hypotheses for discussion**, not orders.
 
-1. **Value to protect from fire** — Keep damaging fire *out* of a high-value asset (especially **plantations**). Tools are often thinning or harvest; prescribed fire is not the main goal.  
+1. **Protect plantations from fire** — Keep damaging fire *out* of a high-value asset. **Plantations** are the only value mapped so far; other values can be added to this category. Tools are often thinning or harvest; prescribed fire is not the main goal.  
    *Example: A managed pine plantation — protect the timber investment.*
 
 2. **Wetlands — assess locally** — Peat and similar wetlands can be fire-related *and* extremely hard to control once they burn. The map flags them; people with local hydrology and fire history decide.  
    *Example: A large bog with limited access — don't auto-ignore and don't auto-burn; put it on the conversation list.*
 
-3. **Treat fire risk for people** — High hazard **and/or** recent fuel buildup **near homes**. Emphasis: mechanical fuels work plus home hardening / defensible space — not lighting fire near communities.  
+3. **Treat fire risk near communities** — High hazard **and/or** recent fuel buildup **near homes**. Emphasis: mechanical fuels work plus home hardening / defensible space — not lighting fire near communities.  
    *Example A: High exposure next to community.*  
    *Example B: Modeled exposure looks modest, but a recent ice storm left heavy fuels beside those homes — still a "people" conversation.*
 

@@ -1,8 +1,8 @@
 action_id,label,description
-value_to_protect_from_fire,Value to protect from fire,Plantation or other listed asset - keep damaging fire out (silviculture hints)
+value_to_protect_from_fire,Protect plantations from fire,Plantations today; other mapped values (infrastructure / cultural sites / fire-sensitive species) can join - keep damaging fire out (silviculture hints)
 wetlands_assess_locally,Wetlands - assess locally,Peat/wetland: fire-dependent AND ground-fire hazard; needs local hydrology/peat-depth/fire-history judgement rather than a screening verdict
-treat_fire_risk_for_people,Treat fire risk for people,High WFE near High/VH building density (proxy for people) or Moderate WFE near Very High building density; mechanical fuels reduction + home hardening / defensible-space inspections
-ecosystem_health_focus,Ecosystem health focus,High WFE away from dense buildings (building density Moderate or lower); beneficial/prescribed fire in fire-adapted systems
+treat_fire_risk_for_people,Treat fire risk near communities,High WFE near Moderate-or-higher building density (proxy for people) or Moderate WFE near Very High building density; mechanical fuels reduction + home hardening / defensible-space inspections
+ecosystem_health_focus,Ecosystem health focus,High WFE away from dense buildings (building density Low or Very Low); beneficial/prescribed fire in fire-adapted systems
 defer_monitor,Defer / monitor,Low WFE or no feasible outlet - not a current treatment target (excluded from Goldilocks)
 silvicultural_treatment,Silvicultural treatment (HINT),TREATMENT_HINT: non-commercial thinning through commercial harvest; ecosystem-specific
 silviculture_then_fire,Silviculture then fire (HINT),TREATMENT_HINT: thin/harvest first when needed for safe or effective fire

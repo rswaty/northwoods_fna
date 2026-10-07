@@ -12,7 +12,7 @@ Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW
 | EVT plantation | Yes | → **always** `value_to_protect_from_fire` |
 | EVT peat | Yes | → `wetlands_assess_locally` |
 | WFE category | Yes | **High / Very High** → people vs ecosystem split; **Moderate** → treat only with Very High buildings |
-| Building category (people proxy) | Yes | AOI **quintile** bins of building density (`PEOPLE_CAT`, same five labels as WFE). High/VH + High/VH WFE, or Very High + Moderate WFE → treat |
+| Building category (people proxy) | Yes | AOI **quintile** bins of building density (`PEOPLE_CAT`, same five labels as WFE). Moderate/High/VH + High/VH WFE, or Very High + Moderate WFE → treat |
 | EVT pine/oak list (top 3) | Yes | Safety net → ecosystem when buildings are **Moderate / Low / Very Low** (tighten) |
 | FDist fuel direction | Goldilocks + map | Score multiplier (add > remove) and brown/green layer |
 | EVT `FIRE` (−1/0/1) | Context | Popup / review only |
@@ -21,9 +21,9 @@ Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW
 
 ## Action cascade (first match wins)
 
-1. **Plantation** → `value_to_protect_from_fire`  
+1. **Plantation** → `value_to_protect_from_fire` (label: "Protect plantations from fire"; other mapped values can join later)  
 2. **Peat** → `wetlands_assess_locally`  
-3. **High/VH WFE + High/VH buildings**, or **Moderate WFE + Very High buildings** → `treat_fire_risk_for_people`  
+3. **High/VH WFE + Moderate/High/VH buildings**, or **Moderate WFE + Very High buildings** → `treat_fire_risk_for_people` (label: "Treat fire risk near communities")  
 4. **High/VH WFE** → `ecosystem_health_focus`  
 5. **Pine/oak in EVT top 3 + buildings Moderate/Low/VL** → `ecosystem_health_focus`  
 6. **Else** → `defer_monitor`  

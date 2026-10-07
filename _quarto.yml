@@ -10,6 +10,8 @@ project:
 website:
   title: "Next Gen FAA — Northwoods"
   navbar:
+    background: "#090d13"
+    foreground: "#f8fafc"
     left:
       - href: index.qmd
         text: Actions
@@ -20,7 +22,7 @@ website:
 
 format:
   html:
-    theme: cosmo
+    theme: [cosmo, styles/fna.scss]
     toc: false
     page-layout: full
     css: styles.css

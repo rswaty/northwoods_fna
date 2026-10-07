@@ -25,7 +25,7 @@ Point paths at Pro GDB / clipped rasters (including **FDist** as `landfire_fdist
 
 1. Plantation → `value_to_protect_from_fire`
 2. Peat → `wetlands_assess_locally`
-3. High/VH WFE + High/VH buildings, or Moderate WFE + Very High buildings → `treat_fire_risk_for_people`
+3. High/VH WFE + Moderate/High/VH buildings, or Moderate WFE + Very High buildings → `treat_fire_risk_for_people` ("Treat fire risk near communities")
 4. High/VH WFE → `ecosystem_health_focus`
 5. Pine/oak in EVT top 3 + buildings Moderate/Low/VL → `ecosystem_health_focus`
 6. Else → `defer_monitor`

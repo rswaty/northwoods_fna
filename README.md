@@ -10,7 +10,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 |-------|------|
 | **Hazard** | Existing **WFE** on ~10k-acre hexes (`MEAN` / `WFE_CAT` bins) |
 | **People (proxy)** | WRTC **Building Density** → `PEOPLE_CAT` (AOI quintiles, same five labels as WFE). Buildings stand in for people — where structures are, not a population count. Housing Unit Density is Context map only. Not HU Risk — that embeds wildfire and double-counts with WFE. |
-| **Plantations** | EVT flag → always **Value to protect from fire** (silviculture = `TREATMENT_HINT` only) |
+| **Plantations** | EVT flag → always **Protect plantations from fire** (`value_to_protect_from_fire`; other mapped values can join this category later; silviculture = `TREATMENT_HINT` only) |
 | **Peat** | LANDFIRE EVT → **`wetlands_assess_locally`** (fire-dependent *and* ground-fire hazard; swap to USFS peatlands later, same flag) |
 | **PAD-US** | GAP 1–3 → `PADUS_FRAC` on hexes for **map context only** (Leaflet). Not a score multiplier or action picker. |
 | **Ranking default** | **People-first** Goldilocks over actionable hexes (heat map + top-25% start-here outline; `GOLDILOCKS_PRIORITY` 0–3 still written) |
@@ -21,7 +21,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 
 1. Plantation → value_to_protect_from_fire  
 2. Peat → wetlands_assess_locally  
-3. High/VH WFE + High/VH buildings, or Moderate WFE + Very High buildings → treat_fire_risk_for_people  
+3. High/VH WFE + Moderate/High/VH buildings, or Moderate WFE + Very High buildings → treat_fire_risk_for_people ("Treat fire risk near communities")  
 4. High/VH WFE → ecosystem_health_focus  
 5. Pine/oak in EVT top 3 + buildings Moderate/Low/VL → ecosystem_health_focus  
 6. Else → defer_monitor  

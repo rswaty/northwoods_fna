@@ -65,7 +65,7 @@ Cutoffs are **relative to this Northwoods AOI** (recomputed each scoring run).
 **Buildings stand in for people.** WRTC Building Density tells us where structures are, not how many people live, work or recreate there — a block of seasonal cabins and a year-round neighborhood can look alike. The field keeps its `PEOPLE_CAT` name because it plays the "people" role in the rules.
 
 Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from **AOI quintiles** of Building Density (20/40/60/80th percentiles). In a low-density region, roughly one-fifth of hexes will always land in each bin — including High / Very High — even when absolute building density is modest. The bins rank *where structures are relatively more present within this AOI*, not where cities are. We use **Building Density** rather than Census Housing Unit Density so cabins, camps and other structures that housing data undersells still count; Housing Unit Density is shown on the Context map only. We use **density** (not Housing Unit Risk) so wildfire stays only in the WFE hazard leg.  
-**Treat for people** needs **High/VH buildings with High/VH WFE**, or **Very High buildings with Moderate WFE** (the densest places get a slightly lower exposure bar).
+**Treat fire risk near communities** needs **Moderate-or-higher buildings with High/VH WFE**, or **Very High buildings with Moderate WFE** (the densest places get a slightly lower exposure bar).
 
 ### Wildfire exposure
 
@@ -83,10 +83,10 @@ Rules are checked **in order**. The **first match wins**.
 
 | Order | Action | When |
 |------:|--------|------|
-| 1 | **Value to protect from fire** | Mostly a **plantation** |
+| 1 | **Protect plantations from fire** | Mostly a **plantation** (other mapped values can be added to this category later) |
 | 2 | **Wetlands — assess locally** | Mostly **peat / listed wetland** |
-| 3 | **Treat fire risk for people** | **High/VH WFE** and **High/VH buildings**, or **Moderate WFE** and **Very High buildings** |
-| 4 | **Ecosystem health focus** | **High/VH WFE** (buildings not High/VH) |
+| 3 | **Treat fire risk near communities** | **High/VH WFE** and **Moderate / High / VH buildings**, or **Moderate WFE** and **Very High buildings** |
+| 4 | **Ecosystem health focus** | **High/VH WFE** (buildings Low / Very Low) |
 | 5 | **Ecosystem health focus** | **Pine/oak in top 3** and buildings **Moderate / Low / Very Low** |
 | 6 | **Defer and Monitor** | Nothing above matched |
 
@@ -96,13 +96,13 @@ PAD and BpS never pick the action. Fuel never picks the action.
 
 ## Worked examples
 
-**1. Plantation** → **Value to protect from fire.**
+**1. Plantation** → **Protect plantations from fire.** Plantations are the only value mapped so far; other mappable values (infrastructure, cultural sites, fire-sensitive species) could join this category.
 
-**2. Relatively high building density for the AOI (High/VH buildings) + High WFE** → **Treat fire risk for people.**
+**2. Moderate or higher building density for the AOI + High WFE** → **Treat fire risk near communities.**
 
-**3. Very High building density + Moderate WFE** → **Treat fire risk for people.**
+**3. Very High building density + Moderate WFE** → **Treat fire risk near communities.**
 
-**4. Remote pine, Moderate or lower buildings** → **Ecosystem health focus.**
+**4. Remote pine, Low or Very Low buildings, High WFE** → **Ecosystem health focus.**
 
 **5. Low WFE, High/VH buildings** → **Defer.** Buildings alone do not create treat.
 

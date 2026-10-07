@@ -3,17 +3,17 @@
 Actions (first match):
   - plantation → value_to_protect_from_fire
   - peat / wetland → wetlands_assess_locally
-  - High/VH WFE bin + High/VH people bin → treat_fire_risk_for_people
+  - High/VH WFE bin + Moderate/High/VH people bin → treat_fire_risk_for_people
   - Moderate WFE bin + Very High people bin → treat_fire_risk_for_people
-  - High/VH WFE bin (any other people bin) → ecosystem_health_focus
+  - High/VH WFE bin (Low / Very Low people) → ecosystem_health_focus
   - pine/oak in EVT top 3 + people Moderate/Low/Very Low → ecosystem_health_focus
   - else → defer_monitor
 
 WFE gate: category bins only (High / Very High). No MEAN percentile bypass.
 People gate: five AOI quintile bins (Very Low … Very High) of building density,
   a proxy for where people live, work and recreate; same label set as WFE.
-  Treat-for-people needs High/VH people with High/VH WFE, or Very High people
-  with Moderate WFE.
+  Treat-for-people (label: "Treat fire risk near communities") needs
+  Moderate-or-higher people with High/VH WFE, or Very High people with Moderate WFE.
 Pine safety net (tighten): top-3 EVT list match only when people are not High/VH.
   High/VH people + pine + not High/VH WFE → defer (buildings alone do not create treat),
   except Moderate WFE + Very High people, which treats.
@@ -163,7 +163,7 @@ def assign_action_v1(
     high_wfe = is_high_wfe(wfe_cat)
     high_people = is_high_people(people_cat)
 
-    if high_wfe and high_people:
+    if high_wfe and (high_people or is_moderate_bin(people_cat)):
         return "treat_fire_risk_for_people"
     if is_moderate_bin(wfe_cat) and is_very_high_bin(people_cat):
         return "treat_fire_risk_for_people"
