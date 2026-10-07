@@ -65,7 +65,8 @@ if (has_hex) {
       ),
       action_label = factor(action_label, levels = action_levels),
       is_wetland = ACTION_CLASS == "wetlands_assess_locally",
-      acres = as.numeric(st_area(geometry)) / 4046.8564224
+      # Equal-area CONUS Albers; st_area on lon/lat uses a sphere (~0.25% low)
+      acres = as.numeric(st_area(st_transform(geometry, 5070))) / 4046.8564224
     )
 }
 ```
@@ -129,7 +130,7 @@ if (has_hex) {
       value = fmt_n(nrow(hex)),
       unit = "hexes",
       sub = paste0("<strong>", fmt_ac(total_ac), "</strong> across the Northwoods AOI<br/>",
-                   "~10,000-acre hexagons"),
+                   "Bailey Province 212, Sections H–N; ~10,000-acre hexagons"),
       pills = list("Actionable" = fmt_n(sum(!hex$ACTION_CLASS %in% c("defer_monitor", "wetlands_assess_locally")))),
       accent = "#38bdf8"
     ),
@@ -154,7 +155,7 @@ if (has_hex) {
 ```
 
 
-The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, building density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.  
+The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that about 4.7M acres (30 m pixels) are in the two highest Wildfire Exposure Risk classes, WFE 60–100 (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). Hex categories average exposure over ~10,000 acres, so fewer acres (`r if (has_hex) fmt_ac(sum(hex$acres[high_wfe])) else "fewer"`) land in the High / Very High hex categories. In this dashboard I work to prioritize what to do where with aggressive filtering, building density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.  
 
 
 You can toggle **Action class**, **Goldilocks**, **Fuel change (FDist)**, or **Basemap only** in the top-right panel. Goldilocks ranks **actionable hexes only** (not defer / wetlands) white → dark purple by urgency; defer and wetlands stay grey. Fuel change is its own view (brown = add, green = remove). Choose **Basemap only** to hide hexes and explore the map underneath. For more information also see [Context](context.qmd) and [Methods](methods.qmd).  
