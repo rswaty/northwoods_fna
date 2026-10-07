@@ -31,17 +31,8 @@ wfe_cat_colors <- c(
   "Very High" = "#a50f15"
 )
 
-# Soft purple (AOI-relative housing density; VL/Low white so sparse AOI reads light)
+# Teal (AOI-relative building density = PEOPLE_CAT; VL/Low white so sparse AOI reads light)
 people_cat_colors <- c(
-  "Very Low" = "#ffffff",
-  "Low" = "#ffffff",
-  "Moderate" = "#dadaeb",
-  "High" = "#bcbddc",
-  "Very High" = "#756bb1"
-)
-
-# Teal (AOI-relative building density — cabins / other footprints ≥40 m²)
-building_cat_colors <- c(
   "Very Low" = "#ffffff",
   "Low" = "#ffffff",
   "Moderate" = "#99d8c9",
@@ -49,9 +40,18 @@ building_cat_colors <- c(
   "Very High" = "#005824"
 )
 
+# Soft purple (AOI-relative Census housing density — context only)
+housing_cat_colors <- c(
+  "Very Low" = "#ffffff",
+  "Low" = "#ffffff",
+  "Moderate" = "#dadaeb",
+  "High" = "#bcbddc",
+  "Very High" = "#756bb1"
+)
+
 # Layer control + legend must use the same string (sync JS matches on it)
-people_layer <- "Relative housing density (AOI)"
-building_layer <- "Relative building density (cabins & other)"
+people_layer <- "Relative building density (AOI)"
+housing_layer <- "Relative housing density (Census units)"
 
 pine_codes <- tryCatch(
   {
@@ -78,7 +78,7 @@ aoi_quintile_bin <- function(x) {
 
 These layers are **context**: they help interpret why a hex got an action. They do **not** replace the [Actions](index.qmd) map. Switch layers with the control (top-right); the legend updates with the active layer.
 
-**Housing density** (purple) drives people bins in the model — Census housing units, including seasonal / vacation homes. **Building density** (teal) is map-only: WRTC footprints ≥40 m² (homes, cabins, commercial, industrial). Use it to spot camps and other structures that housing data undersells. It does **not** pick actions or Goldilocks. Both are **relative to this Northwoods AOI** — High / Very High means “more *here* than elsewhere in the AOI,” not urban density.
+**Building density** (teal) drives people bins in the model — WRTC footprints ≥40 m² (homes, cabins, camps, commercial, industrial), so it picks up structures that Census housing undersells. **Housing density** (purple) is map-only: Census housing units, including seasonal / vacation homes. It does **not** pick actions or Goldilocks. Both are **relative to this Northwoods AOI** — High / Very High means “more *here* than elsewhere in the AOI,” not urban density.
 
 PAD is shown for orientation only — it does not pick actions or Goldilocks scores. See [Methods](methods.qmd).
 
@@ -94,12 +94,14 @@ if (!has_hex) {
   hex <- st_read(hex_path, quiet = TRUE)
   has_building <- "WRTC_BLDG_DENSITY_MEAN" %in% names(hex) &&
     any(!is.na(as.numeric(hex$WRTC_BLDG_DENSITY_MEAN)))
+  has_housing <- "WRTC_HU_DENSITY_MEAN" %in% names(hex) &&
+    any(!is.na(as.numeric(hex$WRTC_HU_DENSITY_MEAN)))
 
   if (!has_building) {
     cat(
-      "> **Building density layer not on hexes yet.** Clip WRTC Building Density ",
-      "for MI/WI/MN, set `wrtc_building_density` in `config/paths.local.yaml`, ",
-      "re-run `02` → `05`, then re-render. Until then the teal layer is omitted.\n\n"
+      "> **Building density not on hexes yet.** Set `wrtc_building_density` in ",
+      "`config/paths.local.yaml`, re-run `02` → `05`, then re-render. Until then ",
+      "the people layer shows bins from an older housing-based export.\n\n"
     )
   }
 
@@ -128,11 +130,11 @@ if (!has_hex) {
       PINE_OAK_PCT = pmin(100, PINE_OAK_PCT)
     )
 
-  if (has_building) {
+  if (has_housing) {
     hex <- hex |>
       mutate(
-        WRTC_BLDG_DENSITY_MEAN = as.numeric(WRTC_BLDG_DENSITY_MEAN),
-        BUILDING_CAT = aoi_quintile_bin(WRTC_BLDG_DENSITY_MEAN)
+        WRTC_HU_DENSITY_MEAN = as.numeric(WRTC_HU_DENSITY_MEAN),
+        HOUSING_CAT = aoi_quintile_bin(WRTC_HU_DENSITY_MEAN)
       )
   }
 
@@ -182,9 +184,9 @@ if (!has_hex) {
   } else {
     rep("", nrow(hex))
   }
-  building_bit <- if (has_building) {
+  housing_bit <- if (has_housing) {
     paste0(
-      "Relative building density: ", as.character(hex$BUILDING_CAT), "<br/>"
+      "Relative housing density (context): ", as.character(hex$HOUSING_CAT), "<br/>"
     )
   } else {
     rep("", nrow(hex))
@@ -201,8 +203,8 @@ if (!has_hex) {
       popup_html = paste0(
         "<b>", GRID_ID, "</b><br/>",
         "Wildfire Exposure Risk: ", as.character(WFE_CAT), "<br/>",
-        "Relative housing density: ", as.character(PEOPLE_CAT), "<br/>",
-        building_bit,
+        "Relative building density (people): ", as.character(PEOPLE_CAT), "<br/>",
+        housing_bit,
         "Pine/oak in top 3 EVTs: ", round(PINE_OAK_PCT, 0), "% of hex<br/>",
         "PAD-US GAP 1–3 fraction: ", round(PADUS_FRAC, 2), "<br/>",
         "Fuel change (FDist): ", round(FDIST_FUEL_DELTA, 3),
@@ -223,7 +225,7 @@ if (!has_hex) {
   base_groups <- c(
     "Wildfire Exposure Risk category",
     people_layer,
-    if (has_building) building_layer else NULL,
+    if (has_housing) housing_layer else NULL,
     "Pine/oak amount (top 3 EVTs)",
     "PAD-US GAP 1–3 fraction",
     "Recent fuel change (FDist)"
@@ -258,16 +260,16 @@ if (!has_hex) {
       popup = ~ popup_html
     )
 
-  if (has_building) {
+  if (has_housing) {
     m <- m |>
       addPolygons(
         data = hex,
-        fillColor = ~ unname(building_cat_colors[as.character(BUILDING_CAT)]),
+        fillColor = ~ unname(housing_cat_colors[as.character(HOUSING_CAT)]),
         fillOpacity = 0.75,
         color = "#333333",
         weight = 0.1,
         opacity = 0.35,
-        group = building_layer,
+        group = housing_layer,
         popup = ~ popup_html
       )
   }
@@ -320,20 +322,20 @@ if (!has_hex) {
       group = people_layer
     )
 
-  if (has_building) {
+  if (has_housing) {
     m <- m |>
       addLegend(
         position = "bottomright",
-        colors = unname(building_cat_colors[bin_levels]),
+        colors = unname(housing_cat_colors[bin_levels]),
         labels = bin_levels,
-        title = building_layer,
+        title = housing_layer,
         opacity = 0.9,
-        group = building_layer
+        group = housing_layer
       )
   }
 
-  title_map_extra <- if (has_building) {
-    sprintf(",\n          '%s': '%s'", building_layer, building_layer)
+  title_map_extra <- if (has_housing) {
+    sprintf(",\n          '%s': '%s'", housing_layer, housing_layer)
   } else {
     ""
   }

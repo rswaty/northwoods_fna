@@ -192,17 +192,18 @@ def main() -> None:
             arcpy.management.AddField(hexes, name, ftype)
 
     field_names = [f.name for f in arcpy.ListFields(hexes)]
-    # People = Housing Unit Density (where homes are). Not HU Risk — that
-    # embeds wildfire likelihood/intensity and double-counts with WFE.
+    # People = Building Density (homes, cabins, camps, commercial ≥40 m²).
+    # Housing Unit Density is Context only. Not HU Risk — that embeds
+    # wildfire likelihood/intensity and double-counts with WFE.
     homes_field = None
-    for candidate in ("WRTC_HU_DENSITY_MEAN", "WRTC_HU_RISK_MEAN", "WRTC_HU_MEAN"):
+    for candidate in ("WRTC_BLDG_DENSITY_MEAN", "WRTC_HU_DENSITY_MEAN", "WRTC_HU_RISK_MEAN", "WRTC_HU_MEAN"):
         if candidate in field_names:
             homes_field = candidate
             break
-    if homes_field != "WRTC_HU_DENSITY_MEAN":
+    if homes_field != "WRTC_BLDG_DENSITY_MEAN":
         print(
             f"WARNING: using {homes_field or 'NONE'} for people — "
-            "prefer WRTC_HU_DENSITY_MEAN (run 02 with density path set)."
+            "prefer WRTC_BLDG_DENSITY_MEAN (run 02 with building density path set)."
         )
 
     read_fields = [hex_id, wfe_field]

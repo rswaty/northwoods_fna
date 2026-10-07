@@ -104,24 +104,26 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
     peat_codes, plant_codes = _load_evt_flags()
     presets = {r["preset_id"]: r for r in _read_csv(CONFIG / "weight_presets.csv")}
 
-    # Density first (where homes are). Risk fallback for older exports only.
-    use_density = any(r.get("WRTC_HU_DENSITY_MEAN") not in (None, "") for r in rows)
+    # Building Density first (homes, cabins, camps, commercial). Housing Unit
+    # Density / Risk fallbacks for older exports only.
+    people_field = next(
+        (
+            f
+            for f in ("WRTC_BLDG_DENSITY_MEAN", "WRTC_HU_DENSITY_MEAN", "WRTC_HU_RISK_MEAN", "WRTC_HU_MEAN")
+            if any(r.get(f) not in (None, "") for r in rows)
+        ),
+        None,
+    )
 
     def _homes(row: dict) -> float:
-        if use_density:
-            return _f(row.get("WRTC_HU_DENSITY_MEAN"))
-        return _f(row.get("WRTC_HU_RISK_MEAN", row.get("WRTC_HU_MEAN")))
+        return _f(row.get(people_field)) if people_field else 0.0
 
     homes_list = [_homes(r) for r in rows]
     edges = quintile_edges(homes_list)
-    print(
-        "People input: "
-        + (
-            f"Housing Unit Density ({sum(1 for r in rows if r.get('WRTC_HU_DENSITY_MEAN') not in (None, ''))}/{len(rows)} hexes)"
-            if use_density
-            else "Housing Unit Risk (legacy fallback — density missing)"
-        )
-    )
+    n_with = sum(1 for r in rows if people_field and r.get(people_field) not in (None, ""))
+    print(f"People input: {people_field or 'NONE'} ({n_with}/{len(rows)} hexes)")
+    if people_field != "WRTC_BLDG_DENSITY_MEAN":
+        print("WARNING: WRTC_BLDG_DENSITY_MEAN missing — legacy fallback for people bins.")
 
     out = []
     for r in rows:

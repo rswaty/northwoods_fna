@@ -39,7 +39,7 @@ PAD 1–3 already answers: “boost places where agencies/partners can act and l
 | **Surfaces unprotected resilient land** | High WRTC or high WFE on resilient private land gets a bump PAD alone would miss |
 | **Connectivity / climate flow** | Optional later nuance: prefer hexes that keep resilient networks linked |
 
-**Concrete example:** two hexes with similar Housing Unit Density and WFE—one is GAP 3 National Forest (PAD boost), one is resilient private timberland (no PAD). With PAD only, the NF ranks higher. With resilient lands added, the private resilient hex can catch up when partners care about climate-smart biodiversity *and* people.
+**Concrete example:** two hexes with similar Building Density and WFE—one is GAP 3 National Forest (PAD boost), one is resilient private timberland (no PAD). With PAD only, the NF ranks higher. With resilient lands added, the private resilient hex can catch up when partners care about climate-smart biodiversity *and* people.
 
 **What it is not:** a species list, a recreation layer, or a reason to treat away from homes. Under people-first, resilient lands only **re-order** among already-urgent hexes (or pull in a few resilient high-WFE areas partners care about).
 

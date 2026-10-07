@@ -1,11 +1,12 @@
 """Zonal statistics: WRTC people layers → hex means.
 
-Primary: Housing Unit Density → WRTC_HU_DENSITY_MEAN (drives PEOPLE_CAT /
-people-first scoring). Density = where homes are; keeps WFE as the sole
+Primary: Building Density → WRTC_BLDG_DENSITY_MEAN (drives PEOPLE_CAT /
+people-first scoring). Footprints ≥40 m² capture homes, cabins, camps and
+commercial structures that Census housing undersells. Keeps WFE as the sole
 hazard leg (HU Risk embeds wildfire and double-counts with WFE).
 
-Optional companions: Housing Unit Risk, Housing Unit Exposure,
-Building Density (cabins / other footprints — Context map only).
+Optional companions (Context map only, not scored): Housing Unit Density,
+Housing Unit Risk, Housing Unit Exposure.
 
 Requires Spatial Analyst. Writes onto a working hex copy in the workspace GDB
 (does not overwrite the source hex feature class).
@@ -38,8 +39,8 @@ def _zonal_mean(
     housing layers, NoData means "no homes here" = 0, so fill_zero replaces
     NULL with 0. Count how many were filled for transparency.
 
-    Housing Unit Density is spatially smoothed (tiny nonzero empties are normal);
-    fill_zero still applies when zonal returns no row for a hex.
+    Building / Housing Unit Density are spatially smoothed (tiny nonzero empties
+    are normal); fill_zero still applies when zonal returns no row for a hex.
     """
     arcpy.sa.ZonalStatisticsAsTable(
         in_zone_data=zones,
@@ -86,15 +87,15 @@ def main() -> None:
     # Set wrtc_fill_nodata_zero: "false" in paths.local.yaml to keep NULLs.
     fill_zero = str(cfg.get("wrtc_fill_nodata_zero", "true")).strip().lower() != "false"
 
-    if not density:
+    if not building:
         raise SystemExit(
-            "Set wrtc_housing_unit_density (Housing Unit Density) in "
+            "Set wrtc_building_density (Building Density) in "
             "config/paths.local.yaml — primary people input"
         )
     if not arcpy.Exists(hexes):
         raise SystemExit(f"Hexes not found: {hexes}")
-    if not arcpy.Exists(density):
-        raise SystemExit(f"WRTC Housing Unit Density raster not found: {density}")
+    if not arcpy.Exists(building):
+        raise SystemExit(f"WRTC Building Density raster not found: {building}")
 
     if workspace:
         arcpy.env.workspace = workspace
@@ -104,8 +105,21 @@ def main() -> None:
     print(f"Copying hexes → {out_fc}")
     arcpy.management.CopyFeatures(hexes, out_fc)
 
-    print("Primary zonal: Housing Unit Density → WRTC_HU_DENSITY_MEAN")
-    _zonal_mean(arcpy, out_fc, hex_id, density, "zonal_wrtc_den", "WRTC_HU_DENSITY_MEAN", fill_zero)
+    print("Primary zonal: Building Density → WRTC_BLDG_DENSITY_MEAN")
+    _zonal_mean(
+        arcpy, out_fc, hex_id, building, "zonal_wrtc_bldg", "WRTC_BLDG_DENSITY_MEAN", fill_zero
+    )
+
+    if density and arcpy.Exists(density):
+        print("Context zonal: Housing Unit Density → WRTC_HU_DENSITY_MEAN (not scored)")
+        _zonal_mean(
+            arcpy, out_fc, hex_id, density, "zonal_wrtc_den", "WRTC_HU_DENSITY_MEAN", fill_zero
+        )
+    else:
+        print(
+            "Skipping Housing Unit Density (path empty or not found) — "
+            "optional Context companion"
+        )
 
     if risk and arcpy.Exists(risk):
         print("Companion zonal: Housing Unit Risk → WRTC_HU_RISK_MEAN")
@@ -126,17 +140,6 @@ def main() -> None:
         _zonal_mean(arcpy, out_fc, hex_id, exposure, "zonal_wrtc_exp", "WRTC_HU_EXPOSURE_MEAN", fill_zero)
     else:
         print("Skipping Housing Unit Exposure (path empty or not found)")
-
-    if building and arcpy.Exists(building):
-        print("Context zonal: Building Density → WRTC_BLDG_DENSITY_MEAN (not scored)")
-        _zonal_mean(
-            arcpy, out_fc, hex_id, building, "zonal_wrtc_bldg", "WRTC_BLDG_DENSITY_MEAN", fill_zero
-        )
-    else:
-        print(
-            "Skipping Building Density (path empty or not found) — "
-            "optional Context companion for cabins/other buildings"
-        )
 
     print(f"Done. Working feature class: {out_fc}")
     print("Next: 03_zonal_evt_padus.py")

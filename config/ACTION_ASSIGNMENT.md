@@ -31,7 +31,7 @@ Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW
 ### Bins
 
 - **WFE:** use product `WFE_CAT` (Very Low … Very High). Actions use High/VH only — no MEAN percentile bypass.  
-- **People:** `PEOPLE_CAT` from AOI quintiles of `WRTC_HU_DENSITY_MEAN` (20/40/60/80th cuts → Very Low … Very High). Treat needs High/VH.  
+- **People:** `PEOPLE_CAT` from AOI quintiles of `WRTC_BLDG_DENSITY_MEAN` (20/40/60/80th cuts → Very Low … Very High). Treat needs High/VH.  
   Housing Unit Risk is **not** used for people (embeds wildfire; double-counts with WFE).  
 - **Pine tighten:** High/VH people + pine + not High/VH WFE → **defer** (homes alone never create treat).
 

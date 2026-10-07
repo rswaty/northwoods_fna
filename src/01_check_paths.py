@@ -16,10 +16,10 @@ REQUIRED = [
 
 RECOMMENDED = [
     "aoi",
+    "wrtc_building_density",
     "wrtc_housing_unit_density",
     "wrtc_housing_unit_risk",
     "wrtc_housing_unit_exposure",
-    "wrtc_building_density",
     "landfire_evt",
     "landfire_bps",
     "landfire_fdist",
@@ -32,7 +32,7 @@ def main() -> None:
     cfg = load_paths()
     print("Repo:", cfg["_repo_root"])
     print(
-        "v1: people = Housing Unit Density; WFE = hazard; "
+        "v1: people = Building Density; WFE = hazard; "
         "PAD GAP 1-3 context; EVT = peat + plantations"
     )
     print("Checking required inputs…")
@@ -50,25 +50,25 @@ def main() -> None:
         print(f"  {'OK' if exists else 'NOT FOUND'}: {key} -> {val}")
         ok = ok and exists
 
-    # Primary people raster = Housing Unit Density
-    density = cfg.get("wrtc_housing_unit_density", "")
-    if density:
-        exists = arcpy.Exists(density)
+    # Primary people raster = Building Density
+    building = cfg.get("wrtc_building_density", "")
+    if building:
+        exists = arcpy.Exists(building)
         print(
             f"  {'OK' if exists else 'NOT FOUND'}: "
-            f"wrtc_housing_unit_density (PRIMARY people) -> {density}"
+            f"wrtc_building_density (PRIMARY people) -> {building}"
         )
         ok = ok and exists
     else:
         print(
-            "  empty: wrtc_housing_unit_density "
+            "  empty: wrtc_building_density "
             "(PRIMARY — set before 02_zonal_wrtc.py)"
         )
         ok = False
 
     print("Recommended (fill when ready):")
     for key in RECOMMENDED:
-        if key == "wrtc_housing_unit_density":
+        if key == "wrtc_building_density":
             continue  # already reported as primary
         val = cfg.get(key, "")
         if not val:

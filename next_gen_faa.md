@@ -60,7 +60,7 @@ ICO / variable-density thinning is one example for some dense red pine plantatio
 
   - Plantation (EVT) → **Protect from wildfire** (always)
 
-  - High WRTC Housing Unit Density + High WFE → **Protect from wildfire** / treat for people
+  - High WRTC Building Density + High WFE → **Protect from wildfire** / treat for people
 
   - High WFE → **Restore with beneficial fire**
 
@@ -104,7 +104,7 @@ Source: [wildfirerisk.org/download](https://wildfirerisk.org/download/) (May 202
 
   | Role | Dataset | Use |
 
-  | **Primary** | **Housing Unit Density** (or Count) | Where Census housing is (incl. seasonal). Main people term → `PEOPLE_CAT`; High/VH people × High/VH WFE → treat for people. |
+  | **Primary** | **Building Density** | Where structures ≥40 m² are (homes, cabins, camps, commercial). Main people term → `PEOPLE_CAT`; High/VH people × High/VH WFE → treat for people. Housing Unit Density = Context map only. |
 
   | Optional companion | **Housing Unit Risk** | Likelihood × intensity × susceptibility × density. Context only — embeds wildfire (double-counts with WFE). |
 
@@ -114,7 +114,7 @@ Source: [wildfirerisk.org/download](https://wildfirerisk.org/download/) (May 202
 
   | Optional triangulation | **Risk to Potential Structures** (“Risk to Homes”) | Wall-to-wall risk *if* a home were there. Not primary for Protect (no homes required). |
 
-**Not primary for v1 people scoring:** Housing Unit Risk / Exposure (wildfire already in WFE); Housing Unit Impact (no likelihood); WRTC burn probability / WHP as a second hazard; Building Count (prefer Housing Unit for people; Building Density may come later as Context); Population (equity later).
+**Not primary for v1 people scoring:** Housing Unit Risk / Exposure (wildfire already in WFE); Housing Unit Impact (no likelihood); WRTC burn probability / WHP as a second hazard; Building Count (Building Density is used instead); Housing Unit Density (Context map only); Population (equity later).
 
 [SILVIS WUI](https://silvis.forest.wisc.edu/data/wui-change/) remains an optional label only (2020).
 

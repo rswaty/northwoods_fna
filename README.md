@@ -9,7 +9,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 | Piece | Rule |
 |-------|------|
 | **Hazard** | Existing **WFE** on ~10k-acre hexes (`MEAN` / `WFE_CAT` bins) |
-| **People** | WRTC **Housing Unit Density** → `PEOPLE_CAT` (AOI quintiles, same five labels as WFE). Not HU Risk — that embeds wildfire and double-counts with WFE. |
+| **People** | WRTC **Building Density** → `PEOPLE_CAT` (AOI quintiles, same five labels as WFE). Housing Unit Density is Context map only. Not HU Risk — that embeds wildfire and double-counts with WFE. |
 | **Plantations** | EVT flag → always **Value to protect from fire** (silviculture = `TREATMENT_HINT` only) |
 | **Peat** | LANDFIRE EVT → **`wetlands_assess_locally`** (fire-dependent *and* ground-fire hazard; swap to USFS peatlands later, same flag) |
 | **PAD-US** | GAP 1–3 → `PADUS_FRAC` on hexes for **map context only** (Leaflet). Not a score multiplier or action picker. |

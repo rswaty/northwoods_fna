@@ -44,7 +44,7 @@ gold_heat_colors <- c(
 ```
 
 
-The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, housing density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.  
+The Northwoods Region has no shortage of fire adapted ecosystems.  We have calculated that at least 4.6M acres are in moderate to high Wildfire Exposure Risk categories (see [initial exploration (Risk tab)](https://rswaty.github.io/northwoods/)). In this dashboard I work to prioritize what to do where with aggressive filtering, building density data and draft "Action" assignments in hopes of getting at actionable areas. I am trying to find the middle ground, aka "The Goldilocks" range of areas-a stretch while also being doable.  **These maps are not meant to be the final answer** but instead guides of where to dig deeper.  
 
 
 You can toggle **Action class**, **Goldilocks**, **Fuel change (FDist)**, or **Basemap only** in the top-right panel. Goldilocks ranks **actionable hexes only** (not defer / wetlands) white → dark purple by urgency; defer and wetlands stay grey. Fuel change is its own view (brown = add, green = remove). Choose **Basemap only** to hide hexes and explore the map underneath. For more information also see [Context](context.qmd) and [Methods](methods.qmd).  

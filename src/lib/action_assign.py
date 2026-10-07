@@ -88,7 +88,7 @@ def quintile_edges(values: list[float]) -> list[float]:
 
 
 def assign_people_bin(homes: float, edges: list[float]) -> str:
-    """Map WRTC housing density (or legacy risk) to Very Low … Very High."""
+    """Map WRTC building density (or legacy housing fields) to Very Low … Very High."""
     if len(edges) < 4:
         edges = quintile_edges([homes])
     e0, e1, e2, e3 = edges[0], edges[1], edges[2], edges[3]

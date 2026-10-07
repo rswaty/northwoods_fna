@@ -39,7 +39,7 @@ Examples of conversation types:
 | Input | Plain meaning |
 |-------|----------------|
 | **Wildfire exposure (WFE)** | Where fire can transmit embers across the landscape *today* |
-| **People (WRTC Housing Unit Density)** | Where Census housing is (incl. seasonal homes) — not community wildfire risk |
+| **People (WRTC Building Density)** | Where structures are (homes, cabins, camps, commercial ≥40 m²) — not community wildfire risk |
 | **Plantations** | Managed tree farms treated as timber assets (from LANDFIRE EVT) |
 | **Peat / wetlands** | Peat and similar wetlands that need a local call (from EVT) |
 | **Pine / oak list** | Short EVT list; any of top 3 EVTs + people Moderate/Low/VL → ecosystem safety net |
@@ -62,7 +62,7 @@ Cutoffs are **relative to this Northwoods AOI** (recomputed each scoring run).
 
 ### People bins (`PEOPLE_CAT`)
 
-Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from **AOI quintiles** of Housing Unit Density (20/40/60/80th percentiles). In a low-density region, roughly one-fifth of hexes will always land in each bin — including High / Very High — even when absolute home density is modest. The bins rank *where housing is relatively more present within this AOI*, not where cities are. We use **density** (not Housing Unit Risk) so wildfire stays only in the WFE hazard leg.  
+Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from **AOI quintiles** of Building Density (20/40/60/80th percentiles). In a low-density region, roughly one-fifth of hexes will always land in each bin — including High / Very High — even when absolute building density is modest. The bins rank *where structures are relatively more present within this AOI*, not where cities are. We use **Building Density** rather than Census Housing Unit Density so cabins, camps and other structures that housing data undersells still count; Housing Unit Density is shown on the Context map only. We use **density** (not Housing Unit Risk) so wildfire stays only in the WFE hazard leg.  
 **Treat for people** still needs **High or Very High** people **and** High/VH WFE.
 
 ### Wildfire exposure
