@@ -9,7 +9,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 | Piece | Rule |
 |-------|------|
 | **Hazard** | Existing **WFE** on ~10k-acre hexes (`MEAN` / `WFE_CAT` bins) |
-| **People** | WRTC **Housing Unit Risk** → `PEOPLE_CAT` (AOI quintiles, same five labels as WFE) |
+| **People** | WRTC **Housing Unit Density** → `PEOPLE_CAT` (AOI quintiles, same five labels as WFE). Not HU Risk — that embeds wildfire and double-counts with WFE. |
 | **Plantations** | EVT flag → always **Value to protect from fire** (silviculture = `TREATMENT_HINT` only) |
 | **Peat** | LANDFIRE EVT → **`wetlands_assess_locally`** (fire-dependent *and* ground-fire hazard; swap to USFS peatlands later, same flag) |
 | **PAD-US** | GAP 1–3 → `PADUS_FRAC` on hexes for **map context only** (Leaflet). Not a score multiplier or action picker. |
@@ -67,7 +67,7 @@ faa_overview.qmd / faa_how_it_works.qmd / next_gen_faa.md
 
 1. Clone this repo.
 2. Copy `config/paths.example.yaml` → `config/paths.local.yaml` and set local paths (gitignored).
-3. Stage in Pro: WFE hexes, WRTC HU Risk (+ optional Exposure/Density), LANDFIRE EVT, PAD-US (raster OK).
+3. Stage in Pro: WFE hexes, WRTC HU Density (+ optional Risk/Exposure), LANDFIRE EVT, PAD-US (raster OK).
 4. Add peat/plantation EVT codes to `config/evt_rules_draft.csv` when classified.
 5. Run `src/01` → `05` in Pro Python (see `src/README.md`).
 6. Push `outputs/hex/faa_hex_scores.geojson`; render `dashboard/` in Quarto.

@@ -104,8 +104,24 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
     peat_codes, plant_codes = _load_evt_flags()
     presets = {r["preset_id"]: r for r in _read_csv(CONFIG / "weight_presets.csv")}
 
-    homes_list = [_f(r.get("WRTC_HU_RISK_MEAN", r.get("WRTC_HU_MEAN"))) for r in rows]
+    # Density first (where homes are). Risk fallback for older exports only.
+    use_density = any(r.get("WRTC_HU_DENSITY_MEAN") not in (None, "") for r in rows)
+
+    def _homes(row: dict) -> float:
+        if use_density:
+            return _f(row.get("WRTC_HU_DENSITY_MEAN"))
+        return _f(row.get("WRTC_HU_RISK_MEAN", row.get("WRTC_HU_MEAN")))
+
+    homes_list = [_homes(r) for r in rows]
     edges = quintile_edges(homes_list)
+    print(
+        "People input: "
+        + (
+            f"Housing Unit Density ({sum(1 for r in rows if r.get('WRTC_HU_DENSITY_MEAN') not in (None, ''))}/{len(rows)} hexes)"
+            if use_density
+            else "Housing Unit Risk (legacy fallback — density missing)"
+        )
+    )
 
     out = []
     for r in rows:
@@ -121,7 +137,7 @@ def rescore_rows(rows: list[dict]) -> list[dict]:
             peat = evt_key in peat_codes
 
         pine_flag = _pine_top3(r, pine)
-        homes = _f(r.get("WRTC_HU_RISK_MEAN", r.get("WRTC_HU_MEAN")))
+        homes = _homes(r)
         wfe = _f(r.get("MEAN"))
         wfe_cat = (r.get("WFE_CAT") or "").strip() or None
         people_cat = assign_people_bin(homes, edges)

@@ -21,15 +21,17 @@ aoi: "C:/Users/YOU/Documents/ArcGIS/Projects/northwoods_faa/northwoods_faa.gdb/n
 
 # Rasters — local only; never commit
 # WRTC (May 2024): see config/WRTC_DATASETS.md
-wrtc_housing_unit_risk: "C:/path/to/nw_aoi_hu_risk"           # PRIMARY people risk
-wrtc_housing_unit_exposure: "C:/path/to/nw_aoi_hu_exposure"   # companion
-wrtc_housing_unit_density: "C:/path/to/nw_aoi_hu_density"     # where homes are
+wrtc_housing_unit_density: "C:/path/to/nw_aoi_hu_density"     # PRIMARY people (where homes are)
+wrtc_housing_unit_risk: "C:/path/to/nw_aoi_hu_risk"           # optional companion (not scored)
+wrtc_housing_unit_exposure: "C:/path/to/nw_aoi_hu_exposure"   # optional companion
+# WRTC Building Density — Context map only (cabins / commercial ≥40 m²); not scored
+wrtc_building_density: "C:/path/to/nw_aoi_building_density"
 wrtc_risk_reduction_zones: ""   # optional CWiRRZ categorical
 wrtc_risk_to_homes: ""          # optional RPS / wall-to-wall; not primary for protect
-# legacy alias — point at Housing Unit Risk
+# legacy alias — optional; was Housing Unit Risk when that was primary
 wrtc_housing_exposure: "C:/path/to/nw_aoi_hu_risk"
-# WRTC Risk/Exposure are NoData where no homes exist → script fills NULL hexes
-# with 0 (no homes = 0 housing risk). Set "false" to keep NULLs instead.
+# WRTC housing layers: NoData = no homes → script fills NULL hexes with 0.
+# Set "false" to keep NULLs instead.
 wrtc_fill_nodata_zero: "true"
 landfire_evt: "C:/path/to/nw_aoi_evt"
 # LANDFIRE BpS (reference ecosystems) — zonal majority → BPS_MAJORITY; joined to

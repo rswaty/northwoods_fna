@@ -5,7 +5,7 @@ Run in order from **ArcGIS Pro Python** (Python window, Notebook, or Pro `python
 | Script | Purpose |
 |--------|---------|
 | `01_check_paths.py` | Validate `config/paths.local.yaml` |
-| `02_zonal_wrtc.py` | WRTC **Housing Unit Risk** (primary) → `WRTC_HU_RISK_MEAN`; optional Exposure / Density |
+| `02_zonal_wrtc.py` | WRTC **Housing Unit Density** (primary) → `WRTC_HU_DENSITY_MEAN`; optional Risk / Exposure / **Building Density** (Context only) |
 | `03_zonal_evt_padus.py` | EVT **top 3 by area** (+ majority); PAD → `PADUS_FRAC` (**context**); BpS/MFRI; FDist → `FDIST_FUEL_DELTA` |
 | `04_score_actions.py` | Action cascade + `PEOPLE_CAT` + scores; **Goldilocks = people_first** |
 | `05_export_hex_geojson.py` | Write `outputs/hex/` for GitHub / Quarto |
@@ -36,8 +36,8 @@ PAD / BpS / EVT_FIRE / FDist do **not** pick the action. Fuel is a map layer onl
 
 | Field | Preset |
 |-------|--------|
-| `PEOPLE_CAT` | AOI quintiles of WRTC HU Risk (Very Low … Very High) |
-| `SCORE_PEOPLE` | `people_first` — **default Goldilocks** (homes + WFE + plantation; no fuel) |
+| `PEOPLE_CAT` | AOI quintiles of WRTC HU Density (Very Low … Very High) |
+| `SCORE_PEOPLE` | `people_first` — **default Goldilocks** (density + WFE + plantation; no fuel) |
 | `SCORE_PLANTATION` | `plantation_asset_first` |
 | `SCORE_PAD` | legacy preset label — **PAD weight unused** |
 | `SCORE_BALANCED` | `balanced` |
@@ -57,6 +57,7 @@ Goldilocks excludes `defer_monitor` and `wetlands_assess_locally`.
 ## Notes
 
 - Spatial Analyst required for zonal steps.
-- Until EVT codes are listed in `config/evt_rules_draft.csv`, peat/plantation flags stay off; actions still follow WRTC + WFE.
-- Score fields use raw WRTC/WFE scales initially — normalize after the first real run if needed.
+- Until EVT codes are listed in `config/evt_rules_draft.csv`, peat/plantation flags stay off; actions still follow HU Density + WFE.
+- Score fields use raw density/WFE scales initially — normalize after the first real run if needed.
+- Do **not** use HU Risk as the people term (wildfire already in WFE).
 - Commit hex GeoJSON only; never rasters or the `.aprx`.

@@ -189,8 +189,8 @@ ul.task-list li input[type="checkbox"] {
 <td>Where fire can transmit embers across the landscape <em>today</em></td>
 </tr>
 <tr class="even">
-<td><strong>People (WRTC Housing Unit Risk)</strong></td>
-<td>Where homes and community wildfire risk are high</td>
+<td><strong>People (WRTC Housing Unit Density)</strong></td>
+<td>Where Census housing is (incl.&nbsp;seasonal homes) — not community wildfire risk</td>
 </tr>
 <tr class="odd">
 <td><strong>Plantations</strong></td>
@@ -234,7 +234,7 @@ ul.task-list li input[type="checkbox"] {
 <p>Cutoffs are <strong>relative to this Northwoods AOI</strong> (recomputed each scoring run).</p>
 <section id="people-bins-people_cat" class="level3">
 <h3 class="anchored" data-anchor-id="people-bins-people_cat">People bins (<code>PEOPLE_CAT</code>)</h3>
-<p>Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from <strong>AOI quintiles</strong> of Housing Unit Risk (20/40/60/80th percentiles). In a low-density region, roughly one-fifth of hexes will always land in each bin — including High / Very High — even when absolute home density is modest. The bins rank <em>where people are relatively more present within this AOI</em>, not where cities are.<br>
+<p>Same five labels as WFE: Very Low, Low, Moderate, High, Very High — from <strong>AOI quintiles</strong> of Housing Unit Density (20/40/60/80th percentiles). In a low-density region, roughly one-fifth of hexes will always land in each bin — including High / Very High — even when absolute home density is modest. The bins rank <em>where housing is relatively more present within this AOI</em>, not where cities are. We use <strong>density</strong> (not Housing Unit Risk) so wildfire stays only in the WFE hazard leg.<br>
 <strong>Treat for people</strong> still needs <strong>High or Very High</strong> people <strong>and</strong> High/VH WFE.</p>
 </section>
 <section id="wildfire-exposure" class="level3">

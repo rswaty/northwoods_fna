@@ -11,5 +11,5 @@ See also `ACTION_ASSIGNMENT.md` and `ACTION_MATRIX_REVIEW.csv`.
 | 5 | `ecosystem_health_focus` | Pine/oak in EVT top 3 **and** `PEOPLE_CAT` Moderate/Low/VL |
 | 6 | `defer_monitor` | Else |
 
-**People bins:** AOI quintiles of WRTC HU Risk → Very Low … Very High.  
+**People bins:** AOI quintiles of WRTC HU Density → Very Low … Very High.  
 **Fuel:** map layer only (not in action cascade or Goldilocks score).

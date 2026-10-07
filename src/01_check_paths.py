@@ -16,9 +16,10 @@ REQUIRED = [
 
 RECOMMENDED = [
     "aoi",
+    "wrtc_housing_unit_density",
     "wrtc_housing_unit_risk",
     "wrtc_housing_unit_exposure",
-    "wrtc_housing_unit_density",
+    "wrtc_building_density",
     "landfire_evt",
     "landfire_bps",
     "landfire_fdist",
@@ -30,7 +31,10 @@ def main() -> None:
     arcpy = require_arcpy()
     cfg = load_paths()
     print("Repo:", cfg["_repo_root"])
-    print("v1: people-first ranking; PAD GAP 1-3 multiplier; EVT = peat + plantations only")
+    print(
+        "v1: people = Housing Unit Density; WFE = hazard; "
+        "PAD GAP 1-3 context; EVT = peat + plantations"
+    )
     print("Checking required inputs…")
     ok = True
     for key in REQUIRED:
@@ -46,20 +50,26 @@ def main() -> None:
         print(f"  {'OK' if exists else 'NOT FOUND'}: {key} -> {val}")
         ok = ok and exists
 
-    # Primary people raster (new key or legacy alias)
-    risk = cfg.get("wrtc_housing_unit_risk") or cfg.get("wrtc_housing_exposure", "")
-    if risk:
+    # Primary people raster = Housing Unit Density
+    density = cfg.get("wrtc_housing_unit_density", "")
+    if density:
+        exists = arcpy.Exists(density)
         print(
-            f"  {'OK' if arcpy.Exists(risk) else 'NOT FOUND'}: "
-            f"wrtc_housing_unit_risk (primary) -> {risk}"
+            f"  {'OK' if exists else 'NOT FOUND'}: "
+            f"wrtc_housing_unit_density (PRIMARY people) -> {density}"
         )
+        ok = ok and exists
     else:
-        print("  empty: wrtc_housing_unit_risk (PRIMARY — set before 02_zonal_wrtc.py)")
+        print(
+            "  empty: wrtc_housing_unit_density "
+            "(PRIMARY — set before 02_zonal_wrtc.py)"
+        )
+        ok = False
 
     print("Recommended (fill when ready):")
     for key in RECOMMENDED:
-        if key == "wrtc_housing_unit_risk":
-            continue  # already reported
+        if key == "wrtc_housing_unit_density":
+            continue  # already reported as primary
         val = cfg.get(key, "")
         if not val:
             print(f"  empty: {key}")

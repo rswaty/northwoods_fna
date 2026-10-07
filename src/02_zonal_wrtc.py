@@ -1,7 +1,11 @@
 """Zonal statistics: WRTC people layers → hex means.
 
-Primary: Housing Unit Risk → WRTC_HU_RISK_MEAN (drives people-first scoring).
-Optional companions: Housing Unit Exposure, Housing Unit Density.
+Primary: Housing Unit Density → WRTC_HU_DENSITY_MEAN (drives PEOPLE_CAT /
+people-first scoring). Density = where homes are; keeps WFE as the sole
+hazard leg (HU Risk embeds wildfire and double-counts with WFE).
+
+Optional companions: Housing Unit Risk, Housing Unit Exposure,
+Building Density (cabins / other footprints — Context map only).
 
 Requires Spatial Analyst. Writes onto a working hex copy in the workspace GDB
 (does not overwrite the source hex feature class).
@@ -31,8 +35,11 @@ def _zonal_mean(
 
     WRTC Housing Unit Risk/Exposure only have pixels where housing exists, so
     hexes with no housing are absent from the zonal table (NoData). For these
-    housing-risk layers, NoData means "no homes here" = 0 risk, so fill_zero
-    replaces NULL with 0. Count how many were filled for transparency.
+    housing layers, NoData means "no homes here" = 0, so fill_zero replaces
+    NULL with 0. Count how many were filled for transparency.
+
+    Housing Unit Density is spatially smoothed (tiny nonzero empties are normal);
+    fill_zero still applies when zonal returns no row for a hex.
     """
     arcpy.sa.ZonalStatisticsAsTable(
         in_zone_data=zones,
@@ -70,23 +77,24 @@ def main() -> None:
     workspace = cfg.get("workspace", "")
     hex_id = cfg.get("hex_id_field", "GRID_ID")
 
-    # Primary = Housing Unit Risk (legacy key wrtc_housing_exposure still accepted)
+    density = cfg.get("wrtc_housing_unit_density", "")
     risk = cfg.get("wrtc_housing_unit_risk") or cfg.get("wrtc_housing_exposure", "")
     exposure = cfg.get("wrtc_housing_unit_exposure", "")
-    density = cfg.get("wrtc_housing_unit_density", "")
+    building = cfg.get("wrtc_building_density", "")
 
-    # NoData in WRTC housing layers = no homes = 0 risk. Fill by default.
+    # NoData in WRTC housing layers = no homes = 0. Fill by default.
     # Set wrtc_fill_nodata_zero: "false" in paths.local.yaml to keep NULLs.
     fill_zero = str(cfg.get("wrtc_fill_nodata_zero", "true")).strip().lower() != "false"
 
-    if not risk:
+    if not density:
         raise SystemExit(
-            "Set wrtc_housing_unit_risk (Housing Unit Risk) in config/paths.local.yaml"
+            "Set wrtc_housing_unit_density (Housing Unit Density) in "
+            "config/paths.local.yaml — primary people input"
         )
     if not arcpy.Exists(hexes):
         raise SystemExit(f"Hexes not found: {hexes}")
-    if not arcpy.Exists(risk):
-        raise SystemExit(f"WRTC Housing Unit Risk raster not found: {risk}")
+    if not arcpy.Exists(density):
+        raise SystemExit(f"WRTC Housing Unit Density raster not found: {density}")
 
     if workspace:
         arcpy.env.workspace = workspace
@@ -96,17 +104,22 @@ def main() -> None:
     print(f"Copying hexes → {out_fc}")
     arcpy.management.CopyFeatures(hexes, out_fc)
 
-    print(f"Primary zonal: Housing Unit Risk → WRTC_HU_RISK_MEAN")
-    _zonal_mean(arcpy, out_fc, hex_id, risk, "zonal_wrtc_risk", "WRTC_HU_RISK_MEAN", fill_zero)
+    print("Primary zonal: Housing Unit Density → WRTC_HU_DENSITY_MEAN")
+    _zonal_mean(arcpy, out_fc, hex_id, density, "zonal_wrtc_den", "WRTC_HU_DENSITY_MEAN", fill_zero)
 
-    # Keep legacy alias for older scoring field name
-    fields = [f.name for f in arcpy.ListFields(out_fc)]
-    if "WRTC_HU_MEAN" not in fields:
-        arcpy.management.AddField(out_fc, "WRTC_HU_MEAN", "DOUBLE")
-    with arcpy.da.UpdateCursor(out_fc, ["WRTC_HU_RISK_MEAN", "WRTC_HU_MEAN"]) as cur:
-        for row in cur:
-            row[1] = row[0]
-            cur.updateRow(row)
+    if risk and arcpy.Exists(risk):
+        print("Companion zonal: Housing Unit Risk → WRTC_HU_RISK_MEAN")
+        _zonal_mean(arcpy, out_fc, hex_id, risk, "zonal_wrtc_risk", "WRTC_HU_RISK_MEAN", fill_zero)
+        # Legacy alias for older tooling
+        fields = [f.name for f in arcpy.ListFields(out_fc)]
+        if "WRTC_HU_MEAN" not in fields:
+            arcpy.management.AddField(out_fc, "WRTC_HU_MEAN", "DOUBLE")
+        with arcpy.da.UpdateCursor(out_fc, ["WRTC_HU_RISK_MEAN", "WRTC_HU_MEAN"]) as cur:
+            for row in cur:
+                row[1] = row[0]
+                cur.updateRow(row)
+    else:
+        print("Skipping Housing Unit Risk (path empty or not found) — optional companion")
 
     if exposure and arcpy.Exists(exposure):
         print("Companion zonal: Housing Unit Exposure")
@@ -114,11 +127,16 @@ def main() -> None:
     else:
         print("Skipping Housing Unit Exposure (path empty or not found)")
 
-    if density and arcpy.Exists(density):
-        print("Companion zonal: Housing Unit Density")
-        _zonal_mean(arcpy, out_fc, hex_id, density, "zonal_wrtc_den", "WRTC_HU_DENSITY_MEAN", fill_zero)
+    if building and arcpy.Exists(building):
+        print("Context zonal: Building Density → WRTC_BLDG_DENSITY_MEAN (not scored)")
+        _zonal_mean(
+            arcpy, out_fc, hex_id, building, "zonal_wrtc_bldg", "WRTC_BLDG_DENSITY_MEAN", fill_zero
+        )
     else:
-        print("Skipping Housing Unit Density (path empty or not found)")
+        print(
+            "Skipping Building Density (path empty or not found) — "
+            "optional Context companion for cabins/other buildings"
+        )
 
     print(f"Done. Working feature class: {out_fc}")
     print("Next: 03_zonal_evt_padus.py")

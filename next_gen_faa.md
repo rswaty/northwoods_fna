@@ -60,7 +60,7 @@ ICO / variable-density thinning is one example for some dense red pine plantatio
 
   - Plantation (EVT) → **Protect from wildfire** (always)
 
-  - High WRTC Housing Unit Risk → **Protect from wildfire**
+  - High WRTC Housing Unit Density + High WFE → **Protect from wildfire** / treat for people
 
   - High WFE → **Restore with beneficial fire**
 
@@ -102,19 +102,19 @@ Extensible catalog. Plantations are an **economic asset** always assigned Protec
 
 Source: [wildfirerisk.org/download](https://wildfirerisk.org/download/) (May 2024 GIS by state: MI, WI, MN). Rasters stay local. Details: `config/WRTC_DATASETS.md`.
 
-  | Role | Dataset | Use 
+  | Role | Dataset | Use |
 
-  | **Primary** | **Housing Unit Risk** | Main people term; drives high-WRTC → Protect. Integrates likelihood, intensity, home susceptibility, and housing density where housing exists. 
+  | **Primary** | **Housing Unit Density** (or Count) | Where Census housing is (incl. seasonal). Main people term → `PEOPLE_CAT`; High/VH people × High/VH WFE → treat for people. |
 
-  | Companion | **Housing Unit Exposure** | Expected housing units exposed per year (likelihood × density). Dashboard / alternate people view. 
+  | Optional companion | **Housing Unit Risk** | Likelihood × intensity × susceptibility × density. Context only — embeds wildfire (double-counts with WFE). |
 
-  | Where homes are | **Housing Unit Density** or **Count** | Presence and magnitude of housing per hex. 
+  | Optional companion | **Housing Unit Exposure** | Likelihood × density. Dashboard triangulation, not people scoring. |
 
-  | Optional label | **Community Wildfire Risk Reduction Zones** | Minimal / Indirect / Direct / Transmission—dashboard context, not v1 action cascade. 
+  | Optional label | **Community Wildfire Risk Reduction Zones** | Minimal / Indirect / Direct / Transmission—dashboard context, not v1 action cascade. |
 
-  | Optional triangulation | **Risk to Potential Structures** (“Risk to Homes”) | Wall-to-wall risk *if* a home were there. Not primary for Protect (no homes required). 
+  | Optional triangulation | **Risk to Potential Structures** (“Risk to Homes”) | Wall-to-wall risk *if* a home were there. Not primary for Protect (no homes required). |
 
-**Not primary for v1 people scoring:** Housing Unit Impact (no likelihood); WRTC burn probability / WHP as a second hazard (project hazard is **WFE**); Building Count (prefer Housing Unit); Population (equity later).
+**Not primary for v1 people scoring:** Housing Unit Risk / Exposure (wildfire already in WFE); Housing Unit Impact (no likelihood); WRTC burn probability / WHP as a second hazard; Building Count (prefer Housing Unit for people; Building Density may come later as Context); Population (equity later).
 
 [SILVIS WUI](https://silvis.forest.wisc.edu/data/wui-change/) remains an optional label only (2020).
 

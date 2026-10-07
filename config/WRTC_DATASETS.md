@@ -9,20 +9,22 @@ Official family name is **Wildfire Risk to Communities (WRC/WRTC)**.
 
 | Priority | Dataset | What it is | Use in FAA |
 |----------|---------|------------|------------|
-| **1 — primary people risk** | **Housing Unit Risk** (`HURisk`) | Likelihood + intensity + home susceptibility + housing density; only where housing exists | Main `w_homes` term; "high people" routes a high-WFE hex to `treat_fire_risk_for_people` |
-| **2 — exposure companion** | **Housing Unit Exposure** (`HUExposure`) | Expected housing units exposed per year (likelihood × housing density) | Second people metric / dashboard toggle; “homes in the fire pathway” without full consequence |
-| **3 — where homes are** | **Housing Unit Density** (or **Count**) | Where occupied housing exists | Mask / presence; optional sum of count per hex for “how many homes” |
-| **4 — optional context** | **Community Wildfire Risk Reduction Zones** (`CWiRRZ`) | Minimal / Indirect / Direct / Transmission zones | Dashboard label & partner talk track—not v1 action cascade |
-| **5 — optional landscape** | **Risk to Potential Structures** (Risk to Homes) | Wall-to-wall: risk *if* a home were there | Triangulation / planning context; **not** primary for protect (paints risk with no homes) |
+| **1 — primary people** | **Housing Unit Density** (or **Count**) | Where occupied / vacant Census housing exists (includes seasonal homes) | Main `w_homes` term; AOI quintiles → `PEOPLE_CAT`; High/VH people × High/VH WFE → `treat_fire_risk_for_people` |
+| **2 — Context companion** | **Building Density** | Qualifying footprints ≥40 m² (homes, cabins, commercial, industrial) | Context map only — cabins/other structures beyond Census HUs; **not** scored |
+| **3 — optional companion** | **Housing Unit Risk** (`HURisk`) | Likelihood + intensity + home susceptibility + housing density | Context only — **not** people scoring (embeds wildfire; double-counts with WFE) |
+| **4 — optional companion** | **Housing Unit Exposure** (`HUExposure`) | Expected housing units exposed per year (likelihood × housing density) | Dashboard / triangulation; also hazard×homes, not a second people driver |
+| **5 — optional context** | **Community Wildfire Risk Reduction Zones** (`CWiRRZ`) | Minimal / Indirect / Direct / Transmission zones | Dashboard label & partner talk track—not v1 action cascade |
+| **6 — optional landscape** | **Risk to Potential Structures** (Risk to Homes) | Wall-to-wall: risk *if* a home were there | Triangulation / planning context; **not** primary for protect (paints risk with no homes) |
 
 ## Not primary for v1 people scoring
 
 | Dataset | Why skip as primary |
 |---------|---------------------|
+| Housing Unit Risk / Exposure | Pack wildfire into the people term; WFE is already the hazard leg |
 | Housing Unit Impact | Intensity × susceptibility × density, **no** likelihood — incomplete risk |
 | Burn Probability alone | Hazard only; we already use **WFE** for exposure/hazard on hexes |
 | Wildfire Hazard Potential (WRTC copy) | Triangulation only; WFE is the project hazard surface |
-| Building Count/Density (all buildings) | Prefer **Housing Unit** layers (occupied housing) |
+| Building Count/Density (all buildings) | Prefer **Housing Unit** for people **actions**; use Building Density as **Context** companion for cabins/commercial |
 | Population Count/Density | Useful later for equity; not v1 protect trigger |
 | Flame length exceedance | Intensity detail later if needed |
 
@@ -32,28 +34,29 @@ Zonal to ~10k-acre hexes (mean unless noted):
 
 | Hex field | From |
 |-----------|------|
-| `WRTC_HU_RISK_MEAN` | Housing Unit Risk (primary) |
-| `WRTC_HU_EXPOSURE_MEAN` | Housing Unit Exposure |
-| `WRTC_HU_DENSITY_MEAN` or `WRTC_HU_COUNT_SUM` | Housing Unit Density / Count |
+| `WRTC_HU_DENSITY_MEAN` | Housing Unit Density (**primary people**) |
+| `WRTC_BLDG_DENSITY_MEAN` | Building Density (Context map — cabins / other ≥40 m²) |
+| `WRTC_HU_RISK_MEAN` | Housing Unit Risk (optional companion) |
+| `WRTC_HU_EXPOSURE_MEAN` | Housing Unit Exposure (optional) |
+| `WRTC_HU_COUNT_SUM` | Housing Unit Count (optional; not coded yet) |
 | `WRTC_RRZONE_MAJORITY` | CWiRRZ (optional categorical) |
 
-**v1 decision rule:** “high homes” uses **Housing Unit Risk** hex mean (top ~30%). Exposure can be shown alongside. Count/density prevents treating empty high-RPS landscape as “communities.”
+**v1 decision rule:** “high people” uses **Housing Unit Density** hex mean → AOI quintiles (`PEOPLE_CAT`). Risk/Exposure can be shown alongside as context only.
 
-**Default Goldilocks ranking** uses the people-first preset (`SCORE_PEOPLE`), which weights Housing Unit Risk most heavily.
+**Default Goldilocks ranking** uses the people-first preset (`SCORE_PEOPLE`), which weights Housing Unit Density most heavily (`w_homes`), then WFE and plantations.
 
 ## NoData / NULL hexes
 
 Housing Unit **Risk** and **Exposure** only have pixel values **where housing units exist**; hexes with no homes come back NoData from zonal stats. Housing Unit **Density** is spatially smoothed, so it usually has a (tiny) value even in empty hexes.
 
-For these housing layers, NoData genuinely means **no homes = 0 housing risk**, so `02_zonal_wrtc.py` fills NULL with **0** by default (it prints how many hexes were filled). Set `wrtc_fill_nodata_zero: "false"` in `paths.local.yaml` to keep NULLs instead. Do **not** apply this logic to hazard rasters like WFE, where NoData is missing data, not zero hazard.
-
-Quick sanity check in Pro: select hexes where `WRTC_HU_RISK_MEAN IS NULL` (before filling) and confirm their `WRTC_HU_DENSITY_MEAN` is ~0.
+For these housing layers, NoData genuinely means **no homes = 0**, so `02_zonal_wrtc.py` fills NULL with **0** by default (it prints how many hexes were filled). Set `wrtc_fill_nodata_zero: "false"` in `paths.local.yaml` to keep NULLs instead. Do **not** apply this logic to hazard rasters like WFE, where NoData is missing data, not zero hazard.
 
 ## Relation to WFE
 
 - **WFE** = landscape wildfire exposure / transmission (your existing hex product).  
-- **HURisk / HUExposure** = that hazard intersecting **housing**.  
-- Do not double-count BP/WHP from WRTC as a second hazard driver; keep WFE as the hazard leg.
+- **HU Density** = where Census housing is (occupied + vacant / seasonal).  
+- **HURisk / HUExposure** = hazard intersecting housing — useful context, **not** a second people score.  
+- Do not double-count BP/WHP (or HU Risk) from WRTC as a second hazard driver; keep WFE as the hazard leg.
 
 ## Download tips
 

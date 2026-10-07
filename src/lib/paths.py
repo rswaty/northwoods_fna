@@ -53,6 +53,7 @@ def load_paths(path: Path | None = None) -> dict[str, str]:
         "wrtc_housing_unit_risk",
         "wrtc_housing_unit_exposure",
         "wrtc_housing_unit_density",
+        "wrtc_building_density",
         "wrtc_risk_reduction_zones",
         "wrtc_risk_to_homes",
         "wrtc_housing_exposure",
