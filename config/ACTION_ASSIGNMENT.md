@@ -11,9 +11,9 @@ Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW
 |-------|-------------------------|------|
 | EVT plantation | Yes | → **always** `value_to_protect_from_fire` |
 | EVT peat | Yes | → `wetlands_assess_locally` |
-| WFE category | Yes | **High / Very High bin only** → people vs ecosystem split |
-| People category | Yes | AOI **quintile** bins (`PEOPLE_CAT`, same five labels as WFE). High/VH + High/VH WFE → treat |
-| EVT pine/oak list (top 3) | Yes | Safety net → ecosystem when people are **Moderate / Low / Very Low** (tighten) |
+| WFE category | Yes | **High / Very High** → people vs ecosystem split; **Moderate** → treat only with Very High buildings |
+| Building category (people proxy) | Yes | AOI **quintile** bins of building density (`PEOPLE_CAT`, same five labels as WFE). High/VH + High/VH WFE, or Very High + Moderate WFE → treat |
+| EVT pine/oak list (top 3) | Yes | Safety net → ecosystem when buildings are **Moderate / Low / Very Low** (tighten) |
 | FDist fuel direction | Goldilocks + map | Score multiplier (add > remove) and brown/green layer |
 | EVT `FIRE` (−1/0/1) | Context | Popup / review only |
 | BpS / MFRI (`FIRE_DEP_HEX`) | Context | Popup / review only |
@@ -23,17 +23,17 @@ Partner review matrix: `config/ACTION_MATRIX.md` · `config/ACTION_MATRIX_REVIEW
 
 1. **Plantation** → `value_to_protect_from_fire`  
 2. **Peat** → `wetlands_assess_locally`  
-3. **High/VH WFE + High/VH people** → `treat_fire_risk_for_people`  
+3. **High/VH WFE + High/VH buildings**, or **Moderate WFE + Very High buildings** → `treat_fire_risk_for_people`  
 4. **High/VH WFE** → `ecosystem_health_focus`  
-5. **Pine/oak in EVT top 3 + people Moderate/Low/VL** → `ecosystem_health_focus`  
+5. **Pine/oak in EVT top 3 + buildings Moderate/Low/VL** → `ecosystem_health_focus`  
 6. **Else** → `defer_monitor`  
 
 ### Bins
 
-- **WFE:** use product `WFE_CAT` (Very Low … Very High). Actions use High/VH only — no MEAN percentile bypass.  
-- **People:** `PEOPLE_CAT` from AOI quintiles of `WRTC_BLDG_DENSITY_MEAN` (20/40/60/80th cuts → Very Low … Very High). Treat needs High/VH.  
-  Housing Unit Risk is **not** used for people (embeds wildfire; double-counts with WFE).  
-- **Pine tighten:** High/VH people + pine + not High/VH WFE → **defer** (homes alone never create treat).
+- **WFE:** use product `WFE_CAT` (Very Low … Very High). Actions use High/VH, plus Moderate for the Very High building rule — no MEAN percentile bypass.  
+- **Buildings (people proxy):** `PEOPLE_CAT` from AOI quintiles of `WRTC_BLDG_DENSITY_MEAN` (20/40/60/80th cuts → Very Low … Very High). Buildings show where structures are, not a population count; the field keeps its `PEOPLE_CAT` name for the role it plays.  
+  Housing Unit Risk is **not** used (embeds wildfire; double-counts with WFE).  
+- **Pine tighten:** High/VH buildings + pine + not High/VH WFE → **defer** (buildings alone never create treat).
 
 ## Goldilocks
 

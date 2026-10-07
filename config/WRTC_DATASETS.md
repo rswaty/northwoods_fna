@@ -9,7 +9,7 @@ Official family name is **Wildfire Risk to Communities (WRC/WRTC)**.
 
 | Priority | Dataset | What it is | Use in FAA |
 |----------|---------|------------|------------|
-| **1 — primary people** | **Building Density** | Qualifying footprints ≥40 m² (homes, cabins, camps, commercial, industrial) | Main `w_homes` term; AOI quintiles → `PEOPLE_CAT`; High/VH people × High/VH WFE → `treat_fire_risk_for_people` |
+| **1 — primary people proxy** | **Building Density** | Qualifying footprints ≥40 m² (homes, cabins, camps, commercial, industrial) — where structures are, not a population count | Main `w_homes` term; AOI quintiles → `PEOPLE_CAT`; High/VH buildings × High/VH WFE (or Very High buildings × Moderate WFE) → `treat_fire_risk_for_people` |
 | **2 — Context companion** | **Housing Unit Density** (or **Count**) | Where occupied / vacant Census housing exists (includes seasonal homes) | Context map only; **not** scored |
 | **3 — optional companion** | **Housing Unit Risk** (`HURisk`) | Likelihood + intensity + home susceptibility + housing density | Context only — **not** people scoring (embeds wildfire; double-counts with WFE) |
 | **4 — optional companion** | **Housing Unit Exposure** (`HUExposure`) | Expected housing units exposed per year (likelihood × housing density) | Dashboard / triangulation; also hazard×homes, not a second people driver |

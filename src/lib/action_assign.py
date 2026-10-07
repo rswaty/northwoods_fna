@@ -4,15 +4,19 @@ Actions (first match):
   - plantation → value_to_protect_from_fire
   - peat / wetland → wetlands_assess_locally
   - High/VH WFE bin + High/VH people bin → treat_fire_risk_for_people
+  - Moderate WFE bin + Very High people bin → treat_fire_risk_for_people
   - High/VH WFE bin (any other people bin) → ecosystem_health_focus
   - pine/oak in EVT top 3 + people Moderate/Low/Very Low → ecosystem_health_focus
   - else → defer_monitor
 
 WFE gate: category bins only (High / Very High). No MEAN percentile bypass.
-People gate: five AOI quintile bins (Very Low … Very High), same label set as WFE.
-  Treat-for-people needs High or Very High people.
+People gate: five AOI quintile bins (Very Low … Very High) of building density,
+  a proxy for where people live, work and recreate; same label set as WFE.
+  Treat-for-people needs High/VH people with High/VH WFE, or Very High people
+  with Moderate WFE.
 Pine safety net (tighten): top-3 EVT list match only when people are not High/VH.
-  High/VH people + pine + not High/VH WFE → defer (homes alone do not create treat).
+  High/VH people + pine + not High/VH WFE → defer (buildings alone do not create treat),
+  except Moderate WFE + Very High people, which treats.
 
 Scores: people (building density) and WFE enter as 0–1 AOI percentile ranks,
 plantation as 0/1, so preset weights are comparable across inputs.
@@ -68,6 +72,14 @@ def is_high_wfe(wfe_cat: str | None) -> bool:
 def is_high_people(people_cat: str | None) -> bool:
     """People action gate: High or Very High bin only."""
     return is_high_or_very_high_bin(people_cat)
+
+
+def is_moderate_bin(cat: str | None) -> bool:
+    return _norm_cat(cat) in {"moderate", "m"}
+
+
+def is_very_high_bin(cat: str | None) -> bool:
+    return _norm_cat(cat) in {"very high", "vh"}
 
 
 def people_bin_allows_pine_ecosystem(people_cat: str | None) -> bool:
@@ -152,6 +164,8 @@ def assign_action_v1(
     high_people = is_high_people(people_cat)
 
     if high_wfe and high_people:
+        return "treat_fire_risk_for_people"
+    if is_moderate_bin(wfe_cat) and is_very_high_bin(people_cat):
         return "treat_fire_risk_for_people"
     if high_wfe:
         return "ecosystem_health_focus"

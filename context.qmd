@@ -78,7 +78,7 @@ aoi_quintile_bin <- function(x) {
 
 These layers are **context**: they help interpret why a hex got an action. They do **not** replace the [Actions](index.qmd) map. Switch layers with the control (top-right); the legend updates with the active layer.
 
-**Building density** (teal) drives people bins in the model — WRTC footprints ≥40 m² (homes, cabins, camps, commercial, industrial), so it picks up structures that Census housing undersells. **Housing density** (purple) is map-only: Census housing units, including seasonal / vacation homes. It does **not** pick actions or Goldilocks. Both are **relative to this Northwoods AOI** — High / Very High means “more *here* than elsewhere in the AOI,” not urban density.
+**Building density** (teal) is the model's **proxy for people** — WRTC footprints ≥40 m² (homes, cabins, camps, commercial, industrial), so it picks up structures that Census housing undersells. It shows where structures are, not how many people live, work or recreate there. **Housing density** (purple) is map-only: Census housing units, including seasonal / vacation homes. It does **not** pick actions or Goldilocks. Both are **relative to this Northwoods AOI** — High / Very High means “more *here* than elsewhere in the AOI,” not urban density.
 
 PAD is shown for orientation only — it does not pick actions or Goldilocks scores. See [Methods](methods.qmd).
 
@@ -203,7 +203,7 @@ if (!has_hex) {
       popup_html = paste0(
         "<b>", GRID_ID, "</b><br/>",
         "Wildfire Exposure Risk: ", as.character(WFE_CAT), "<br/>",
-        "Relative building density (people): ", as.character(PEOPLE_CAT), "<br/>",
+        "Relative building density (people proxy): ", as.character(PEOPLE_CAT), "<br/>",
         housing_bit,
         "Pine/oak in top 3 EVTs: ", round(PINE_OAK_PCT, 0), "% of hex<br/>",
         "PAD-US GAP 1–3 fraction: ", round(PADUS_FRAC, 2), "<br/>",

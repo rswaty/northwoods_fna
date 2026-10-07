@@ -9,7 +9,7 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 | Piece | Rule |
 |-------|------|
 | **Hazard** | Existing **WFE** on ~10k-acre hexes (`MEAN` / `WFE_CAT` bins) |
-| **People** | WRTC **Building Density** → `PEOPLE_CAT` (AOI quintiles, same five labels as WFE). Housing Unit Density is Context map only. Not HU Risk — that embeds wildfire and double-counts with WFE. |
+| **People (proxy)** | WRTC **Building Density** → `PEOPLE_CAT` (AOI quintiles, same five labels as WFE). Buildings stand in for people — where structures are, not a population count. Housing Unit Density is Context map only. Not HU Risk — that embeds wildfire and double-counts with WFE. |
 | **Plantations** | EVT flag → always **Value to protect from fire** (silviculture = `TREATMENT_HINT` only) |
 | **Peat** | LANDFIRE EVT → **`wetlands_assess_locally`** (fire-dependent *and* ground-fire hazard; swap to USFS peatlands later, same flag) |
 | **PAD-US** | GAP 1–3 → `PADUS_FRAC` on hexes for **map context only** (Leaflet). Not a score multiplier or action picker. |
@@ -21,12 +21,12 @@ Strategic screening only — not NEPA, tribal consultation, or stand prescriptio
 
 1. Plantation → value_to_protect_from_fire  
 2. Peat → wetlands_assess_locally  
-3. High/VH WFE + High/VH people → treat_fire_risk_for_people  
+3. High/VH WFE + High/VH buildings, or Moderate WFE + Very High buildings → treat_fire_risk_for_people  
 4. High/VH WFE → ecosystem_health_focus  
-5. Pine/oak in EVT top 3 + people Moderate/Low/VL → ecosystem_health_focus  
+5. Pine/oak in EVT top 3 + buildings Moderate/Low/VL → ecosystem_health_focus  
 6. Else → defer_monitor  
 
-**PAD / BpS / EVT_FIRE** are map or popup context only. **Fuel (FDist)** is a separate map layer (not score / not action).  
+**PAD / BpS / EVT_FIRE** are map or popup context only. **Fuel (FDist)** is its own map layer and a Goldilocks score multiplier (not an action picker).  
 Review matrix: `config/ACTION_MATRIX_REVIEW.csv`.
 
 Details: `config/ACTION_ASSIGNMENT.md` · notes: `config/next_steps_partner_notes.md` · brief: `faa_overview.qmd`

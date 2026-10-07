@@ -4,6 +4,8 @@ v1 (bins):
   - plantation → value_to_protect_from_fire
   - peat → wetlands_assess_locally
   - High/VH WFE + High/VH people → treat_fire_risk_for_people
+  - Moderate WFE + Very High people → treat_fire_risk_for_people
+  (people = building-density bins, a proxy for where people are)
   - High/VH WFE → ecosystem_health_focus
   - pine/oak in EVT top 3 + people Moderate/Low/VL → ecosystem_health_focus
   - else → defer_monitor

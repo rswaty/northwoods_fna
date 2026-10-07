@@ -104,7 +104,7 @@ Source: [wildfirerisk.org/download](https://wildfirerisk.org/download/) (May 202
 
   | Role | Dataset | Use |
 
-  | **Primary** | **Building Density** | Where structures ≥40 m² are (homes, cabins, camps, commercial). Main people term → `PEOPLE_CAT`; High/VH people × High/VH WFE → treat for people. Housing Unit Density = Context map only. |
+  | **Primary** | **Building Density** | Where structures ≥40 m² are (homes, cabins, camps, commercial). Proxy for people (not a population count) → `PEOPLE_CAT`; High/VH buildings × High/VH WFE, or Very High buildings × Moderate WFE → treat for people. Housing Unit Density = Context map only. |
 
   | Optional companion | **Housing Unit Risk** | Likelihood × intensity × susceptibility × density. Context only — embeds wildfire (double-counts with WFE). |
 
